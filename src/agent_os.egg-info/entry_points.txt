@@ -1,2 +1,2 @@
 [console_scripts]
-agent-os-internal = agent_os.cli:main
+agent-os = agent_os.cli:main

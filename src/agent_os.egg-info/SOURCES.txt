@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 src/agent_os/__init__.py
