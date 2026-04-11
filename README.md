@@ -183,6 +183,38 @@ export AGENT_OS_CONDA_ROOT=/path/to/your/conda   # default: ~/miniconda3
 
 Your personal memory files are gitignored. Clone on a new machine, fill in once, you're running.
 
+### Remote machines and HPC clusters
+
+A few things differ on shared compute clusters:
+
+**Work filesystem** — home directories on HPC systems are often quota-limited or slow. Clone to a work/scratch filesystem instead:
+```bash
+git clone https://github.com/yourname/agent-os /work/path/to/agent-os
+cd /work/path/to/agent-os
+pip install -e .
+```
+
+**Python via environment modules** — many clusters use `module` rather than Conda. If the system Python or pip is broken/too old, load a working Python first:
+```bash
+module load <python-module>   # e.g. miniforge3, python/3.11, anaconda3
+pip install -e .
+```
+Add the `module load` line to your `~/.bashrc` (or equivalent) so it's available in every session.
+
+**Non-standard Python path** — if your Python isn't at `~/miniconda3`, tell agent-os where it is:
+```bash
+export AGENT_OS_CONDA_ROOT=/path/to/your/python/env
+```
+
+**Syncing skills and settings from your primary machine** — `agent-os sync` installs skills from the repo, but vendor skills, plugins, and `settings.json` from your primary machine need an explicit push:
+```bash
+rsync -av ~/.claude/skills/   user@remote-host:~/.claude/skills/
+rsync -av ~/.claude/plugins/  user@remote-host:~/.claude/plugins/
+rsync -av ~/.claude/commands/ user@remote-host:~/.claude/commands/
+rsync -av ~/.claude/settings.json user@remote-host:~/.claude/settings.json
+```
+Re-run this whenever you add or update skills on your primary machine.
+
 ---
 
 ## Architecture reference

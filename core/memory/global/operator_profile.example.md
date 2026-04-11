@@ -20,6 +20,7 @@
 ### `remote_gpu`
 - Preferred profile for production model-backed runs requiring GPU
 - When used, record: backend, model id, device, runtime, artifact outputs, quota constraints
+- On HPC clusters: note the cluster name, work filesystem path, and how Python is loaded (Conda module, environment module, etc.)
 
 ### `hosted_inference`
 - Fallback when remote GPU is not available
