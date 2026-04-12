@@ -1,0 +1,17 @@
+{
+  "answers": {
+    "planning_strictness": 4,
+    "risk_tolerance": 3,
+    "testing_rigor": 3,
+    "parallelism_preference": 3,
+    "documentation_rigor": 4,
+    "automation_level": 3,
+
+    "first_principles_depth": 4,
+    "exploration_breadth": 3,
+    "speed_vs_rigor_balance": 3,
+    "challenge_orientation": 3,
+    "uncertainty_tolerance": 3,
+    "autonomy_preference": 2
+  }
+}

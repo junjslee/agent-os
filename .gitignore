@@ -11,3 +11,9 @@ core/memory/global/overview.md
 core/memory/global/operator_profile.md
 core/memory/global/workflow_policy.md
 core/memory/global/python_runtime_policy.md
+core/memory/global/cognitive_profile.md
+core/memory/global/.generated/workstyle_profile.json
+core/memory/global/.generated/workstyle_scores.json
+core/memory/global/.generated/workstyle_explanations.md
+core/memory/global/.generated/cognitive_profile.json
+core/memory/global/.generated/cognitive_explanations.md

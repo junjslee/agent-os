@@ -19,6 +19,8 @@ CONDA_ROOT = Path(os.environ.get("AGENT_OS_CONDA_ROOT", str(HOME / "miniconda3")
 EXPECTED_BASE_PREFIX = str(CONDA_ROOT)
 RUNTIME_MANIFEST = json.loads((REPO_ROOT / "core" / "runtime_manifest.json").read_text(encoding="utf-8"))
 HARNESSES_DIR = REPO_ROOT / "core" / "harnesses"
+GLOBAL_MEMORY_DIR = REPO_ROOT / "core" / "memory" / "global"
+GENERATED_PROFILE_DIR = GLOBAL_MEMORY_DIR / ".generated"
 
 
 # ---------------------------------------------------------------------------
@@ -212,10 +214,10 @@ def _managed_skills() -> list[Path]:
 
 def _resolve_memory_file(name: str) -> Path:
     """Return the personal file if it exists, else fall back to the example."""
-    personal = REPO_ROOT / "core" / "memory" / "global" / f"{name}.md"
+    personal = GLOBAL_MEMORY_DIR / f"{name}.md"
     if personal.exists():
         return personal
-    return REPO_ROOT / "core" / "memory" / "global" / f"{name}.example.md"
+    return GLOBAL_MEMORY_DIR / f"{name}.example.md"
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +227,7 @@ def _resolve_memory_file(name: str) -> Path:
 def _init_memory() -> int:
     """Bootstrap personal memory files from *.example.md templates."""
     memory_dir = REPO_ROOT / "core" / "memory" / "global"
-    names = ["overview", "operator_profile", "workflow_policy", "python_runtime_policy"]
+    names = ["overview", "operator_profile", "workflow_policy", "python_runtime_policy", "cognitive_profile"]
 
     created: list[str] = []
     skipped: list[str] = []
@@ -261,7 +263,7 @@ def _init_memory() -> int:
 def _render_user_claude_md() -> str:
     imports = "\n".join(
         f"@{_resolve_memory_file(name)}"
-        for name in ["overview", "operator_profile", "workflow_policy", "python_runtime_policy"]
+        for name in ["overview", "operator_profile", "workflow_policy", "python_runtime_policy", "cognitive_profile"]
     )
     return (
         "# Agent OS Global Memory\n\n"
@@ -388,6 +390,7 @@ def _sync_hermes_runtime() -> bool:
         REPO_ROOT / "core" / "memory" / "global" / "overview.md",
         REPO_ROOT / "core" / "memory" / "global" / "operator_profile.md",
         REPO_ROOT / "core" / "memory" / "global" / "workflow_policy.md",
+        REPO_ROOT / "core" / "memory" / "global" / "cognitive_profile.md",
     ]:
         if mem_file.exists():
             sections.append(mem_file.read_text(encoding="utf-8").rstrip() + "\n\n")
@@ -1004,6 +1007,1023 @@ def _list_harnesses() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Deterministic working-style profile system
+# ---------------------------------------------------------------------------
+
+PROFILE_DIMENSIONS = [
+    "planning_strictness",
+    "risk_tolerance",
+    "testing_rigor",
+    "parallelism_preference",
+    "documentation_rigor",
+    "automation_level",
+]
+
+
+def _profile_survey_questions() -> list[dict]:
+    return [
+        {
+            "dimension": "planning_strictness",
+            "question": "How structured is your planning before implementation?",
+            "choices": [
+                "I usually jump straight into implementation.",
+                "I create a brief checklist first.",
+                "I maintain staged plans for non-trivial work.",
+                "I require explicit staged plans before major implementation.",
+            ],
+        },
+        {
+            "dimension": "risk_tolerance",
+            "question": "How conservative should your default execution posture be?",
+            "choices": [
+                "Optimize for speed, tolerate more risk.",
+                "Balanced speed and caution.",
+                "Conservative by default, guardrails preferred.",
+                "Strictly conservative; explicit review/approval gates.",
+            ],
+        },
+        {
+            "dimension": "testing_rigor",
+            "question": "How strong should testing requirements be during normal work?",
+            "choices": [
+                "Run lightweight checks only.",
+                "Run targeted tests for touched areas.",
+                "Run comprehensive local tests before completion.",
+                "Require robust verification and block completion on failures.",
+            ],
+        },
+        {
+            "dimension": "parallelism_preference",
+            "question": "How much parallelization should be encouraged?",
+            "choices": [
+                "Mostly single-threaded, one active lane.",
+                "Occasional parallel lanes for independent tasks.",
+                "Frequent bounded parallel lanes with clear ownership.",
+                "Strong preference for structured parallel work via worktrees.",
+            ],
+        },
+        {
+            "dimension": "documentation_rigor",
+            "question": "How strictly should project memory docs be maintained?",
+            "choices": [
+                "Minimal notes, only when necessary.",
+                "Keep core docs updated during milestones.",
+                "Maintain requirements/plan/progress consistently.",
+                "Treat docs as mandatory operating contract every session.",
+            ],
+        },
+        {
+            "dimension": "automation_level",
+            "question": "How much deterministic automation should run by default?",
+            "choices": [
+                "Mostly manual execution.",
+                "Basic formatting and helper automation.",
+                "Strong automation for quality and consistency.",
+                "Comprehensive deterministic automation with strict guardrails.",
+            ],
+        },
+    ]
+
+
+def _prompt_choice(question: str, choices: list[str]) -> int:
+    while True:
+        print()
+        print(question)
+        for idx, choice in enumerate(choices, start=1):
+            print(f"  {idx}) {choice}")
+        raw = input("Select 1-4: ").strip()
+        if raw in {"1", "2", "3", "4"}:
+            return int(raw)
+        print("Invalid selection. Please enter 1, 2, 3, or 4.")
+
+
+def _normalize_answers(answers: dict[str, int]) -> dict[str, int]:
+    normalized: dict[str, int] = {}
+    parsed: dict[str, int] = {}
+
+    for key, raw in answers.items():
+        try:
+            parsed[key] = int(raw)
+        except (TypeError, ValueError):
+            continue
+
+    # If any answer is 0, interpret the whole payload as 0..3 scale and map to 1..4.
+    # Otherwise interpret as 1..4 directly.
+    zero_based_mode = any(value == 0 for value in parsed.values())
+
+    for key, value in parsed.items():
+        if zero_based_mode:
+            if 0 <= value <= 3:
+                normalized[key] = value + 1
+        else:
+            if 1 <= value <= 4:
+                normalized[key] = value
+    return normalized
+
+
+def _load_answers_file(path: Path) -> dict[str, int]:
+    if not path.exists():
+        raise FileNotFoundError(f"answers file not found: {path}")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON in answers file: {path} ({exc})") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("answers file must be a JSON object")
+
+    # Support either top-level map or {"answers": {...}}
+    if "answers" in payload and isinstance(payload["answers"], dict):
+        payload = payload["answers"]
+
+    return _normalize_answers(payload)
+
+
+def _profile_survey(answers: dict[str, int] | None = None) -> dict:
+    print("Deterministic workstyle survey")
+    print("Answer each question with 1..4. Higher values mean stricter/more structured defaults.")
+
+    normalized_answers = _normalize_answers(answers or {})
+
+    responses: dict[str, dict] = {}
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+
+    for item in _profile_survey_questions():
+        dim = item["dimension"]
+        if dim in normalized_answers:
+            choice_idx = normalized_answers[dim]
+            print(f"[answers-file] {dim}: selected option {choice_idx}")
+        else:
+            choice_idx = _prompt_choice(item["question"], item["choices"])
+        score = choice_idx - 1
+        responses[dim] = {
+            "question": item["question"],
+            "selected_option": choice_idx,
+            "selected_text": item["choices"][choice_idx - 1],
+            "score": score,
+        }
+        scores[dim] = score
+        evidence[dim] = [f"survey option {choice_idx}: {item['choices'][choice_idx - 1]}"]
+
+    return {
+        "source": "survey",
+        "scores": scores,
+        "responses": responses,
+        "evidence": evidence,
+    }
+
+
+def _safe_read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return ""
+
+
+def _git_text(args: list[str], cwd: Path) -> str:
+    try:
+        return _run(args, cwd=cwd).stdout.strip().lower()
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def _detect_branch_prefix_count(project_root: Path) -> int:
+    txt = _git_text(["git", "for-each-ref", "--format=%(refname:short)", "refs/heads"], project_root)
+    if not txt:
+        return 0
+    prefixes = ("feat/", "fix/", "docs/", "research/", "ops/")
+    count = 0
+    for line in txt.splitlines():
+        if any(line.startswith(prefix) for prefix in prefixes):
+            count += 1
+    return count
+
+
+def _project_has_tests(project_root: Path) -> bool:
+    tests_dir = project_root / "tests"
+    if tests_dir.exists() and tests_dir.is_dir():
+        return True
+    for pattern in ("test_*.py", "*_test.py", "*.spec.ts", "*.test.ts", "*.test.js"):
+        try:
+            if any(project_root.rglob(pattern)):
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def _project_has_ci(project_root: Path) -> bool:
+    workflows = project_root / ".github" / "workflows"
+    if not workflows.exists():
+        return False
+    try:
+        return any(workflows.glob("*.yml")) or any(workflows.glob("*.yaml"))
+    except OSError:
+        return False
+
+
+def _score_from_flags(flags: list[tuple[bool, str]]) -> tuple[int, list[str]]:
+    score = 0
+    evidence: list[str] = []
+    for is_true, message in flags:
+        if is_true:
+            score += 1
+            evidence.append(message)
+    return min(3, score), evidence
+
+
+def _profile_infer(project_root: Path) -> dict:
+    docs_files = [
+        project_root / "docs" / "REQUIREMENTS.md",
+        project_root / "docs" / "PLAN.md",
+        project_root / "docs" / "PROGRESS.md",
+        project_root / "docs" / "NEXT_STEPS.md",
+    ]
+    docs_present = sum(1 for p in docs_files if p.exists())
+    docs_dir_exists = (project_root / "docs").exists()
+    tests_present = _project_has_tests(project_root)
+    ci_present = _project_has_ci(project_root)
+    branch_prefix_count = _detect_branch_prefix_count(project_root)
+
+    commit_text = _git_text(["git", "log", "--oneline", "-n", "120"], project_root)
+    agents_text = _safe_read_text(project_root / "AGENTS.md").lower()
+    claude_settings_text = _safe_read_text(project_root / ".claude" / "settings.json")
+
+    settings_has_hooks = False
+    settings_has_deny = False
+    if claude_settings_text:
+        try:
+            parsed = json.loads(claude_settings_text)
+            settings_has_hooks = bool(parsed.get("hooks"))
+            settings_has_deny = bool(parsed.get("permissions", {}).get("deny"))
+        except json.JSONDecodeError:
+            pass
+
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+
+    scores["planning_strictness"], evidence["planning_strictness"] = _score_from_flags([
+        (docs_present >= 2 and (project_root / "docs" / "PLAN.md").exists() and (project_root / "docs" / "NEXT_STEPS.md").exists(), "PLAN and NEXT_STEPS detected"),
+        (docs_present >= 4, "full staged docs set detected (REQUIREMENTS/PLAN/PROGRESS/NEXT_STEPS)"),
+        ("plan" in commit_text or "phase" in commit_text or "milestone" in commit_text, "commit history references planning/milestones"),
+    ])
+
+    scores["risk_tolerance"], evidence["risk_tolerance"] = _score_from_flags([
+        ("review gate" in agents_text or "no unattended" in agents_text or "guardrail" in agents_text, "AGENTS.md includes guardrail/review language"),
+        (settings_has_deny, ".claude/settings.json contains deny permissions"),
+        ("review" in commit_text or "safety" in commit_text or "guard" in commit_text, "commit history includes review/safety signals"),
+    ])
+
+    scores["testing_rigor"], evidence["testing_rigor"] = _score_from_flags([
+        (tests_present, "test files/directories detected"),
+        (ci_present, "CI workflow detected"),
+        ("test" in commit_text or "pytest" in commit_text or "jest" in commit_text, "commit history includes test activity"),
+    ])
+
+    scores["parallelism_preference"], evidence["parallelism_preference"] = _score_from_flags([
+        (branch_prefix_count >= 1, "task-style branch prefixes detected"),
+        ("worktree" in agents_text or "one bounded task per worktree" in agents_text, "AGENTS.md references worktree-based parallelism"),
+        (branch_prefix_count >= 3 or "worktree" in commit_text, "strong branch/worktree parallelism evidence"),
+    ])
+
+    scores["documentation_rigor"], evidence["documentation_rigor"] = _score_from_flags([
+        (docs_dir_exists, "docs/ directory exists"),
+        (docs_present >= 3, "3+ canonical docs present"),
+        ("docs" in commit_text or "readme" in commit_text, "commit history includes documentation changes"),
+    ])
+
+    scores["automation_level"], evidence["automation_level"] = _score_from_flags([
+        (settings_has_hooks, ".claude/settings.json has hooks configured"),
+        (ci_present, "CI automation detected"),
+        (("hook" in commit_text or "automation" in commit_text or "checkpoint" in commit_text), "commit history includes automation/hook signals"),
+    ])
+
+    return {
+        "source": "infer",
+        "project_root": str(project_root),
+        "scores": scores,
+        "evidence": evidence,
+        "signals": {
+            "docs_present": docs_present,
+            "tests_present": tests_present,
+            "ci_present": ci_present,
+            "branch_prefix_count": branch_prefix_count,
+            "settings_has_hooks": settings_has_hooks,
+            "settings_has_deny": settings_has_deny,
+        },
+    }
+
+
+def _profile_hybrid(project_root: Path, answers: dict[str, int] | None = None) -> dict:
+    survey = _profile_survey(answers=answers)
+    inferred = _profile_infer(project_root)
+
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+    for dim in PROFILE_DIMENSIONS:
+        s = survey["scores"][dim]
+        i = inferred["scores"][dim]
+        blended = int((0.6 * s + 0.4 * i) + 0.5)
+        if blended < 0:
+            blended = 0
+        if blended > 3:
+            blended = 3
+        scores[dim] = blended
+        evidence[dim] = [
+            f"hybrid blend: survey={s}, infer={i}, weighted=0.6/0.4 => {blended}",
+            *survey.get("evidence", {}).get(dim, []),
+            *inferred.get("evidence", {}).get(dim, []),
+        ]
+
+    return {
+        "source": "hybrid",
+        "scores": scores,
+        "evidence": evidence,
+        "survey": survey,
+        "infer": inferred,
+    }
+
+
+def _render_workstyle_explanations(mode: str, payload: dict) -> str:
+    scores = payload.get("scores", {})
+    evidence = payload.get("evidence", {})
+    lines = [
+        "# Workstyle Explanations",
+        "",
+        f"Mode: `{mode}`",
+        f"Date: `{_today()}`",
+        "",
+        "## Score Table",
+        "",
+        "| Dimension | Score (0-3) |",
+        "|---|---|",
+    ]
+    for dim in PROFILE_DIMENSIONS:
+        lines.append(f"| {dim} | {scores.get(dim, 0)} |")
+    lines += ["", "## Evidence", ""]
+    for dim in PROFILE_DIMENSIONS:
+        lines.append(f"### {dim}")
+        items = evidence.get(dim, [])
+        if not items:
+            lines.append("- no explicit evidence captured")
+        else:
+            for item in items:
+                lines.append(f"- {item}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _compile_operator_profile(scores: dict[str, int], mode: str) -> str:
+    planning = scores.get("planning_strictness", 0)
+    risk = scores.get("risk_tolerance", 0)
+    testing = scores.get("testing_rigor", 0)
+    parallel = scores.get("parallelism_preference", 0)
+    docs = scores.get("documentation_rigor", 0)
+    automation = scores.get("automation_level", 0)
+
+    return "\n".join([
+        "# Operator Profile",
+        "",
+        f"Generated by `agent-os profile {mode}` on {_today()}.",
+        "This file captures deterministic working-style preferences for cross-tool runtime behavior.",
+        "",
+        "## Deterministic Workstyle Scorecard (0-3)",
+        "",
+        f"- planning_strictness: {planning}",
+        f"- risk_tolerance: {risk}",
+        f"- testing_rigor: {testing}",
+        f"- parallelism_preference: {parallel}",
+        f"- documentation_rigor: {docs}",
+        f"- automation_level: {automation}",
+        "",
+        "## Working Style Summary",
+        "",
+        f"- Planning posture: {'strict staged planning' if planning >= 3 else 'structured planning' if planning >= 2 else 'light planning' if planning >= 1 else 'implementation-first'}.",
+        f"- Risk posture: {'highly conservative with strong guardrails' if risk >= 3 else 'conservative default' if risk >= 2 else 'balanced speed/caution' if risk >= 1 else 'speed-prioritized'}.",
+        f"- Testing posture: {'completion-blocking quality checks preferred' if testing >= 3 else 'strong test validation before completion' if testing >= 2 else 'targeted test checks' if testing >= 1 else 'minimal smoke validation'}.",
+        f"- Parallelism posture: {'structured multi-lane worktree execution' if parallel >= 3 else 'bounded parallel lanes when useful' if parallel >= 2 else 'occasional parallel work' if parallel >= 1 else 'single-lane execution preference'}.",
+        f"- Documentation posture: {'docs-first operating contract each session' if docs >= 3 else 'consistent canonical docs maintenance' if docs >= 2 else 'milestone-level docs updates' if docs >= 1 else 'minimal documentation'}.",
+        f"- Automation posture: {'comprehensive deterministic automation with guardrails' if automation >= 3 else 'high automation for quality/consistency' if automation >= 2 else 'basic helper automation' if automation >= 1 else 'manual-first operations'}.",
+        "",
+    ])
+
+
+def _compile_workflow_policy(scores: dict[str, int], mode: str) -> str:
+    planning = scores.get("planning_strictness", 0)
+    risk = scores.get("risk_tolerance", 0)
+    testing = scores.get("testing_rigor", 0)
+    parallel = scores.get("parallelism_preference", 0)
+    docs = scores.get("documentation_rigor", 0)
+    automation = scores.get("automation_level", 0)
+
+    flow = ["Explore", "Plan", "Implement", "Review", "Handoff"]
+    if planning >= 2:
+        flow.insert(2, "Validate plan against constraints")
+
+    lines = [
+        "# Workflow Policy",
+        "",
+        f"Generated by `agent-os profile {mode}` on {_today()}.",
+        "Deterministic policy compiled from the workstyle scorecard.",
+        "",
+        "## Standard Flow",
+    ]
+    for i, step in enumerate(flow, start=1):
+        lines.append(f"{i}. {step}")
+
+    lines += [
+        "",
+        "## Project Memory",
+        "- Canonical project truth lives in `docs/` and `AGENTS.md`.",
+        "- Tool-native memory is acceleration only, not source of truth.",
+        "",
+        "## Planning Policy",
+    ]
+    if planning >= 3:
+        lines += [
+            "- Require staged plan updates in `docs/PLAN.md` before major implementation.",
+            "- Large tasks should be decomposed into bounded steps before execution.",
+        ]
+    elif planning >= 2:
+        lines += ["- Keep staged execution notes in `docs/PLAN.md` for non-trivial work."]
+    elif planning >= 1:
+        lines += ["- Maintain at least a short plan/checklist before substantial edits."]
+    else:
+        lines += ["- Planning is lightweight; prefer fast iteration with explicit checkpoints."]
+
+    lines += ["", "## Risk and Safety Policy"]
+    if risk >= 3:
+        lines += [
+            "- Use strict guardrails and review gates for risky changes.",
+            "- Avoid destructive operations without explicit confirmation.",
+        ]
+    elif risk >= 2:
+        lines += ["- Conservative default: review critical changes before merge."]
+    elif risk >= 1:
+        lines += ["- Balanced posture: apply guardrails to high-impact operations."]
+    else:
+        lines += ["- Speed-first posture; still preserve baseline destructive-command protections."]
+
+    lines += ["", "## Testing Policy"]
+    if testing >= 3:
+        lines += ["- Block completion when required tests fail."]
+    elif testing >= 2:
+        lines += ["- Run comprehensive relevant tests before completion."]
+    elif testing >= 1:
+        lines += ["- Run targeted smoke tests for changed areas."]
+    else:
+        lines += ["- Use minimal validation for rapid iteration."]
+
+    lines += ["", "## Parallel Work Policy"]
+    if parallel >= 3:
+        lines += ["- Prefer bounded task parallelism via worktrees with one owner per lane."]
+    elif parallel >= 2:
+        lines += ["- Use parallel lanes for independent bounded tasks."]
+    elif parallel >= 1:
+        lines += ["- Use parallel work occasionally when risk is low and ownership is clear."]
+    else:
+        lines += ["- Prefer single active lane to reduce coordination overhead."]
+
+    lines += ["", "## Documentation Policy"]
+    if docs >= 3:
+        lines += ["- Treat docs updates (`PLAN`, `PROGRESS`, `NEXT_STEPS`) as mandatory every substantial session."]
+    elif docs >= 2:
+        lines += ["- Keep canonical docs consistently updated through milestones."]
+    elif docs >= 1:
+        lines += ["- Update docs at major checkpoints."]
+    else:
+        lines += ["- Keep concise docs; expand only when complexity grows."]
+
+    lines += ["", "## Automation Policy"]
+    if automation >= 3:
+        lines += ["- Enable comprehensive deterministic automation with strict guardrails."]
+    elif automation >= 2:
+        lines += ["- Use strong automation for formatting, testing, and quality checks."]
+    elif automation >= 1:
+        lines += ["- Use basic helper automation while keeping critical decisions manual."]
+    else:
+        lines += ["- Prefer manual control and minimal automation."]
+
+    lines += [
+        "",
+        "## Local Integration",
+        "After updating global memory files, run:",
+        "1. `agent-os sync`",
+        "2. `agent-os doctor`",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _write_workstyle_artifacts(mode: str, payload: dict) -> tuple[Path, Path, Path]:
+    GENERATED_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+
+    profile_path = GENERATED_PROFILE_DIR / "workstyle_profile.json"
+    scores_path = GENERATED_PROFILE_DIR / "workstyle_scores.json"
+    explain_path = GENERATED_PROFILE_DIR / "workstyle_explanations.md"
+
+    profile_payload = {
+        "mode": mode,
+        "generated_on": _today(),
+        **payload,
+    }
+    score_payload = {
+        "mode": mode,
+        "generated_on": _today(),
+        "scores": payload.get("scores", {}),
+    }
+
+    _write_text(profile_path, json.dumps(profile_payload, indent=2) + "\n")
+    _write_text(scores_path, json.dumps(score_payload, indent=2) + "\n")
+    _write_text(explain_path, _render_workstyle_explanations(mode, payload) + "\n")
+    return profile_path, scores_path, explain_path
+
+
+def _write_compiled_memory(mode: str, payload: dict, *, overwrite: bool) -> None:
+    scores = payload.get("scores", {})
+    operator_path = GLOBAL_MEMORY_DIR / "operator_profile.md"
+    workflow_path = GLOBAL_MEMORY_DIR / "workflow_policy.md"
+
+    compiled_operator = _compile_operator_profile(scores, mode)
+    compiled_workflow = _compile_workflow_policy(scores, mode)
+
+    for target, content in ((operator_path, compiled_operator), (workflow_path, compiled_workflow)):
+        if target.exists() and not overwrite:
+            print(f"Skipped existing file (use --overwrite): {target}")
+            continue
+        _write_text(target, content + ("" if content.endswith("\n") else "\n"))
+        print(f"Wrote: {target}")
+
+
+def _print_profile_summary(mode: str, payload: dict) -> None:
+    scores = payload.get("scores", {})
+    print()
+    print(f"Workstyle profile summary ({mode})")
+    for dim in PROFILE_DIMENSIONS:
+        print(f"  - {dim:<24} {scores.get(dim, 0)}")
+
+    evidence = payload.get("evidence", {})
+    print()
+    print("Key evidence:")
+    for dim in PROFILE_DIMENSIONS:
+        dim_evidence = evidence.get(dim, [])
+        if dim_evidence:
+            print(f"  {dim}: {dim_evidence[0]}")
+
+
+def _profile_show() -> int:
+    scores_path = GENERATED_PROFILE_DIR / "workstyle_scores.json"
+    profile_path = GENERATED_PROFILE_DIR / "workstyle_profile.json"
+    explain_path = GENERATED_PROFILE_DIR / "workstyle_explanations.md"
+
+    if not scores_path.exists():
+        print("No generated workstyle profile found.")
+        print("Run: agent-os profile survey --write")
+        return 1
+
+    try:
+        data = json.loads(scores_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        print(f"Could not parse: {scores_path}", file=sys.stderr)
+        return 1
+
+    print(f"Mode: {data.get('mode', 'unknown')}")
+    print(f"Generated: {data.get('generated_on', 'unknown')}")
+    print()
+    for dim in PROFILE_DIMENSIONS:
+        print(f"  - {dim:<24} {data.get('scores', {}).get(dim, 0)}")
+    print()
+    print("Artifacts:")
+    print(f"  - {profile_path}")
+    print(f"  - {scores_path}")
+    print(f"  - {explain_path}")
+    return 0
+
+
+COGNITIVE_DIMENSIONS = [
+    "first_principles_depth",
+    "exploration_breadth",
+    "speed_vs_rigor_balance",
+    "challenge_orientation",
+    "uncertainty_tolerance",
+    "autonomy_preference",
+]
+
+
+def _cognition_questions() -> list[dict]:
+    return [
+        {
+            "dimension": "first_principles_depth",
+            "question": "When solving complex problems, how deeply should reasoning decompose assumptions?",
+            "choices": [
+                "Prefer quick practical heuristics.",
+                "Use light root-cause analysis when needed.",
+                "Usually decompose to core assumptions.",
+                "Strong first-principles decomposition by default.",
+            ],
+        },
+        {
+            "dimension": "exploration_breadth",
+            "question": "How many alternative options should be explored before committing?",
+            "choices": [
+                "Pick first viable path and move.",
+                "Compare 1-2 alternatives.",
+                "Evaluate multiple plausible options.",
+                "Systematically explore a broad option set.",
+            ],
+        },
+        {
+            "dimension": "speed_vs_rigor_balance",
+            "question": "What is your default trade-off between speed and analytical rigor?",
+            "choices": [
+                "Prioritize speed; minimal analysis overhead.",
+                "Lean speed with selective rigor.",
+                "Balanced speed and rigor.",
+                "Rigor-first for most meaningful decisions.",
+            ],
+        },
+        {
+            "dimension": "challenge_orientation",
+            "question": "How adversarial should idea review be?",
+            "choices": [
+                "Low challenge; preserve flow and momentum.",
+                "Moderate challenge on important decisions.",
+                "Frequent structured critique of assumptions.",
+                "Strong devil’s-advocate stress testing by default.",
+            ],
+        },
+        {
+            "dimension": "uncertainty_tolerance",
+            "question": "How should the system operate under ambiguity?",
+            "choices": [
+                "Proceed quickly with minimal uncertainty framing.",
+                "Proceed with lightweight assumptions.",
+                "State assumptions and confidence explicitly.",
+                "Require explicit uncertainty and failure-mode analysis.",
+            ],
+        },
+        {
+            "dimension": "autonomy_preference",
+            "question": "How autonomous should agent execution be by default?",
+            "choices": [
+                "Human-in-the-loop for most actions.",
+                "Moderate autonomy with frequent checkpoints.",
+                "High autonomy within bounded constraints.",
+                "Very high autonomy with strict deterministic boundaries.",
+            ],
+        },
+    ]
+
+
+def _cognition_survey(answers: dict[str, int] | None = None) -> dict:
+    print("Deterministic cognitive-style survey")
+    print("Answer each question with 1..4. Higher values represent stronger structured cognitive posture.")
+
+    normalized_answers = _normalize_answers(answers or {})
+
+    responses: dict[str, dict] = {}
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+
+    for item in _cognition_questions():
+        dim = item["dimension"]
+        if dim in normalized_answers:
+            choice_idx = normalized_answers[dim]
+            print(f"[answers-file] {dim}: selected option {choice_idx}")
+        else:
+            choice_idx = _prompt_choice(item["question"], item["choices"])
+        score = choice_idx - 1
+        responses[dim] = {
+            "question": item["question"],
+            "selected_option": choice_idx,
+            "selected_text": item["choices"][choice_idx - 1],
+            "score": score,
+        }
+        scores[dim] = score
+        evidence[dim] = [f"survey option {choice_idx}: {item['choices'][choice_idx - 1]}"]
+
+    return {
+        "source": "cognitive_survey",
+        "scores": scores,
+        "responses": responses,
+        "evidence": evidence,
+    }
+
+
+def _render_cognitive_explanations(payload: dict) -> str:
+    scores = payload.get("scores", {})
+    evidence = payload.get("evidence", {})
+    lines = [
+        "# Cognitive Profile Explanations",
+        "",
+        f"Date: `{_today()}`",
+        "",
+        "## Score Table",
+        "",
+        "| Dimension | Score (0-3) |",
+        "|---|---|",
+    ]
+    for dim in COGNITIVE_DIMENSIONS:
+        lines.append(f"| {dim} | {scores.get(dim, 0)} |")
+    lines += ["", "## Evidence", ""]
+    for dim in COGNITIVE_DIMENSIONS:
+        lines.append(f"### {dim}")
+        items = evidence.get(dim, [])
+        if not items:
+            lines.append("- no explicit evidence captured")
+        else:
+            for item in items:
+                lines.append(f"- {item}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _compile_cognitive_profile(scores: dict[str, int]) -> str:
+    fpd = scores.get("first_principles_depth", 0)
+    exp = scores.get("exploration_breadth", 0)
+    svr = scores.get("speed_vs_rigor_balance", 0)
+    cho = scores.get("challenge_orientation", 0)
+    unt = scores.get("uncertainty_tolerance", 0)
+    aut = scores.get("autonomy_preference", 0)
+
+    return "\n".join([
+        "# Cognitive Profile",
+        "",
+        f"Generated by `agent-os cognition survey` on {_today()}.",
+        "Deterministic cognitive and philosophical operating profile.",
+        "",
+        "## Cognitive Scorecard (0-3)",
+        f"- first_principles_depth: {fpd}",
+        f"- exploration_breadth: {exp}",
+        f"- speed_vs_rigor_balance: {svr}",
+        f"- challenge_orientation: {cho}",
+        f"- uncertainty_tolerance: {unt}",
+        f"- autonomy_preference: {aut}",
+        "",
+        "## Philosophy of Work",
+        f"- Reasoning depth posture: {'first-principles dominant' if fpd >= 3 else 'frequent first-principles decomposition' if fpd >= 2 else 'balanced decomposition/heuristics' if fpd >= 1 else 'heuristic-first'}.",
+        f"- Option strategy: {'broad exploratory option search' if exp >= 3 else 'multi-option evaluation' if exp >= 2 else 'few-option comparison' if exp >= 1 else 'single viable path bias'}.",
+        f"- Speed-rigor balance: {'rigor-first' if svr >= 3 else 'balanced with rigor lean' if svr >= 2 else 'speed-lean with checks' if svr >= 1 else 'speed-first'}.",
+        "",
+        "## Decision Attitude",
+        f"- Challenge style: {'strong adversarial stress-testing' if cho >= 3 else 'structured critique encouraged' if cho >= 2 else 'moderate challenge when important' if cho >= 1 else 'low-friction consensus style'}.",
+        f"- Uncertainty handling: {'explicit uncertainty + failure-mode analysis required' if unt >= 3 else 'explicit assumptions/confidence expected' if unt >= 2 else 'light assumption framing' if unt >= 1 else 'low-friction proceed posture'}.",
+        f"- Autonomy posture: {'high autonomy with strict deterministic bounds' if aut >= 3 else 'high bounded autonomy' if aut >= 2 else 'moderate autonomy with checkpoints' if aut >= 1 else 'human-in-the-loop dominant'}.",
+        "",
+    ])
+
+
+def _write_cognitive_artifacts(mode: str, payload: dict) -> tuple[Path, Path]:
+    GENERATED_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    profile_path = GENERATED_PROFILE_DIR / "cognitive_profile.json"
+    explain_path = GENERATED_PROFILE_DIR / "cognitive_explanations.md"
+
+    packed = {
+        "mode": mode,
+        "generated_on": _today(),
+        **payload,
+    }
+    _write_text(profile_path, json.dumps(packed, indent=2) + "\n")
+    _write_text(explain_path, _render_cognitive_explanations(payload) + "\n")
+    return profile_path, explain_path
+
+
+def _cognition_infer(project_root: Path) -> dict:
+    docs_files = [
+        project_root / "docs" / "REQUIREMENTS.md",
+        project_root / "docs" / "PLAN.md",
+        project_root / "docs" / "PROGRESS.md",
+        project_root / "docs" / "NEXT_STEPS.md",
+    ]
+    docs_present = sum(1 for p in docs_files if p.exists())
+    docs_dir_exists = (project_root / "docs").exists()
+    ci_present = _project_has_ci(project_root)
+
+    commit_text = _git_text(["git", "log", "--oneline", "-n", "120"], project_root)
+    branch_text = _git_text(["git", "for-each-ref", "--format=%(refname:short)", "refs/heads"], project_root)
+    agents_text = _safe_read_text(project_root / "AGENTS.md").lower()
+    plan_text = _safe_read_text(project_root / "docs" / "PLAN.md").lower()
+    req_text = _safe_read_text(project_root / "docs" / "REQUIREMENTS.md").lower()
+    settings_text = _safe_read_text(project_root / ".claude" / "settings.json")
+
+    settings_has_hooks = False
+    settings_has_deny = False
+    if settings_text:
+        try:
+            parsed = json.loads(settings_text)
+            settings_has_hooks = bool(parsed.get("hooks"))
+            settings_has_deny = bool(parsed.get("permissions", {}).get("deny"))
+        except json.JSONDecodeError:
+            pass
+
+    manifest_text = _safe_read_text(REPO_ROOT / "core" / "runtime_manifest.json").lower()
+
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+
+    scores["first_principles_depth"], evidence["first_principles_depth"] = _score_from_flags([
+        ("assumption" in agents_text or "first-principles" in agents_text, "AGENTS.md references assumptions/first-principles reasoning"),
+        ("root cause" in commit_text or "analysis" in commit_text or "rationale" in commit_text, "commit history references analytical decomposition"),
+        ("why" in plan_text or "assumption" in plan_text, "PLAN.md contains rationale/assumption language"),
+    ])
+
+    scores["exploration_breadth"], evidence["exploration_breadth"] = _score_from_flags([
+        ("option" in plan_text or "alternative" in plan_text, "PLAN.md references options/alternatives"),
+        ("research/" in branch_text, "research branch prefix detected"),
+        ("explore" in agents_text or "research" in agents_text, "AGENTS.md references exploration workflow"),
+    ])
+
+    scores["speed_vs_rigor_balance"], evidence["speed_vs_rigor_balance"] = _score_from_flags([
+        (docs_present >= 3 and ci_present, "docs discipline + CI suggests balanced rigor"),
+        ("review" in commit_text or "validate" in commit_text, "commit history includes validation/review language"),
+        ("smallest useful verification" in agents_text or "review gate" in agents_text, "AGENTS.md includes verification controls"),
+    ])
+
+    scores["challenge_orientation"], evidence["challenge_orientation"] = _score_from_flags([
+        ("review gate" in agents_text or "review required" in agents_text, "AGENTS.md requires review gates"),
+        ("swing-review" in manifest_text, "runtime manifest includes adversarial review skill"),
+        ("review" in commit_text or "critique" in commit_text, "commit history includes review-oriented activity"),
+    ])
+
+    scores["uncertainty_tolerance"], evidence["uncertainty_tolerance"] = _score_from_flags([
+        ("constraint" in plan_text or "risk" in plan_text, "PLAN.md includes constraints/risks"),
+        ("non-goal" in req_text, "REQUIREMENTS.md includes explicit non-goals"),
+        (docs_dir_exists, "docs discipline suggests explicit uncertainty handling"),
+    ])
+
+    scores["autonomy_preference"], evidence["autonomy_preference"] = _score_from_flags([
+        (settings_has_hooks, "tool hooks configured (bounded automation)"),
+        ("bounded" in agents_text or "human review checkpoint" in agents_text, "AGENTS.md uses bounded automation language"),
+        (settings_has_deny or ci_present, "guardrails/CI indicate controlled autonomy"),
+    ])
+
+    return {
+        "source": "cognitive_infer",
+        "project_root": str(project_root),
+        "scores": scores,
+        "evidence": evidence,
+        "signals": {
+            "docs_present": docs_present,
+            "docs_dir_exists": docs_dir_exists,
+            "ci_present": ci_present,
+            "settings_has_hooks": settings_has_hooks,
+            "settings_has_deny": settings_has_deny,
+        },
+    }
+
+
+def _cognition_hybrid(project_root: Path, answers: dict[str, int] | None = None) -> dict:
+    survey = _cognition_survey(answers=answers)
+    inferred = _cognition_infer(project_root)
+
+    scores: dict[str, int] = {}
+    evidence: dict[str, list[str]] = {}
+    for dim in COGNITIVE_DIMENSIONS:
+        s = survey["scores"][dim]
+        i = inferred["scores"][dim]
+        blended = int((0.6 * s + 0.4 * i) + 0.5)
+        blended = max(0, min(3, blended))
+        scores[dim] = blended
+        evidence[dim] = [
+            f"hybrid blend: survey={s}, infer={i}, weighted=0.6/0.4 => {blended}",
+            *survey.get("evidence", {}).get(dim, []),
+            *inferred.get("evidence", {}).get(dim, []),
+        ]
+
+    return {
+        "source": "cognitive_hybrid",
+        "scores": scores,
+        "evidence": evidence,
+        "survey": survey,
+        "infer": inferred,
+    }
+
+
+def _cognition_show() -> int:
+    profile_path = GENERATED_PROFILE_DIR / "cognitive_profile.json"
+    explain_path = GENERATED_PROFILE_DIR / "cognitive_explanations.md"
+    if not profile_path.exists():
+        print("No generated cognitive profile found.")
+        print("Run: agent-os cognition survey --write")
+        return 1
+    try:
+        data = json.loads(profile_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        print(f"Could not parse: {profile_path}", file=sys.stderr)
+        return 1
+
+    print(f"Generated: {data.get('generated_on', 'unknown')}")
+    print()
+    for dim in COGNITIVE_DIMENSIONS:
+        print(f"  - {dim:<24} {data.get('scores', {}).get(dim, 0)}")
+    print()
+    print("Artifacts:")
+    print(f"  - {profile_path}")
+    print(f"  - {explain_path}")
+    return 0
+
+
+def _cognition_command(
+    action: str,
+    path_arg: str | None,
+    *,
+    write: bool,
+    overwrite: bool,
+    answers: dict[str, int] | None = None,
+) -> int:
+    if action == "show":
+        return _cognition_show()
+
+    project_root = _resolve_bootstrap_target(path_arg or ".")
+
+    if action == "survey":
+        payload = _cognition_survey(answers=answers)
+        mode = "survey"
+    elif action == "infer":
+        payload = _cognition_infer(project_root)
+        mode = "infer"
+    elif action == "hybrid":
+        payload = _cognition_hybrid(project_root, answers=answers)
+        mode = "hybrid"
+    else:
+        print(f"Unsupported cognition action: {action}", file=sys.stderr)
+        return 1
+
+    profile_path, explain_path = _write_cognitive_artifacts(mode, payload)
+
+    print()
+    print(f"Cognitive profile summary ({mode})")
+    for dim in COGNITIVE_DIMENSIONS:
+        print(f"  - {dim:<24} {payload.get('scores', {}).get(dim, 0)}")
+
+    print()
+    print("Wrote generated artifacts:")
+    print(f"  - {profile_path}")
+    print(f"  - {explain_path}")
+
+    if write:
+        target = GLOBAL_MEMORY_DIR / "cognitive_profile.md"
+        content = _compile_cognitive_profile(payload.get("scores", {}))
+        if target.exists() and not overwrite:
+            print(f"Skipped existing file (use --overwrite): {target}")
+        else:
+            _write_text(target, content + ("" if content.endswith("\n") else "\n"))
+            print(f"Wrote: {target}")
+        print()
+        print("Next steps for local integration:")
+        print("  1) agent-os sync")
+        print("  2) agent-os doctor")
+    else:
+        print()
+        print("Run with --write to compile cognitive profile into global memory markdown.")
+
+    return 0
+
+
+def _profile_command(
+    mode: str,
+    path_arg: str | None,
+    *,
+    write: bool,
+    overwrite: bool,
+    answers: dict[str, int] | None = None,
+) -> int:
+    project_root = _resolve_bootstrap_target(path_arg or ".")
+
+    if mode == "survey":
+        payload = _profile_survey(answers=answers)
+    elif mode == "infer":
+        payload = _profile_infer(project_root)
+    elif mode == "hybrid":
+        payload = _profile_hybrid(project_root, answers=answers)
+    else:
+        print(f"Unsupported profile mode: {mode}", file=sys.stderr)
+        return 1
+
+    profile_path, scores_path, explain_path = _write_workstyle_artifacts(mode, payload)
+    _print_profile_summary(mode, payload)
+    print()
+    print("Wrote generated artifacts:")
+    print(f"  - {profile_path}")
+    print(f"  - {scores_path}")
+    print(f"  - {explain_path}")
+
+    if write:
+        print()
+        _write_compiled_memory(mode, payload, overwrite=overwrite)
+        print()
+        print("Next steps for local integration:")
+        print("  1) agent-os sync")
+        print("  2) agent-os doctor")
+    else:
+        print()
+        print("Run with --write to compile scores into global memory markdown files.")
+
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # bootstrap / new-project
 # ---------------------------------------------------------------------------
 
@@ -1109,6 +2129,47 @@ def build_parser() -> argparse.ArgumentParser:
     h_apply.add_argument("path", nargs="?", default=".")
     h_apply.add_argument("--force", action="store_true", help="Overwrite an existing HARNESS.md")
 
+    profile_cmd = sub.add_parser("profile", help="Deterministic working-style profiling and policy compilation")
+    profile_sub = profile_cmd.add_subparsers(dest="profile_action", required=True)
+
+    p_survey = profile_sub.add_parser("survey", help="Interactive survey-based profile scoring")
+    p_survey.add_argument("--answers-file", metavar="JSON", help="Optional JSON file with prefilled survey answers")
+    p_survey.add_argument("--write", action="store_true", help="Compile generated scores into global memory markdown files")
+    p_survey.add_argument("--overwrite", action="store_true", help="Allow overwriting existing global memory markdown files")
+
+    p_infer = profile_sub.add_parser("infer", help="Infer profile scores from repository signals")
+    p_infer.add_argument("path", nargs="?", default=".")
+    p_infer.add_argument("--write", action="store_true", help="Compile generated scores into global memory markdown files")
+    p_infer.add_argument("--overwrite", action="store_true", help="Allow overwriting existing global memory markdown files")
+
+    p_hybrid = profile_sub.add_parser("hybrid", help="Blend survey and inferred profile scores")
+    p_hybrid.add_argument("path", nargs="?", default=".")
+    p_hybrid.add_argument("--answers-file", metavar="JSON", help="Optional JSON file with prefilled survey answers")
+    p_hybrid.add_argument("--write", action="store_true", help="Compile generated scores into global memory markdown files")
+    p_hybrid.add_argument("--overwrite", action="store_true", help="Allow overwriting existing global memory markdown files")
+
+    profile_sub.add_parser("show", help="Show the latest generated workstyle scorecard")
+
+    cognition_cmd = sub.add_parser("cognition", help="Deterministic cognitive/philosophy profiling")
+    cognition_sub = cognition_cmd.add_subparsers(dest="cognition_action", required=True)
+    c_survey = cognition_sub.add_parser("survey", help="Interactive cognitive-style survey")
+    c_survey.add_argument("--answers-file", metavar="JSON", help="Optional JSON file with prefilled cognitive answers")
+    c_survey.add_argument("--write", action="store_true", help="Compile generated cognitive scores into global memory markdown")
+    c_survey.add_argument("--overwrite", action="store_true", help="Allow overwriting existing cognitive_profile.md")
+
+    c_infer = cognition_sub.add_parser("infer", help="Infer cognitive scores from repository signals")
+    c_infer.add_argument("path", nargs="?", default=".")
+    c_infer.add_argument("--write", action="store_true", help="Compile generated cognitive scores into global memory markdown")
+    c_infer.add_argument("--overwrite", action="store_true", help="Allow overwriting existing cognitive_profile.md")
+
+    c_hybrid = cognition_sub.add_parser("hybrid", help="Blend cognitive survey and inferred scores")
+    c_hybrid.add_argument("path", nargs="?", default=".")
+    c_hybrid.add_argument("--answers-file", metavar="JSON", help="Optional JSON file with prefilled cognitive answers")
+    c_hybrid.add_argument("--write", action="store_true", help="Compile generated cognitive scores into global memory markdown")
+    c_hybrid.add_argument("--overwrite", action="store_true", help="Allow overwriting existing cognitive_profile.md")
+
+    cognition_sub.add_parser("show", help="Show the latest generated cognitive scorecard")
+
     worktree = sub.add_parser("worktree", help="Create a git worktree for a bounded task")
     worktree.add_argument("task_type")
     worktree.add_argument("task_name", nargs="+")
@@ -1187,6 +2248,43 @@ def main(argv: Iterable[str] | None = None) -> int:
                 force=args.force,
             )
         return 0
+    if args.command == "profile":
+        if args.profile_action == "show":
+            return _profile_show()
+        if args.profile_action in ("survey", "infer", "hybrid"):
+            path_arg = getattr(args, "path", ".")
+            answers = None
+            answers_file = getattr(args, "answers_file", None)
+            if answers_file:
+                try:
+                    answers = _load_answers_file(Path(answers_file).expanduser())
+                except (FileNotFoundError, ValueError) as exc:
+                    print(str(exc), file=sys.stderr)
+                    return 1
+            return _profile_command(
+                args.profile_action,
+                path_arg,
+                write=getattr(args, "write", False),
+                overwrite=getattr(args, "overwrite", False),
+                answers=answers,
+            )
+        return 0
+    if args.command == "cognition":
+        answers = None
+        answers_file = getattr(args, "answers_file", None)
+        if answers_file:
+            try:
+                answers = _load_answers_file(Path(answers_file).expanduser())
+            except (FileNotFoundError, ValueError) as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+        return _cognition_command(
+            args.cognition_action,
+            getattr(args, "path", "."),
+            write=getattr(args, "write", False),
+            overwrite=getattr(args, "overwrite", False),
+            answers=answers,
+        )
     if args.command == "worktree":
         return _worktree(args.task_type, args.task_name, args.base_ref, Path.cwd())
     if args.command == "private-skill":

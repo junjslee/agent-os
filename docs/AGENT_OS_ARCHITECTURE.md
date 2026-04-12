@@ -91,6 +91,10 @@ Plugins and local memory services are helpers, not authorities.
 ## Memory Model
 The memory model is split on purpose.
 
+`agent-os profile` adds a deterministic onboarding layer that generates explainable scorecards and compiles workflow policy from explicit rules. Generated artifacts live under `core/memory/global/.generated/` and remain non-canonical until compiled to global memory markdown (`--write`). Survey-driven modes also support non-interactive `--answers-file` JSON input.
+
+`agent-os cognition` adds a deterministic cognitive layer for philosophy, decision attitude, and thinking posture. It supports survey, infer, and hybrid modes, and compiles into `cognitive_profile.md` when requested.
+
 ### Global Memory
 Put stable, cross-project information here:
 - operator preferences
@@ -178,7 +182,7 @@ Use this test before adding a plugin or memory layer:
 3. Can the project still operate without it?
 4. Does it introduce a second source of truth?
 
-### `claude-mem`
+### Optional adapters
 `claude-mem` overlaps with `agent-os` only partially.
 
 What `agent-os` already covers:
