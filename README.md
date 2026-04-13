@@ -2,7 +2,7 @@
      2|
      3|**Every AI tool you open starts cold. cognitive-os fixes that.**
      4|
-     5|`cognitive-os` is a cognitive + execution operating system for AI work.
+     5|`cognitive-os` is a cognitive + execution operating system for AI work that operationalizes decision quality, memory governance, how agents think, how agents execute, and accountable evolution.
      6|
      7|`cognitive-os` is a platform-agnostic CLI that provisions memory, skills, hooks, and project harnesses across Claude Code, Codex CLI, Cursor, Hermes, and future adapters.
      8|
@@ -64,7 +64,7 @@
     64|
     65|## Design principles
     66|
-    67|- cognitive-os is a dual harness: cognitive policy (how to think) + execution policy (how to act).
+    67|- cognitive-os operationalizes cognitive policy (how agents think) and execution policy (how agents act) into repeatable workflows.
     68|- Canonical project truth lives in repository docs (`AGENTS.md`, `docs/*`), not in any single agent tool.
     69|- Global operator memory (cross-project) is separate from project memory (repo-local delivery context).
     70|- Adapters (Claude, Codex, Cursor, Hermes, others) are delivery mechanisms for the same operating contract, not separate authorities.
@@ -197,11 +197,13 @@
    197|
    198|---
    199|
-   200|## Agent personas included
-   201|
-   202|Six subagent definitions installed into `~/.claude/agents/`:
-   203|
-   204|`planner` · `researcher` · `implementer` · `reviewer` · `test-runner` · `docs-handoff`
+## Agent personas included
+
+Eleven subagent definitions installed into `~/.claude/agents/`:
+
+Execution: `planner` · `researcher` · `implementer` · `reviewer` · `test-runner` · `docs-handoff`
+
+Ontological governance: `ontologist` · `epistemic-auditor` · `governance-safety` · `orchestrator` · `domain-owner`
    205|
    206|---
    207|

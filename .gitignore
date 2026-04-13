@@ -19,3 +19,26 @@ core/memory/global/.generated/workstyle_explanations.md
 core/memory/global/.generated/cognitive_profile.json
 core/memory/global/.generated/cognitive_explanations.md
 core/memory/evolution/episodes/*.json
+
+# Secrets and local sensitive artifacts
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+credentials/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.tmp
+*.bak
+.cache/
+.claude/settings.local.json
+.codex/auth.json
+.cursor/settings.local.json

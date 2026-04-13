@@ -6,9 +6,9 @@ This playbook defines how to run a cognitive system (how to think) and workflow 
 
 ## 1) Operating thesis
 
-cognitive-os is a dual harness:
-- cognitive harness: improves decision quality
-- execution harness: improves delivery reliability
+cognitive-os operationalizes a dual system:
+- cognitive system: improves decision quality and epistemic integrity
+- execution system: improves delivery reliability and verification discipline
 
 Design rule:
 - cognition without execution becomes abstract
@@ -66,7 +66,7 @@ Stage loop:
 Output rule:
 - every stage must produce an artifact (plan update, test output, decision note, handoff note)
 
-## 5) Self-evolution protocol (safe improvement)
+## 5) Self-evolution protocol (accountable improvement)
 
 Use evolution only as a gated system:
 1. propose bounded mutation

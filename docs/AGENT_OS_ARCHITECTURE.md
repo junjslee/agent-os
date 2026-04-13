@@ -1,7 +1,7 @@
 # cognitive-os Architecture (`cognitive-os` runtime)
 
 ## Purpose
-`cognitive-os` is the cognitive + execution harness for cross-project development and research workflows.
+`cognitive-os` is the cognitive + execution operating system for cross-project development and research workflows. It operationalizes decision quality, memory governance, execution cognition, and accountable evolution.
 
 It is currently distributed via the `cognitive-os` CLI/package for compatibility.
 
@@ -20,9 +20,10 @@ It is not:
 The system is intentionally layered.
 
 cognitive-os perspective:
-- Cognitive harness = decision-quality policy (epistemics, assumptions, disconfirmation, uncertainty handling)
-- Execution harness = operational policy (workflow stages, risk gates, verification, handoff)
-- Memory contracts + adapters = cross-runtime continuity without authority fragmentation
+- Cognitive system = decision-quality policy (epistemics, assumptions, disconfirmation, uncertainty handling)
+- Execution system = operational policy (workflow stages, risk gates, verification, handoff)
+- Memory governance + adapters = cross-runtime continuity without authority fragmentation
+- Accountable evolution = gated improvement with promotion/rollback traceability
 
 ### 1. Global `cognitive-os`
 This is the source of truth for:
