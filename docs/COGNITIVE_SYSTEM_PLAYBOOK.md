@@ -1,13 +1,13 @@
 # Cognitive System Playbook
 
-Purpose: make cognitive-os practical for real delivery while preserving epistemic rigor.
+Purpose: make cognitive-os practical for real delivery while preserving reasoning rigor.
 
 This playbook defines how to run a cognitive system (how to think) and workflow system (how to execute) together.
 
 ## 1) Operating thesis
 
 cognitive-os operationalizes a dual system:
-- cognitive system: improves decision quality and epistemic integrity
+- cognitive system: improves decision quality and reasoning integrity
 - execution system: improves delivery reliability and verification discipline
 
 Design rule:
@@ -85,11 +85,11 @@ Do not allow direct ungated self-modification.
 
 ## 6) Hermes coexistence model
 
-Treat Hermes as adaptive runtime, cognitive-os as canonical governance.
+Treat Hermes as adaptive runtime, cognitive-os as authoritative governance.
 
 Pattern:
 - Hermes memory/skills = fast adaptation lane
-- cognitive-os memory/contracts = canonical lane
+- cognitive-os memory/contracts = authoritative lane
 - sync + promotion = bridge lane
 
 Rule:
@@ -99,7 +99,7 @@ Rule:
 ## 7) Adapter conformance checklist
 
 For each runtime adapter (Claude/Codex/Cursor/Hermes), verify:
-- canonical files are readable from the runtime
+- authoritative files are readable from the runtime
 - runtime does not override authority boundaries
 - required safety behavior is active
 - handoff docs are honored
@@ -109,7 +109,7 @@ If any fail, adapter is non-conformant and must be fixed before trusting automat
 
 ## 8) Practical anti-drift controls
 
-- Keep generated artifacts in `.generated/` and mark them non-canonical until compiled
+- Keep generated artifacts in `.generated/` and mark them non-authoritative until compiled
 - Use deterministic commands for bootstrap/setup
 - Keep command surface single-name (`cognitive-os`)
 - run CI on every PR/push
@@ -135,7 +135,7 @@ Week 2:
 - add replay harness for evolution evaluation
 
 Week 3:
-- collect and promote repeated winning patterns into canonical memory/skills
+- collect and promote repeated winning patterns into authoritative memory/skills
 
 Week 4:
 - publish conformance report + evolution outcomes

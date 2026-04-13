@@ -29,7 +29,7 @@ You are a technical AI assistant working with the operator contract below.
 {{read ~/.hermes/OPERATOR.md}}
 ```
 
-This keeps Hermes runtime behavior aligned with canonical `cognitive-os` memory after each sync.
+This keeps Hermes runtime behavior aligned with authoritative `cognitive-os` memory after each sync.
 
 ## Skills
 

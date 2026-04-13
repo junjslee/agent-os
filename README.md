@@ -15,8 +15,8 @@
 System map source: `docs/assets/system-overview.svg`
 
 Structure summary:
-- Ontological + operational stack defines roles and authority boundaries.
-- Canonical memory + policy defines what persists and how conflicts resolve.
+- Structural + operational stack defines roles and authority boundaries.
+- Authoritative memory + policy defines what persists and how conflicts resolve.
 - Workflow + evolution governs execution and safe improvement.
 - `cognitive-os sync` propagates the same operating contract to Claude, Codex, Cursor, and Hermes.
 
@@ -70,10 +70,10 @@ You use multiple AI coding agents. Each one starts cold. You repeat yourself. Sk
 ## Design principles
 
 - cognitive-os operationalizes cognitive policy (how agents think) and execution policy (how agents act) into repeatable workflows.
-- Canonical project truth lives in repository docs (`AGENTS.md`, `docs/*`), not in any single agent tool.
+- Authoritative project truth lives in repository docs (`AGENTS.md`, `docs/*`), not in any single agent tool.
 - Global operator memory (cross-project) is separate from project memory (repo-local delivery context).
 - Adapters (Claude, Codex, Cursor, Hermes, others) are delivery mechanisms for the same operating contract, not separate authorities.
-- Plugin or tool-native memory systems accelerate retrieval, but do not replace canonical records.
+- Plugin or tool-native memory systems accelerate retrieval, but do not replace authoritative records.
 
 ---
 
@@ -99,16 +99,16 @@ Adapters are not the authority. Repo docs + global memory are.
 
 ## Why this architecture wins
 
-- Cross-tool consistency: one canonical operating contract across Claude/Codex/Cursor/Hermes.
+- Cross-tool consistency: one authoritative operating contract across Claude/Codex/Cursor/Hermes.
 - Deterministic setup: profile/cognition onboarding is explainable (`survey`/`infer`/`hybrid`) instead of implicit drift.
-- Canonical boundary: repo docs + global memory are authority; tool-native memories are acceleration layers.
+- Authoritative boundary: repo docs + global memory are authority; tool-native memories are acceleration layers.
 
 ### Coexistence model (self-evolving agents)
 
 `cognitive-os` is designed to work with agent runtimes that keep learning locally (Hermes memory/skills, Claude/Codex/Cursor local context):
 
 1. Local runtime memory evolves fast during execution (high-velocity adaptation).
-2. Durable lessons are promoted into canonical files (`core/memory/global/*`, `docs/*`, reusable skills).
+2. Durable lessons are promoted into authoritative files (`core/memory/global/*`, `docs/*`, reusable skills).
 3. `cognitive-os sync` republishes that contract to every runtime.
 4. Runtime-native memory remains a cache/acceleration layer, not the source of truth.
 
@@ -158,7 +158,7 @@ cognitive-os new-project . --harness auto      # scaffold + auto-detect harness
 | Lifecycle hooks | ✅ | — | — | — |
 | Operator context composite (`OPERATOR.md`) | — | — | — | ✅ |
 
-Note: this matrix describes current adapter capabilities, not architectural authority. Canonical truth remains in repository docs and global cognitive-os memory.
+Note: this matrix describes current adapter capabilities, not architectural authority. Authoritative truth remains in repository docs and global cognitive-os memory.
 
 ---
 
@@ -196,7 +196,7 @@ Eleven subagent definitions installed into `~/.claude/agents/`:
 
 Execution: `planner` · `researcher` · `implementer` · `reviewer` · `test-runner` · `docs-handoff`
 
-Ontological governance: `ontologist` · `epistemic-auditor` · `governance-safety` · `orchestrator` · `domain-owner`
+Structural governance: `domain-architect` · `reasoning-auditor` · `governance-safety` · `orchestrator` · `domain-owner`
 
 ---
 
@@ -253,7 +253,7 @@ episodic memory (session/run traces)
 └── observations, decisions, verification outcomes for replay and audit
 
 plugin memory (claude-mem, etc.)
-└── cache and retrieval — never the canonical record
+└── cache and retrieval — never the authoritative record
 ```
 
 Global memory never belongs in chat. Project memory never belongs in global. Plugins help but don't replace either.
@@ -271,7 +271,7 @@ Includes:
 
 ### Evolution Contract v1 (gated self-evolution)
 
-cognitive-os adds a safe self-improvement loop inspired by self-evolving agent systems while preserving canonical governance:
+cognitive-os adds a safe self-improvement loop inspired by self-evolving agent systems while preserving authoritative governance:
 - Spec: `docs/EVOLUTION_CONTRACT.md`
 - Schemas: `core/schemas/evolution/*.json`
 
@@ -368,8 +368,8 @@ Why this matters:
 - **cognition** = how decisions are made (reasoning depth, challenge style, uncertainty posture)
 
 Important: treat survey/infer outputs as a starting point, not doctrine.
-For long-term quality, manually author your canonical philosophy in `core/memory/global/cognitive_profile.md`
-using a top-down structure (epistemics -> agency -> adaptation -> governance -> operating thesis), then sync.
+For long-term quality, manually author your authoritative philosophy in `core/memory/global/cognitive_profile.md`
+using a top-down structure (reasonings -> agency -> adaptation -> governance -> operating thesis), then sync.
 
 `cognitive-os` includes deterministic profiling to bootstrap this process and keep it explainable.
 

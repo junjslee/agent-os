@@ -18,7 +18,7 @@ This file is global and stable across projects.
 2) Why does it matter now?
 3) How will I prove it works?
 
-## Canonical Build Sequence
+## Authoritative Build Sequence
 1. See the friction clearly.
 2. Form 2-3 hypotheses as bets.
 3. Choose the next reversible move.

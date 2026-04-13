@@ -17,6 +17,6 @@ Required outputs:
 - rollback reference and trigger conditions
 
 Decision protocol contract (required for non-trivial work):
-- Confirm canonical authority path (project > global > episodic).
+- Confirm authoritative authority path (project > global > episodic).
 - Record safety assumptions and failure modes.
 - Include one concrete rollback trigger before approval.

@@ -123,7 +123,7 @@ Each question offers 4 options mapped directly to 0/1/2/3.
  - +1 if test-related commits in recent history
 - documentation_rigor:
  - +1 if `docs/` exists
- - +1 if >=3 canonical docs exist
+ - +1 if >=3 authoritative docs exist
  - +1 if docs commits found
 - parallelism_preference:
  - +1 if worktree command usage detectable (branch prefixes)

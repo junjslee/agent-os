@@ -16,7 +16,7 @@ Use this page as the primary navigation map for cognitive-os documentation.
 ## Product and planning docs
 
 - `PRD_WORKSTYLE_PROFILER.md` — deterministic workstyle profiling design
-- `PRD_EPISTEMIC_SYNTHESIS.md` — epistemic synthesis design notes
+- `PRD_REASONING_SYNTHESIS.md` — reasoning synthesis design notes
 
 ## Recommended reading order
 

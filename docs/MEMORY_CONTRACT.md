@@ -18,11 +18,11 @@ Authoritative precedence:
 
 Tool-native memory is acceleration only. It is never authoritative by itself.
 
-## Canonical paths
+## Authoritative paths
 
 - Global memory: `core/memory/global/*.md`
 - Project memory: `docs/*.md`, `AGENTS.md`, runtime policy docs
-- Optional generated artifacts: `core/memory/global/.generated/*` (non-canonical until compiled)
+- Optional generated artifacts: `core/memory/global/.generated/*` (non-authoritative until compiled)
 
 ## Record model
 
@@ -71,11 +71,11 @@ Mandatory behavior:
 
 Adapters SHOULD:
 - preserve `id`, `version`, and full `provenance`
-- avoid rewriting canonical class boundaries
-- write back durable lessons to canonical files, not only tool-local stores
+- avoid rewriting authoritative class boundaries
+- write back durable lessons to authoritative files, not only tool-local stores
 
 Adapters MUST NOT:
-- treat local cache memory as canonical source of truth
+- treat local cache memory as authoritative source of truth
 - drop provenance fields during sync/transform
 
 ## Schemas

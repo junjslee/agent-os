@@ -69,11 +69,11 @@ Default policy: human approval required before promotion.
 Memory promotion pipeline:
 - lane A: raw traces (high-volume, short TTL)
 - lane B: episodic summaries (candidate lessons)
-- lane C: canonical policy memory (only repeated winners)
+- lane C: authoritative policy memory (only repeated winners)
 Promotion rule:
 - lane B -> C requires repeated validated wins and no safety regression.
 ## Conflict and rollback
-- No silent replacement of canonical policy.
+- No silent replacement of authoritative policy.
 - Every promotion must include rollback reference.
 - Rollback updates episode state to `rolled_back` and links reason/evidence.
 ## Schemas
@@ -87,5 +87,5 @@ Current command surface (implemented):
 - `cognitive-os evolve report <episode_id>`
 - `cognitive-os evolve promote <episode_id>`
 - `cognitive-os evolve rollback <episode_id>`
-Canonical command:
+Authoritative command:
 - `cognitive-os evolve ...`

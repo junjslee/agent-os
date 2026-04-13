@@ -20,7 +20,7 @@ It is not:
 The system is intentionally layered.
 
 cognitive-os perspective:
-- Cognitive system = decision-quality policy (epistemics, assumptions, disconfirmation, uncertainty handling)
+- Cognitive system = decision-quality policy (reasonings, assumptions, disconfirmation, uncertainty handling)
 - Execution system = operational policy (workflow stages, risk gates, verification, handoff)
 - Memory governance + adapters = cross-runtime continuity without authority fragmentation
 - Accountable evolution = gated improvement with promotion/rollback traceability
@@ -53,7 +53,7 @@ Detection: `cognitive-os detect [path]` scores signals in the repo (dependency f
 patterns, directory names) and recommends the best match.
 
 ### 3. Shared Project Memory
-Every project should keep its canonical truth in repo files such as:
+Every project should keep its authoritative truth in repo files such as:
 - `AGENTS.md`
 - `docs/REQUIREMENTS.md`
 - `docs/PLAN.md`
@@ -78,7 +78,7 @@ Current adapters:
  `~/.hermes/skills/` (managed skills)
 
 ### 5. Optional Plugin Or Service Layer
-This layer is optional and non-canonical.
+This layer is optional and non-authoritative.
 
 Examples:
 - Claude-only plugins such as `claude-mem`
@@ -99,7 +99,7 @@ Plugins and local memory services are helpers, not authorities.
 ## Memory Model
 The memory model is split on purpose.
 
-`cognitive-os profile` adds a deterministic onboarding layer that generates explainable scorecards and compiles workflow policy from explicit rules. Generated artifacts live under `core/memory/global/.generated/` and remain non-canonical until compiled to global memory markdown (`--write`). Survey-driven modes also support non-interactive `--answers-file` JSON input.
+`cognitive-os profile` adds a deterministic onboarding layer that generates explainable scorecards and compiles workflow policy from explicit rules. Generated artifacts live under `core/memory/global/.generated/` and remain non-authoritative until compiled to global memory markdown (`--write`). Survey-driven modes also support non-interactive `--answers-file` JSON input.
 
 `cognitive-os cognition` adds a deterministic cognitive layer for philosophy, decision attitude, and thinking posture. It supports survey, infer, and hybrid modes, and compiles into `cognitive_profile.md` when requested.
 
@@ -142,7 +142,7 @@ Put project truth here:
 - next handoff
 
 ### Plugin Memory
-Treat plugin-managed memory as a cache or retrieval layer, not as the canonical record.
+Treat plugin-managed memory as a cache or retrieval layer, not as the authoritative record.
 
 If a plugin retrieves something important enough to matter later, write it back into repo docs or the relevant global memory file.
 
@@ -207,7 +207,7 @@ The standard automation boundary is:
 ## Plugin Integration Policy
 Use this test before adding a plugin or memory layer:
 1. Is it cross-tool or Claude-only?
-2. Does it replace canonical docs, or only accelerate retrieval?
+2. Does it replace authoritative docs, or only accelerate retrieval?
 3. Can the project still operate without it?
 4. Does it introduce a second source of truth?
 

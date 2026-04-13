@@ -15,7 +15,7 @@ Read on demand:
 - `docs/RUN_CONTEXT.md`
 
 ## Workflow
-1. **Explore**: Read project memory and define the epistemic surface.
+1. **Explore**: Read project memory and define the reasoning surface.
 2. **Deconstruct**: Separate Knowns, Unknowns, and Assumptions in `docs/REQUIREMENTS.md`.
 3. **Plan**: Update `docs/PLAN.md`.
 4. **Falsify**: Before implementing, state one reason why this plan might fail (Disconfirmation).
@@ -23,7 +23,7 @@ Read on demand:
 6. **Review**: Validate against the original requirements and cognitive profile.
 7. **Handoff**: Update `docs/NEXT_STEPS.md` with a "So-What Now?" summary.
 
-## Epistemic Surface (Mandatory in Docs)
+## Reasoning Surface (Mandatory in Docs)
 Every major decision must record:
 - **Knowns**: Verified facts/constraints.
 - **Unknowns**: Missing info or risks.
