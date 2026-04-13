@@ -149,14 +149,14 @@ cognitive-os new-project . --harness auto      # scaffold + auto-detect harness
 
 ## What gets synced
 
-| Asset | Claude Code | Codex CLI | Cursor | Hermes |
-|---|---|---|---|---|
-| Global memory index (`CLAUDE.md`) | ✅ | — | — | — |
-| Operator/cognitive/workflow source files (`core/memory/global/*.md`) | via include | source only | source only | composed into `OPERATOR.md` |
-| Agent personas | ✅ | — | — | — |
-| Skills | ✅ | ✅ | ✅ | ✅ |
-| Lifecycle hooks | ✅ | — | — | — |
-| Operator context composite (`OPERATOR.md`) | — | — | — | ✅ |
+| Asset | Claude Code | Codex CLI | Cursor | Hermes | OMO / OMX |
+|---|---|---|---|---|---|
+| Global memory index (`CLAUDE.md`) | ✅ | — | — | — | — |
+| Operator/cognitive/workflow source files (`core/memory/global/*.md`) | via include | source only | source only | composed into `OPERATOR.md` | — |
+| Agent personas | ✅ | — | — | — | ✅ |
+| Skills | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Lifecycle hooks | ✅ | — | — | — | ✅ |
+| Authoritative context composite (`OPERATOR.md`) | — | — | — | ✅ | — |
 
 Note: this matrix describes current adapter capabilities, not architectural authority. Authoritative truth remains in repository docs and global cognitive-os memory.
 

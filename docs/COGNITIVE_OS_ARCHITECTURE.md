@@ -76,6 +76,8 @@ Current adapters:
 - Hermes:
  `~/.hermes/OPERATOR.md` (synced composite), `~/.hermes/SOUL.md` (auto-created on first sync),
  `~/.hermes/skills/` (managed skills)
+- OMO / OMX (Oh-My-OpenAgent / Oh-My-Codex):
+ Syncs shared skills, agent personas, and structural governance policy to `~/.omo` or `~/.omx`
 
 ### 5. Optional Plugin Or Service Layer
 This layer is optional and non-authoritative.

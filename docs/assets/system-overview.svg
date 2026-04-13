@@ -62,32 +62,39 @@
   <text x="74" y="518" class="t">Local runtime memory remains a fast cache; the central repository docs dictate the authoritative truth.</text>
 
   <!-- Claude -->
-  <rect x="74" y="560" width="344" height="150" class="tool"/>
-  <text x="246" y="599" class="h-center">Claude Code</text>
-  <text x="246" y="635" class="small">CLAUDE.md index</text>
-  <text x="246" y="655" class="small">Deterministic safety hooks</text>
-  <text x="246" y="675" class="small">Agent personas + Local skills</text>
+  <rect x="74" y="560" width="280" height="150" class="tool"/>
+  <text x="214" y="599" class="h-center">Claude Code</text>
+  <text x="214" y="635" class="small">CLAUDE.md index</text>
+  <text x="214" y="655" class="small">Deterministic safety hooks</text>
+  <text x="214" y="675" class="small">Agent personas + Skills</text>
 
   <!-- Codex -->
-  <rect x="444" y="560" width="344" height="150" class="tool"/>
-  <text x="616" y="599" class="h-center">Codex CLI</text>
-  <text x="616" y="635" class="small">AGENTS.md workflow compliance</text>
-  <text x="616" y="655" class="small">.codex/config.toml overrides</text>
-  <text x="616" y="675" class="small">Synced global/repo skills</text>
+  <rect x="374" y="560" width="280" height="150" class="tool"/>
+  <text x="514" y="599" class="h-center">Codex CLI</text>
+  <text x="514" y="635" class="small">AGENTS.md compliance</text>
+  <text x="514" y="655" class="small">.codex/config.toml</text>
+  <text x="514" y="675" class="small">Synced global/repo skills</text>
 
   <!-- Cursor -->
-  <rect x="814" y="560" width="344" height="150" class="tool"/>
-  <text x="986" y="599" class="h-center">Cursor</text>
-  <text x="986" y="635" class="small">Cursor IDE skill directory</text>
-  <text x="986" y="655" class="small">Project memory indexing</text>
-  <text x="986" y="675" class="small">In-editor review &amp; diff gates</text>
+  <rect x="674" y="560" width="280" height="150" class="tool"/>
+  <text x="814" y="599" class="h-center">Cursor</text>
+  <text x="814" y="635" class="small">Cursor IDE skills</text>
+  <text x="814" y="655" class="small">Project memory indexing</text>
+  <text x="814" y="675" class="small">In-editor review gates</text>
 
   <!-- Hermes -->
-  <rect x="1184" y="560" width="344" height="150" class="tool"/>
-  <text x="1356" y="599" class="h-center">Hermes</text>
-  <text x="1356" y="635" class="small">OPERATOR.md composite rules</text>
-  <text x="1356" y="655" class="small">Native skills sync (~/.hermes/skills/)</text>
-  <text x="1356" y="675" class="small">SOUL.md continuous identity</text>
+  <rect x="974" y="560" width="280" height="150" class="tool"/>
+  <text x="1114" y="599" class="h-center">Hermes</text>
+  <text x="1114" y="635" class="small">OPERATOR.md composite</text>
+  <text x="1114" y="655" class="small">Native skills sync</text>
+  <text x="1114" y="675" class="small">SOUL.md identity</text>
+
+  <!-- OMO / OMX -->
+  <rect x="1274" y="560" width="280" height="150" class="tool"/>
+  <text x="1414" y="599" class="h-center">OMO / OMX</text>
+  <text x="1414" y="635" class="small">Oh-My-OpenAgent sync</text>
+  <text x="1414" y="655" class="small">Oh-My-Codex skills</text>
+  <text x="1414" y="675" class="small">Shared governance policy</text>
 
   <!-- Future target / generic -->
   <rect x="444" y="740" width="714" height="120" class="tool" stroke-dasharray="8 8"/>

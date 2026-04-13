@@ -709,6 +709,40 @@ def _sync_hermes_runtime() -> bool:
     return True
 
 
+def _sync_omo_runtime() -> bool:
+    omo_root = HOME / ".omo"
+    if not omo_root.exists():
+        return False
+    
+    # OMO uses agents, skills, and hooks similar to our layout
+    for agent_file in (REPO_ROOT / "core" / "agents").glob("*.md"):
+        _copy_file(agent_file, omo_root / "agents" / agent_file.name)
+        
+    for skill_dir in _managed_skills():
+        _copy_tree(skill_dir, omo_root / "skills" / skill_dir.name)
+        
+    # Hooks
+    _write_text(omo_root / "settings.json", json.dumps(_cognitive_os_settings(), indent=2) + "\n")
+    return True
+
+
+def _sync_omx_runtime() -> bool:
+    omx_root = HOME / ".omx"
+    if not omx_root.exists():
+        return False
+    
+    # OMX uses agents, skills, and hooks similar to our layout
+    for agent_file in (REPO_ROOT / "core" / "agents").glob("*.md"):
+        _copy_file(agent_file, omx_root / "agents" / agent_file.name)
+        
+    for skill_dir in _managed_skills():
+        _copy_tree(skill_dir, omx_root / "skills" / skill_dir.name)
+        
+    # Hooks
+    _write_text(omx_root / "settings.json", json.dumps(_cognitive_os_settings(), indent=2) + "\n")
+    return True
+
+
 def _sync_user_runtime() -> None:
     claude_root = HOME / ".claude"
     cursor_root = HOME / ".cursor" / "skills"
@@ -739,6 +773,8 @@ def _sync_user_runtime() -> None:
         _copy_tree(skill_dir, codex_root / skill_dir.name)
 
     hermes_synced = _sync_hermes_runtime()
+    omo_synced = _sync_omo_runtime()
+    omx_synced = _sync_omx_runtime()
 
     print("Synced user runtime:")
     print(f"  - Claude: {claude_root}")
@@ -746,6 +782,10 @@ def _sync_user_runtime() -> None:
     print(f"  - Codex skills: {codex_root}")
     if hermes_synced:
         print(f"  - Hermes: {HOME / '.hermes'}")
+    if omo_synced:
+        print(f"  - OMO: {HOME / '.omo'}")
+    if omx_synced:
+        print(f"  - OMX: {HOME / '.omx'}")
 
 
 # ---------------------------------------------------------------------------
