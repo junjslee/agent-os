@@ -10,44 +10,44 @@
 
 ## System in 20 seconds
 
-![cognitive-os system overview](docs/assets/system-overview.svg)
+![cognitive-os system overview](docs/assets/system-overview.gif)
 
 ```mermaid
 flowchart TB
-A[cognitive-os operating system]
+  A["cognitive-os operating system"]
 
-subgraph O1[Ontological + operational stack]
-L0[L0 Ontology\ncore/agents/ontologist.md]
-L1[L1 Epistemics\ncore/agents/epistemic-auditor.md]
-L2[L2 Governance\ncore/agents/governance-safety.md]
-L3[L3 Execution\nplanner implementer reviewer test-runner docs-handoff]
-L4[L4 Orchestration + outcomes\ncore/agents/orchestrator.md + domain-owner.md]
-end
+  subgraph O1["Ontological + operational stack"]
+    L0["L0 Ontology<br/>core/agents/ontologist.md"]
+    L1["L1 Epistemics<br/>core/agents/epistemic-auditor.md"]
+    L2["L2 Governance<br/>core/agents/governance-safety.md"]
+    L3["L3 Execution<br/>planner implementer reviewer test-runner docs-handoff"]
+    L4["L4 Orchestration + outcomes<br/>core/agents/orchestrator.md + domain-owner.md"]
+  end
 
-subgraph M[Canonical memory + policy]
-G[Global memory\ncore/memory/global/*.md]
-P[Project truth\nAGENTS.md + docs/* + HARNESS.md]
-E[Episodic evidence\ncore/memory/evolution/episodes/*.json]
-C[Contracts\ndocs/MEMORY_CONTRACT.md\ndocs/EVOLUTION_CONTRACT.md]
-S[Schemas\ncore/schemas/memory-contract/*.json\ncore/schemas/evolution/*.json]
-end
+  subgraph M["Canonical memory + policy"]
+    G["Global memory<br/>core/memory/global/*.md"]
+    P["Project truth<br/>AGENTS.md + docs/* + HARNESS.md"]
+    E["Episodic evidence<br/>core/memory/evolution/episodes/*.json"]
+    C["Contracts<br/>docs/MEMORY_CONTRACT.md<br/>docs/EVOLUTION_CONTRACT.md"]
+    S["Schemas<br/>core/schemas/memory-contract/*.json<br/>core/schemas/evolution/*.json"]
+  end
 
-subgraph W[Workflow]
-W1[setup/profile/cognition]\n[write canonical memory]
-W2[new-project/detect/harness apply]\n[provision project context]
-W3[execute loop]\n[explore plan implement verify handoff]
-W4[evolve run/report/promote/rollback]\n[accountable evolution]
-end
+  subgraph W["Workflow"]
+    W1["setup/profile/cognition<br/>write canonical memory"]
+    W2["new-project/detect/harness apply<br/>provision project context"]
+    W3["execute loop<br/>explore plan implement verify handoff"]
+    W4["evolve run/report/promote/rollback<br/>accountable evolution"]
+  end
 
-A --> O1
-O1 --> M
-M --> W
+  A --> O1
+  O1 --> M
+  M --> W
 
-X[cognitive-os sync] --> R1[Claude]
-X --> R2[Codex]
-X --> R3[Cursor]
-X --> R4[Hermes]
-M --> X
+  X["cognitive-os sync"] --> R1["Claude"]
+  X --> R2["Codex"]
+  X --> R3["Cursor"]
+  X --> R4["Hermes"]
+  M --> X
 ```
 
 ## Quick start (60 seconds)
