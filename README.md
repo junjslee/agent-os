@@ -9,7 +9,7 @@
 ## System Overview
 
 <p align="center">
-  <img src="docs/assets/system-overview.gif" alt="cognitive-os system overview" width="100%" />
+  <img src="docs/assets/system-overview.svg" alt="cognitive-os system overview" width="100%" />
 </p>
 
 System map source: `docs/assets/system-overview.svg`
@@ -118,7 +118,7 @@ This gives you both: fast local learning and deterministic cross-platform consis
 
 Guided setup in one command:
 
-![cognitive-os setup demo](docs/assets/setup-demo.gif)
+![cognitive-os setup demo](docs/assets/setup-demo.svg)
 
 ### 60-second demo (workflow + cognition + sync)
 

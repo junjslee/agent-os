@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap');
+      .bg { fill: #0d1117; }
+      .text { font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace; font-size: 15px; fill: #E5E9F0; }
+      .cmd { fill: #82AAFF; }
+      .path { fill: #8b949e; }
+      .success { fill: #C3E88D; }
+      
+      /* Typing animation for command */
+      .type {
+        display: inline-block;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 0;
+        animation: typing 1.5s steps(40, end) forwards;
+        animation-delay: 0.5s;
+      }
+      @keyframes typing {
+        from { width: 0; }
+        to { width: 100%; }
+      }
+      
+      /* Fade in for lines */
+      .line { opacity: 0; animation: fadeIn 0.1s forwards; }
+      
+      .l2 { animation-delay: 2.2s; }
+      .l3 { animation-delay: 3.2s; }
+      .l4 { animation-delay: 4.0s; }
+      .l5 { animation-delay: 4.8s; }
+      .l6 { animation-delay: 5.6s; }
+      .l7 { animation-delay: 6.2s; }
+      .l8 { animation-delay: 6.4s; }
+      .l9 { animation-delay: 6.6s; }
+      .l10 { animation-delay: 7.5s; }
+      .l11 { animation-delay: 8.0s; }
+      .l12 { animation-delay: 8.5s; }
+
+      @keyframes fadeIn {
+        to { opacity: 1; }
+      }
+    </style>
+  </defs>
+  
+  <rect width="800" height="420" rx="12" class="bg" />
+  <!-- Mac window controls -->
+  <circle cx="24" cy="24" r="6" fill="#FF5F56" />
+  <circle cx="44" cy="24" r="6" fill="#FFBD2E" />
+  <circle cx="64" cy="24" r="6" fill="#27C93F" />
+  
+  <g transform="translate(24, 70)" class="text">
+    <!-- Line 1: Command -->
+    <g class="cmd">
+      <foreignObject x="0" y="-15" width="750" height="30">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 15px; color: #82AAFF; display: flex; align-items: center; height: 100%;">
+          <span class="type">$ cognitive-os setup . --interactive</span>
+        </div>
+      </foreignObject>
+    </g>
+    
+    <text x="0" y="45" class="line l2">Select workstyle profile mode: hybrid</text>
+    <text x="0" y="75" class="line l3">Select cognitive profile mode: infer</text>
+    <text x="0" y="105" class="line l4">Write authoritative files now? [Y/n]: y</text>
+    <text x="0" y="135" class="line l5">Run cognitive-os sync now? [Y/n]: y</text>
+    <text x="0" y="165" class="line l6">Run cognitive-os doctor now? [Y/n]: y</text>
+    
+    <text x="0" y="225" class="line l7 path">Setup target: /Users/junlee/cognitive-os</text>
+    <text x="0" y="255" class="line l8">- Running profile hybrid</text>
+    <text x="0" y="285" class="line l9">- Running cognition infer</text>
+    
+    <text x="0" y="315" class="line l10 success">Synced user runtime: Claude / Codex / Cursor / Hermes</text>
+    <text x="0" y="345" class="line l11 success">Doctor passed.</text>
+    <text x="0" y="375" class="line l12 success">Setup complete.</text>
+  </g>
+</svg>
