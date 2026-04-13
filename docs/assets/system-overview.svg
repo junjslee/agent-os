@@ -26,7 +26,7 @@
   <rect x="0" y="0" width="1600" height="860" fill="url(#bg)"/>
 
   <text x="42" y="58" class="title">System Overview</text>
-  <text x="42" y="86" class="subtitle">cognitive-os is the canonical governance backbone that blends with existing agent systems instead of replacing them.</text>
+  <text x="42" y="86" class="subtitle">cognitive-os is the authoritative governance backbone that blends with existing agent systems instead of replacing them.</text>
 
   <rect x="42" y="128" width="492" height="258" class="panelA"/>
   <text x="64" y="162" class="h">1) Operator + machine context</text>
@@ -37,7 +37,7 @@
   <text x="64" y="302" class="mono">profile/cognition setup outputs (.generated/*)</text>
 
   <rect x="554" y="128" width="492" height="258" class="panelB"/>
-  <text x="576" y="162" class="h">2) Canonical backbone</text>
+  <text x="576" y="162" class="h">2) Authoritative backbone</text>
   <text x="576" y="192" class="t">• Global memory + project truth + episodic evidence</text>
   <text x="576" y="216" class="t">• Contracts define authority and conflict resolution</text>
   <text x="576" y="240" class="t">• Schemas keep memory and evolution auditable</text>
@@ -58,7 +58,7 @@
   <rect x="160" y="430" width="1280" height="374" class="panelD"/>
   <text x="188" y="466" class="h">4) Blend with existing systems through adapters (cognitive-os sync)</text>
   <text x="188" y="494" class="t">Existing tools keep their native workflows; cognitive-os publishes shared memory/policy so behavior stays aligned.</text>
-  <text x="188" y="518" class="t">Local runtime memory is fast cache; canonical truth remains in repository docs and contracts.</text>
+  <text x="188" y="518" class="t">Local runtime memory is fast cache; authoritative truth remains in repository docs and contracts.</text>
 
   <rect x="212" y="560" width="260" height="108" class="tool"/>
   <text x="310" y="599" class="h">Claude</text>

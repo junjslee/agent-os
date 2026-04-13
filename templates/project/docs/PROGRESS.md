@@ -1,6 +1,6 @@
 # Progress: [Task Name]
 
-## Epistemic Surface
+## Reasoning Surface
 - **Knowns**:
   - [Verified fact]
 - **Unknowns**:

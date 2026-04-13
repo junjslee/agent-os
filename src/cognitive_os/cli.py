@@ -1587,7 +1587,7 @@ def _profile_infer(project_root: Path) -> dict:
 
     scores["documentation_rigor"], evidence["documentation_rigor"] = _score_from_flags([
         (docs_dir_exists, "docs/ directory exists"),
-        (docs_present >= 3, "3+ canonical docs present"),
+        (docs_present >= 3, "3+ authoritative docs present"),
         ("docs" in commit_text or "readme" in commit_text, "commit history includes documentation changes"),
     ])
 
@@ -1701,7 +1701,7 @@ def _compile_operator_profile(scores: dict[str, int], mode: str) -> str:
         f"- Risk posture: {'highly conservative with strong guardrails' if risk >= 3 else 'conservative default' if risk >= 2 else 'balanced speed/caution' if risk >= 1 else 'speed-prioritized'}.",
         f"- Testing posture: {'completion-blocking quality checks preferred' if testing >= 3 else 'strong test validation before completion' if testing >= 2 else 'targeted test checks' if testing >= 1 else 'minimal smoke validation'}.",
         f"- Parallelism posture: {'structured multi-lane worktree execution' if parallel >= 3 else 'bounded parallel lanes when useful' if parallel >= 2 else 'occasional parallel work' if parallel >= 1 else 'single-lane execution preference'}.",
-        f"- Documentation posture: {'docs-first operating contract each session' if docs >= 3 else 'consistent canonical docs maintenance' if docs >= 2 else 'milestone-level docs updates' if docs >= 1 else 'minimal documentation'}.",
+        f"- Documentation posture: {'docs-first operating contract each session' if docs >= 3 else 'consistent authoritative docs maintenance' if docs >= 2 else 'milestone-level docs updates' if docs >= 1 else 'minimal documentation'}.",
         f"- Automation posture: {'comprehensive deterministic automation with guardrails' if automation >= 3 else 'high automation for quality/consistency' if automation >= 2 else 'basic helper automation' if automation >= 1 else 'manual-first operations'}.",
         "",
     ])
@@ -1715,7 +1715,7 @@ def _compile_workflow_policy(scores: dict[str, int], mode: str) -> str:
     docs = scores.get("documentation_rigor", 0)
     automation = scores.get("automation_level", 0)
 
-    flow = ["Explore", "Deconstruct (Epistemic Surface)", "Plan", "Falsify (Devil's Advocate)", "Implement", "Review", "Handoff"]
+    flow = ["Explore", "Deconstruct (Reasoning Surface)", "Plan", "Falsify (Devil's Advocate)", "Implement", "Review", "Handoff"]
     if planning >= 2:
         flow.insert(3, "Validate plan against first-principles")
 
@@ -1732,14 +1732,14 @@ def _compile_workflow_policy(scores: dict[str, int], mode: str) -> str:
 
     lines += [
         "",
-        "## Epistemic Standards",
+        "## Reasoning Standards",
         "- **Divide and Conquer**: Structure chaotic info into clear distinctions.",
         "- **Known vs Unknown**: Explicitly list what is verified vs. assumed in every plan.",
         "- **Skepticism**: Seek reasons behind actions; do not accept heuristics at face value.",
-        "- **Check-ins**: Perform lightweight epistemic check-ins during substantial problem-solving.",
+        "- **Check-ins**: Perform lightweight reasoning check-ins during substantial problem-solving.",
         "",
         "## Project Memory",
-        "- Canonical project truth lives in `docs/` and `AGENTS.md`.",
+        "- Authoritative project truth lives in `docs/` and `AGENTS.md`.",
         "- Tool-native memory is acceleration only, not source of truth.",
         "",
         "## Planning Policy",
@@ -1793,7 +1793,7 @@ def _compile_workflow_policy(scores: dict[str, int], mode: str) -> str:
     if docs >= 3:
         lines += ["- Treat docs updates (`PLAN`, `PROGRESS`, `NEXT_STEPS`) as mandatory every substantial session."]
     elif docs >= 2:
-        lines += ["- Keep canonical docs consistently updated through milestones."]
+        lines += ["- Keep authoritative docs consistently updated through milestones."]
     elif docs >= 1:
         lines += ["- Update docs at major checkpoints."]
     else:
@@ -2387,8 +2387,8 @@ def _setup_command(
             profile_mode = profile_mode or "survey"
             cognition_mode = cognition_mode or "survey"
 
-        write = _prompt_yes_no("Write canonical global memory files now?", default=True)
-        overwrite = _prompt_yes_no("Allow overwrite of existing canonical files?", default=False) if write else False
+        write = _prompt_yes_no("Write authoritative global memory files now?", default=True)
+        overwrite = _prompt_yes_no("Allow overwrite of existing authoritative files?", default=False) if write else False
         do_sync = _prompt_yes_no("Run cognitive-os sync now?", default=True)
         do_doctor = _prompt_yes_no("Run cognitive-os doctor now?", default=True)
 
@@ -2621,8 +2621,8 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--answers-file", metavar="JSON", help="Fallback JSON answers file used by both profile and cognition")
     setup.add_argument("--profile-answers-file", metavar="JSON", help="Optional JSON answers file for profile survey/hybrid")
     setup.add_argument("--cognition-answers-file", metavar="JSON", help="Optional JSON answers file for cognition survey/hybrid")
-    setup.add_argument("--write", action="store_true", help="Compile results into canonical global memory files")
-    setup.add_argument("--overwrite", action="store_true", help="Allow overwriting existing canonical files")
+    setup.add_argument("--write", action="store_true", help="Compile results into authoritative global memory files")
+    setup.add_argument("--overwrite", action="store_true", help="Allow overwriting existing authoritative files")
     setup.add_argument("--sync", action="store_true", help="Run cognitive-os sync after setup")
     setup.add_argument("--doctor", action="store_true", help="Run cognitive-os doctor after setup")
 

@@ -10,16 +10,16 @@ Core execution roles:
 - test-runner.md
 - docs-handoff.md
 
-Ontological governance roles:
-- ontologist.md
-- epistemic-auditor.md
+Structural governance roles:
+- domain-architect.md
+- reasoning-auditor.md
 - governance-safety.md
 - orchestrator.md
 - domain-owner.md
 
 Layer mapping:
-- L0 Ontology: ontologist
-- L1 Epistemics: epistemic-auditor
+- L0 System Structure: domain-architect
+- L1 Reasoning Principles: reasoning-auditor
 - L2 Governance: governance-safety
 - L3 Execution: planner/implementer/reviewer/test-runner/docs-handoff
 - L4 Orchestration + outcomes: orchestrator/domain-owner

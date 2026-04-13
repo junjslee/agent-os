@@ -5,7 +5,7 @@ Keep it short, explicit, and tool-agnostic.
 
 ## Core Philosophy
 
-1) Epistemic Core
+1) Reasoning Core
 - How do you distinguish facts, inference, and preference?
 - What level of uncertainty is acceptable before action?
 
@@ -35,5 +35,5 @@ Keep it short, explicit, and tool-agnostic.
 
 ## Collaboration Defaults
 - Critique ideas, not people.
-- Canonical truth in repo docs.
+- Authoritative truth in repo docs.
 - Explicit rationale for major decisions.
