@@ -15,10 +15,11 @@ Everything else in this repo — the CLI, the hooks, the adapters — exists to 
 
 Start here: **[`kernel/`](./kernel/)**
 
-- **[CONSTITUTION.md](./kernel/CONSTITUTION.md)** — the north-star document. Root claim, why agents fail, four principles.
+- **[CONSTITUTION.md](./kernel/CONSTITUTION.md)** — the north-star document. Root claim, failure modes being addressed, four principles.
 - **[REASONING_SURFACE.md](./kernel/REASONING_SURFACE.md)** — the Knowns / Unknowns / Assumptions / Disconfirmation protocol.
-- **[SYSTEM_1_COUNTERS.md](./kernel/SYSTEM_1_COUNTERS.md)** — six named failure modes, each with the kernel artifact that counters it.
+- **[FAILURE_MODES.md](./kernel/FAILURE_MODES.md)** — six failure modes, each with the kernel artifact that counters it.
 - **[OPERATOR_PROFILE_SCHEMA.md](./kernel/OPERATOR_PROFILE_SCHEMA.md)** — schema for encoding an operator's cognitive preferences.
+- **[REFERENCES.md](./kernel/REFERENCES.md)** — attribution for external sources that informed the kernel.
 
 Pure markdown. No code. No vendor lock-in. The kernel does not care which runtime loads it.
 
