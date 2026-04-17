@@ -12,6 +12,11 @@ labs/skills/*/candidate/
 labs/skills/*/runs/
 labs/skills/*/tmp/
 
+# ─── Session transcripts backed up by precompact hook ────────────────────────
+# The hook now writes to ~/.cache/cognitive-os/backups/ instead of this repo,
+# but keep this rule so any legacy backups/ directory stays untracked.
+backups/
+
 # ─── Personal cognitive-os memory files ──────────────────────────────────────
 # These ship with the repo as the author's real profiles (see core/memory/global/).
 # Forks: edit them to make them your own, then run `cognitive-os sync`.

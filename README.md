@@ -29,13 +29,13 @@ Most tools in this space either build new agent runtimes or provide memory APIs 
 | | cognitive-os | Manual per-tool files | mem0 / OpenMemory | Agno (Phidata) | opencode / omo |
 |---|---|---|---|---|---|
 | **What it is** | Identity + governance layer for your dev tools | CLAUDE.md, AGENTS.md per project | Memory API / service for AI applications | Framework for building new agent apps | Open-source AI coding agent + community harness layer |
-| **Approach** | Augments existing tools (Claude Code, Codex, opencode, Hermes) | Per-tool, per-project, manual | Embedded in application code | Replaces tools with new agent runtime | Agent runtime; community configs layered on top |
+| **Approach** | Augments existing tools (Claude Code, Hermes) | Per-tool, per-project, manual | Embedded in application code | Replaces tools with new agent runtime | Agent runtime; community configs layered on top |
 | **Target** | Developers who already use AI coding tools | Same, but with no sync mechanism | App developers embedding memory in products | Teams building new AI applications | Developers who want an open-source Claude Code alternative |
 | **Memory** | Governed markdown + JSON schemas, authoritative | Flat markdown, no schema, no governance | Vector/graph store, API-managed | Runtime-managed per agent | Session-scoped, no persistent identity layer |
 | **Identity** | Your profile, cognitive posture, cross-tool | One file per tool, diverges over time | Not a concept | Agent-level, defined per app | System prompt per session |
 | **Sync** | One command, all tools | Manual copy-paste per tool | N/A | N/A | N/A (per-project config) |
 
-The gap cognitive-os fills: no other project syncs a governed identity + cognitive contract across Claude Code, Codex, opencode, and Hermes in one command. The manual approach (maintaining separate CLAUDE.md, AGENTS.md, and per-tool configs per project) is what most developers do today. That's what cognitive-os replaces.
+The gap cognitive-os fills: no other project syncs a governed identity + cognitive contract across Claude Code and Hermes in one command. The manual approach (maintaining separate CLAUDE.md, AGENTS.md, and per-tool configs per project) is what most developers do today. That's what cognitive-os replaces. Additional adapters (Codex, opencode, Cursor, etc.) are a 50-line shim away — the kernel is vendor-neutral by design.
 
 mem0 and Agno are strong in their lanes -- application memory and agent app building, respectively. They are not developer tool augmentation layers. opencode and omo are excellent runtimes; cognitive-os makes them aware of who you are and how you think.
 
@@ -63,7 +63,7 @@ Structure summary:
 - Structural + operational stack defines roles and authority boundaries.
 - Authoritative memory + policy defines what persists and how conflicts resolve.
 - Workflow + evolution governs execution and safe improvement.
-- `cognitive-os sync` propagates the same operating contract to Claude Code, Codex, opencode, and Hermes.
+- `cognitive-os sync` propagates the same operating contract to Claude Code and Hermes.
 
 ---
 
@@ -74,13 +74,13 @@ git clone https://github.com/junjslee/cognitive-os ~/cognitive-os
 cd ~/cognitive-os
 pip install -e .
 cognitive-os init       # generate personal memory files from templates
-cognitive-os sync       # push your identity to Claude, Codex, opencode, Hermes
+cognitive-os sync       # push your identity to Claude Code and Hermes
 cognitive-os doctor     # verify everything wired correctly
 ```
 
 Expected output from `doctor`:
 - `Awareness verified.`
-- Claude/Codex/opencode/Hermes adapter checks shown as `[ok]` or `[info]`
+- Claude Code and Hermes adapter checks shown as `[ok]` or `[info]`
 
 ### 60-second demo (profile + cognition + sync)
 
@@ -146,7 +146,7 @@ You use multiple AI coding agents. Each one starts cold. You repeat yourself. Sk
 - cognitive-os operationalizes cognitive policy (how agents think) and execution policy (how agents act) into repeatable workflows.
 - Authoritative project truth lives in repository docs (`AGENTS.md`, `docs/*`), not in any single agent tool.
 - Global operator memory (cross-project) is separate from project memory (repo-local delivery context).
-- Adapters (Claude, Codex, opencode, Hermes, others) are delivery mechanisms for the same operating contract, not separate authorities.
+- Adapters (Claude Code, Hermes, others) are delivery mechanisms for the same operating contract, not separate authorities.
 - Plugin or tool-native memory systems accelerate retrieval but don't replace authoritative records.
 
 ---
@@ -164,7 +164,7 @@ cognitive-os has four layers:
 3) **Project truth layer** (`AGENTS.md`, `docs/*`)
 - what this specific repo is building right now
 
-4) **Adapter layer** (Claude/Codex/opencode/Hermes)
+4) **Adapter layer** (Claude Code, Hermes)
 - delivery surfaces that consume the same contract
 
 Adapters are not the authority. Repo docs + global memory are.
@@ -173,7 +173,7 @@ Adapters are not the authority. Repo docs + global memory are.
 
 ## Why this architecture wins
 
-- Cross-tool consistency: one authoritative operating contract across Claude/Codex/opencode/Hermes.
+- Cross-tool consistency: one authoritative operating contract across Claude Code and Hermes.
 - Deterministic setup: profile/cognition onboarding is explainable (`survey`/`infer`/`hybrid`) instead of implicit drift.
 - Hard authority boundary: repo docs + global memory are the source of truth; tool-native memories are acceleration layers.
 
@@ -213,15 +213,14 @@ Guided setup in one command:
 
 ## What gets synced
 
-| Asset | Claude Code | Codex CLI | opencode | Hermes | OMO / OMX |
-|---|---|---|---|---|---|
-| Global memory index (`CLAUDE.md`) | ✅ | — | — | — | — |
-| Operator/cognitive/workflow source files (`core/memory/global/*.md`) | via include | source only | source only | composed into `OPERATOR.md` | — |
-| Agent personas | ✅ | — | — | — | ✅ |
-| Skills | ✅ | ✅ | — | ✅ | ✅ |
-| Lifecycle hooks | ✅ | — | — | — | ✅ |
-| Governance subagent | — | — | ✅ (`cognitive-os-governance.md`) | — | — |
-| Authoritative context composite (`OPERATOR.md`) | — | — | via `{file:}` ref | ✅ | — |
+| Asset | Claude Code | Hermes | OMO / OMX |
+|---|---|---|---|
+| Global memory index (`CLAUDE.md`) | ✅ | — | — |
+| Operator/cognitive/workflow source files (`core/memory/global/*.md`) | via include | composed into `OPERATOR.md` | — |
+| Agent personas | ✅ | — | ✅ |
+| Skills | ✅ | ✅ | ✅ |
+| Lifecycle hooks | ✅ | — | ✅ |
+| Authoritative context composite (`OPERATOR.md`) | — | ✅ | — |
 
 Note: this matrix describes current adapter capabilities, not architectural authority. Authoritative truth remains in repository docs and global cognitive-os memory.
 
