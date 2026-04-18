@@ -1,146 +1,231 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-label="cognitive-os system overview: kernel, instance, delivery">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1320" viewBox="0 0 1600 1320" role="img" aria-label="cognitive-os — a portable cognitive kernel for AI agents. The kernel is markdown; adapters deliver it; the kernel is what travels.">
+
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0e1f"/>
-      <stop offset="100%" stop-color="#10131f"/>
-    </linearGradient>
-    <linearGradient id="kernelFill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1e1b3a"/>
-      <stop offset="100%" stop-color="#171530"/>
-    </linearGradient>
-    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-      <path d="M0,0 L10,4 L0,8 Z" fill="#8aa0c7"/>
-    </marker>
-    <style>
-      .title { font: 700 38px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #f8fafc; }
-      .subtitle { font: 500 16px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #aeb9d0; letter-spacing: 0.2px; }
-      .layer-label { font: 600 13px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #8ea2c9; letter-spacing: 1.5px; }
-      .kernel-panel { fill: url(#kernelFill); stroke: #6a5bd0; stroke-width: 2; }
-      .instance-panel { fill: #131d33; stroke: #32517f; stroke-width: 1.5; }
-      .delivery-panel { fill: #0f2230; stroke: #2a5a6e; stroke-width: 1.5; }
-      .box { fill: #181a34; stroke: #4c447c; stroke-width: 1.25; }
-      .subbox { fill: #151f38; stroke: #34538a; stroke-width: 1.25; }
-      .tool { fill: #14233b; stroke: #345078; stroke-width: 1.25; }
-      .tool-future { fill: #101a2c; stroke: #3b5178; stroke-width: 1.25; stroke-dasharray: 7 6; }
-      .h1 { font: 700 22px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #ece9ff; }
-      .h2 { font: 700 18px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #e8f1ff; }
-      .chip { font: 700 11px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #c9bdff; letter-spacing: 1.2px; }
-      .chip-blue { font: 700 11px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #9dc0ff; letter-spacing: 1.2px; }
-      .chip-teal { font: 700 11px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #9cd8d0; letter-spacing: 1.2px; }
-      .hfile { font: 500 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #a49dd2; letter-spacing: 0.3px; }
-      .t { font: 500 14px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #d3dbf0; }
-      .tdim { font: 500 13px Inter, -apple-system, Segoe UI, Arial, sans-serif; fill: #96a3c2; }
-      .mono { font: 500 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #a3b5d7; }
-      .arrow { stroke: #8aa0c7; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+    <style type="text/css"><![CDATA[
+      /* Editorial Constitution — typographic, no filled panels except the sync pill. */
+      .nameplate    { font: 500 46px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.015em; }
+      .nameplate em { font-style: italic; font-weight: 400; }
+      .epigraph     { font: 400 14px ui-sans-serif, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #5B4F42; letter-spacing: 0.04em; }
+      .epigraph em  { font-style: italic; fill: #1A1612; }
+
+      .rootclaim    { font: 500 40px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
+      .rootclaim em { font-style: italic; font-weight: 500; fill: #7A2E2A; }
+      .attribution  { font: 400 italic 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.02em; }
+
+      .section      { font: 600 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.22em; }
+      .section-hair { stroke: #2A231E; stroke-width: 0.75; stroke-opacity: 0.55; fill: none; }
+      .hair         { stroke: #2A231E; stroke-width: 0.5; stroke-opacity: 0.30; fill: none; }
+      .hair-row     { stroke: #2A231E; stroke-width: 0.5; stroke-opacity: 0.22; fill: none; }
+
+      .roman        { font: 400 58px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: 0.02em; }
+      .p-title      { font: 600 20px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
+      .p-gloss      { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.005em; }
+      .p-gloss em   { font-style: italic; fill: #1A1612; }
+
+      .a-index      { font: 600 10px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.22em; }
+      .a-title      { font: 600 18px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: 0.005em; }
+      .a-gloss      { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.01em; }
+      .a-gloss em   { font-style: italic; fill: #1A1612; }
+      .a-path       { font: 400 11px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #7A6A58; }
+
+      .row-label    { font: 600 10px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.22em; }
+      .row-gloss    { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; }
+      .row-path     { font: 400 11px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #7A6A58; }
+
+      .sync-label   { font: 600 12.5px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #F5EFE2; letter-spacing: 0.08em; }
+
+      .adapter      { font: 500 22px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
+      .adapter-line { font: 400 12.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; }
+      .adapter-future .adapter { fill: #7A6A58; }
+      .adapter-future .adapter-line { fill: #7A6A58; }
+
+      .pack-heading { font: 400 italic 13px ui-serif, Georgia, "Times New Roman", serif; fill: #5B4F42; letter-spacing: 0.005em; }
+      .pack-chip    { font: 500 12px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #5B4F42; letter-spacing: 0.02em; }
+      .pack-chip em { font-style: italic; fill: #7A2E2A; }
+
+      .colophon     { font: 400 12px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.01em; }
+      .colophon em  { font-style: italic; fill: #1A1612; }
+
+      .accent-rule  { stroke: #7A2E2A; stroke-width: 2.25; fill: none; stroke-linecap: square; }
+      .accent-thin  { stroke: #7A2E2A; stroke-width: 1.25; fill: none; }
+      .ink-arrow    { stroke: #2A231E; stroke-width: 0.75; stroke-opacity: 0.55; fill: none; }
+
       .center { text-anchor: middle; }
-      .sync-pill { fill: #2a224d; stroke: #7d6ad9; stroke-width: 1.5; }
-      .sync-text { font: 700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #d9ceff; text-anchor: middle; letter-spacing: 0.5px; }
-    </style>
+      .end    { text-anchor: end; }
+    ]]></style>
+
+    <marker id="arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#7A2E2A"/>
+    </marker>
+    <marker id="arrow-ink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2A231E" fill-opacity="0.55"/>
+    </marker>
   </defs>
 
-  <rect width="1600" height="1120" fill="url(#bg)"/>
+  <!-- Warm paper ground -->
+  <rect width="1600" height="1320" fill="#F5EFE2"/>
 
-  <text x="42" y="60" class="title">cognitive-os</text>
-  <text x="42" y="88" class="subtitle">A portable cognitive kernel for AI agents. The kernel is the spec. Adapters deliver it. The kernel is what travels.</text>
+  <!-- =========================================================
+       MASTHEAD (y 40 – 120)
+       ========================================================= -->
+  <text x="80" y="82" class="nameplate">cognitive-os</text>
+  <text x="1520" y="62" class="epigraph end">A portable cognitive kernel for AI agents</text>
+  <text x="1520" y="86" class="epigraph end">Markdown. Vendor-neutral. The kernel is what travels.</text>
+  <line x1="80"  y1="112" x2="1520" y2="112" class="section-hair"/>
+  <line x1="80"  y1="118" x2="1520" y2="118" class="hair"/>
 
-  <text x="60" y="132" class="layer-label">LAYER 1 — THE KERNEL  ·  kernel/  ·  pure markdown, vendor-neutral</text>
-  <rect x="60" y="146" width="1480" height="358" rx="14" class="kernel-panel"/>
+  <!-- =========================================================
+       ROOT CLAIM (y 160 – 310)
+       ========================================================= -->
+  <text x="800" y="220" class="rootclaim center">The danger is not incompetence.</text>
+  <text x="800" y="270" class="rootclaim center">It is <tspan class="rootclaim" style="font-style:italic;fill:#7A2E2A">confident wrongness.</tspan></text>
+  <line x1="700" y1="294" x2="900" y2="294" class="accent-rule"/>
+  <text x="800" y="324" class="attribution center">— kernel / CONSTITUTION.md · the root claim from which every other artifact derives</text>
 
-  <rect x="88" y="176" width="346" height="304" rx="10" class="box"/>
-  <text x="108" y="208" class="chip">01 · CONSTITUTION</text>
-  <text x="108" y="236" class="h2">Four Principles</text>
-  <text x="108" y="268" class="t">I.  Explicit &gt; implicit</text>
-  <text x="108" y="294" class="t">II. Orientation precedes observation</text>
-  <text x="108" y="320" class="t">III. No model sufficient alone</text>
-  <text x="108" y="346" class="t">IV. The loop is the unit of progress</text>
-  <text x="108" y="396" class="tdim">Root claim: the danger is not</text>
-  <text x="108" y="414" class="tdim">incompetence. It is confident wrongness.</text>
-  <text x="108" y="460" class="hfile">kernel/CONSTITUTION.md</text>
+  <!-- =========================================================
+       SECTION — THE FOUR PRINCIPLES (y 370 – 640)
+       ========================================================= -->
+  <text x="80"   y="378" class="section">THE FOUR PRINCIPLES  ·  I – IV  ·  Every design decision in the repository descends from these</text>
+  <text x="1520" y="378" class="section end">PHILOSOPHY FIRST · IMPLEMENTATION FOLLOWS</text>
+  <line x1="80" y1="392" x2="1520" y2="392" class="section-hair"/>
 
-  <rect x="448" y="176" width="346" height="304" rx="10" class="box"/>
-  <text x="468" y="208" class="chip">02 · REASONING SURFACE</text>
-  <text x="468" y="236" class="h2">Operational Protocol</text>
-  <text x="468" y="268" class="t">•  Knowns — verifiable now</text>
-  <text x="468" y="294" class="t">•  Unknowns — would change the call</text>
-  <text x="468" y="320" class="t">•  Assumptions — with falsifiers</text>
-  <text x="468" y="346" class="t">•  Disconfirmation — observable outcome</text>
-  <text x="468" y="396" class="tdim">Minimum viable explicitness before</text>
-  <text x="468" y="414" class="tdim">any consequential decision.</text>
-  <text x="468" y="460" class="hfile">kernel/REASONING_SURFACE.md</text>
+  <!-- Column I -->
+  <text x="110" y="470" class="roman">I</text>
+  <text x="110" y="510" class="p-title">Explicit &gt; implicit</text>
+  <text x="110" y="548" class="p-gloss">Hidden assumptions are objectives</text>
+  <text x="110" y="568" class="p-gloss">in disguise. Expose the model —</text>
+  <text x="110" y="588" class="p-gloss">including the parts that are wrong.</text>
+  <text x="110" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: reasoning only from what is present.</tspan></text>
 
-  <rect x="808" y="176" width="346" height="304" rx="10" class="box"/>
-  <text x="828" y="208" class="chip">03 · FAILURE MODES → COUNTERS</text>
-  <text x="828" y="236" class="h2">Named Audit Trail</text>
-  <text x="828" y="266" class="t">1  Present-only reasoning  →  Unknowns</text>
-  <text x="828" y="290" class="t">2  Nearby easier question  →  Core Question</text>
-  <text x="828" y="314" class="t">3  First-framing persists  →  Disconfirmation</text>
-  <text x="828" y="338" class="t">4  Story-fit over evidence →  fact/infer/pref</text>
-  <text x="828" y="362" class="t">5  Effort/risk under-est   →  buffer + fail-first</text>
-  <text x="828" y="386" class="t">6  Confidence &gt; accuracy   →  Assumptions + track</text>
-  <text x="828" y="424" class="tdim">Every artifact counters a named mode.</text>
-  <text x="828" y="460" class="hfile">kernel/FAILURE_MODES.md</text>
+  <line x1="440" y1="430" x2="440" y2="630" class="hair"/>
 
-  <rect x="1168" y="176" width="346" height="304" rx="10" class="box"/>
-  <text x="1188" y="208" class="chip">04 · OPERATOR SCHEMA</text>
-  <text x="1188" y="236" class="h2">Portable Preferences</text>
-  <text x="1188" y="268" class="t">Workstyle (0–3):</text>
-  <text x="1188" y="290" class="tdim">planning · testing · risk · docs · parallel · auto</text>
-  <text x="1188" y="318" class="t">Cognition (0–3):</text>
-  <text x="1188" y="340" class="tdim">depth · breadth · rigor · challenge · uncertainty</text>
-  <text x="1188" y="386" class="tdim">+ MANIFEST.sha256 — integrity pin</text>
-  <text x="1188" y="408" class="tdim">+ REFERENCES.md — attribution trail</text>
-  <text x="1188" y="460" class="hfile">kernel/OPERATOR_PROFILE_SCHEMA.md</text>
+  <!-- Column II -->
+  <text x="470" y="470" class="roman">II</text>
+  <text x="470" y="510" class="p-title">Orientation precedes observation</text>
+  <text x="470" y="548" class="p-gloss">You never see reality; you see</text>
+  <text x="470" y="568" class="p-gloss">your model of it. The kernel is</text>
+  <text x="470" y="588" class="p-gloss">Orient infrastructure before Act.</text>
+  <text x="470" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: first-framing persistence.</tspan></text>
 
-  <text x="60" y="540" class="layer-label">LAYER 2 — INSTANCE + PROJECT TRUTH  ·  what the kernel attaches to</text>
-  <rect x="60" y="554" width="1480" height="112" rx="12" class="instance-panel"/>
+  <line x1="800" y1="430" x2="800" y2="630" class="hair"/>
 
-  <rect x="88" y="580" width="680" height="66" rx="8" class="subbox"/>
-  <text x="108" y="606" class="chip-blue">OPERATOR INSTANCE</text>
-  <text x="108" y="631" class="mono">core/memory/global/  —  operator_profile.md · cognitive_profile.md · workflow_policy.md</text>
+  <!-- Column III -->
+  <text x="830" y="470" class="roman">III</text>
+  <text x="830" y="510" class="p-title">No model is sufficient alone</text>
+  <text x="830" y="548" class="p-gloss">Every lens has a structural blind</text>
+  <text x="830" y="568" class="p-gloss">spot. Convergence confirms;</text>
+  <text x="830" y="588" class="p-gloss">conflict between lenses informs.</text>
+  <text x="830" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: story-fit over evidence.</tspan></text>
 
-  <rect x="788" y="580" width="724" height="66" rx="8" class="subbox"/>
-  <text x="808" y="606" class="chip-blue">PROJECT TRUTH</text>
-  <text x="808" y="631" class="mono">docs/  —  REQUIREMENTS · PLAN · PROGRESS · NEXT_STEPS · RUN_CONTEXT · DECISION_STORY</text>
+  <line x1="1160" y1="430" x2="1160" y2="630" class="hair"/>
 
-  <rect x="740" y="688" width="120" height="34" rx="17" class="sync-pill"/>
-  <text x="800" y="710" class="sync-text">cognitive-os sync</text>
+  <!-- Column IV -->
+  <text x="1190" y="470" class="roman">IV</text>
+  <text x="1190" y="510" class="p-title">The loop is the unit of progress</text>
+  <text x="1190" y="548" class="p-gloss">Understanding compounds through</text>
+  <text x="1190" y="568" class="p-gloss">cycles with integrity. A skipped</text>
+  <text x="1190" y="588" class="p-gloss">stage defers its cost, not removes it.</text>
+  <text x="1190" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: confidence exceeding accuracy.</tspan></text>
 
-  <text x="60" y="762" class="layer-label">LAYER 3 — DELIVERY  ·  thin adapters inject the kernel into each runtime's native context</text>
-  <rect x="60" y="776" width="1480" height="244" rx="14" class="delivery-panel"/>
+  <line x1="80" y1="660" x2="1520" y2="660" class="hair"/>
 
-  <rect x="88" y="806" width="346" height="188" rx="10" class="tool"/>
-  <text x="261" y="842" class="h1 center">Claude Code</text>
-  <text x="261" y="872" class="t center">CLAUDE.md memory index</text>
-  <text x="261" y="896" class="t center">deterministic safety hooks</text>
-  <text x="261" y="920" class="t center">agent personas + skills</text>
-  <text x="261" y="972" class="hfile center">adapters/claude</text>
+  <!-- =========================================================
+       SECTION — KERNEL ARTIFACTS (y 700 – 920)
+       ========================================================= -->
+  <text x="80"   y="702" class="section">KERNEL ARTIFACTS  ·  Each counters a named failure mode · pure markdown · vendor-neutral</text>
+  <text x="1520" y="702" class="section end">kernel /</text>
+  <line x1="80" y1="716" x2="1520" y2="716" class="section-hair"/>
 
-  <rect x="448" y="806" width="346" height="188" rx="10" class="tool"/>
-  <text x="621" y="842" class="h1 center">Hermes</text>
-  <text x="621" y="872" class="t center">OPERATOR.md composite</text>
-  <text x="621" y="896" class="t center">SOUL.md identity</text>
-  <text x="621" y="920" class="t center">native skills sync</text>
-  <text x="621" y="972" class="hfile center">adapters/hermes</text>
+  <!-- Artifact row 01 -->
+  <text x="110"  y="758" class="a-index">01</text>
+  <text x="170"  y="758" class="a-title">Constitution</text>
+  <text x="450"  y="758" class="a-gloss">Four principles. Philosophy before implementation; every other file descends from this one.</text>
+  <text x="1520" y="758" class="a-path end">kernel/CONSTITUTION.md</text>
+  <line x1="80" y1="778" x2="1520" y2="778" class="hair-row"/>
 
-  <rect x="808" y="806" width="346" height="188" rx="10" class="tool"/>
-  <text x="981" y="842" class="h1 center">OMO / OMX</text>
-  <text x="981" y="872" class="t center">agents + skills bundle</text>
-  <text x="981" y="896" class="t center">shared governance policy</text>
-  <text x="981" y="920" class="t center">Claude-format settings</text>
-  <text x="981" y="972" class="hfile center">core/adapters/*.json</text>
+  <!-- Artifact row 02 -->
+  <text x="110"  y="810" class="a-index">02</text>
+  <text x="170"  y="810" class="a-title">Reasoning Surface</text>
+  <text x="450"  y="810" class="a-gloss">Knowns · Unknowns · Assumptions · Disconfirmation — the minimum viable explicitness.</text>
+  <text x="1520" y="810" class="a-path end">kernel/REASONING_SURFACE.md</text>
+  <line x1="80" y1="830" x2="1520" y2="830" class="hair-row"/>
 
-  <rect x="1168" y="806" width="346" height="188" rx="10" class="tool-future"/>
-  <text x="1341" y="842" class="h1 center">Future runtimes</text>
-  <text x="1341" y="872" class="t center">Codex · Cursor · opencode · MCP</text>
-  <text x="1341" y="896" class="t center">same markdown kernel</text>
-  <text x="1341" y="920" class="t center">~50-line shim per tool</text>
-  <text x="1341" y="972" class="hfile center">drop a core/adapters/*.json</text>
+  <!-- Artifact row 03 -->
+  <text x="110"  y="862" class="a-index">03</text>
+  <text x="170"  y="862" class="a-title">Failure Modes</text>
+  <text x="450"  y="862" class="a-gloss">Six named modes, each paired with the artifact that counters it. A named audit trail.</text>
+  <text x="1520" y="862" class="a-path end">kernel/FAILURE_MODES.md</text>
+  <line x1="80" y1="882" x2="1520" y2="882" class="hair-row"/>
 
-  <path d="M800,504 L800,554" class="arrow"/>
-  <path d="M800,666 L800,688" class="arrow"/>
-  <path d="M800,722 L800,776" class="arrow"/>
+  <!-- Artifact row 04 -->
+  <text x="110"  y="914" class="a-index">04</text>
+  <text x="170"  y="914" class="a-title">Operator Schema</text>
+  <text x="450"  y="914" class="a-gloss">Workstyle and cognition, scored 0–3, portable across tools. Identity that travels.</text>
+  <text x="1520" y="914" class="a-path end">kernel/OPERATOR_PROFILE_SCHEMA.md</text>
+  <line x1="80" y1="934" x2="1520" y2="934" class="hair-row"/>
 
-  <text x="60" y="1062" class="layer-label">AUTHORITY ORDER</text>
-  <text x="60" y="1084" class="t">project truth  &gt;  global operator memory  &gt;  episodic runtime memory        ·        delivery adapters are not authority — they are vessels</text>
-  <text x="60" y="1108" class="tdim">Loop: Frame → Decompose → Execute → Verify → Handoff    ·    speed of iteration beats size of any single step (Principle IV)</text>
+  <!-- =========================================================
+       SECTION — INSTANCE & DELIVERY (y 970 – 1180)
+       ========================================================= -->
+  <text x="80"   y="976" class="section">INSTANCE &amp; DELIVERY  ·  What the kernel attaches to, and how it travels</text>
+  <text x="1520" y="976" class="section end">authority : project truth › global operator › episodic</text>
+  <line x1="80" y1="990" x2="1520" y2="990" class="section-hair"/>
+
+  <!-- Instance row (two typographic columns, no boxes) -->
+  <text x="110" y="1028" class="row-label">OPERATOR INSTANCE</text>
+  <text x="110" y="1054" class="row-gloss">The operator's cognitive posture, expressed as markdown.</text>
+  <text x="110" y="1076" class="row-path">core/memory/global/ · operator_profile.md · cognitive_profile.md · workflow_policy.md</text>
+
+  <line x1="780" y1="1010" x2="780" y2="1090" class="hair"/>
+
+  <text x="810" y="1028" class="row-label">PROJECT TRUTH</text>
+  <text x="810" y="1054" class="row-gloss">What this repository is building right now, and why.</text>
+  <text x="810" y="1076" class="row-path">docs/ · REQUIREMENTS · PLAN · PROGRESS · NEXT_STEPS · RUN_CONTEXT · DECISION_STORY</text>
+
+  <!-- Sync pill -->
+  <rect x="720" y="1108" width="160" height="34" rx="17" fill="#7A2E2A"/>
+  <text x="800" y="1130" class="sync-label center">cognitive-os sync</text>
+  <!-- Accent arrow down into delivery row -->
+  <line x1="800" y1="1146" x2="800" y2="1178" class="accent-thin" marker-end="url(#arrow-accent)"/>
+
+  <!-- =========================================================
+       DELIVERY — ADAPTERS (y 1200 – 1280)  (typographic, no boxes)
+       ========================================================= -->
+  <line x1="80" y1="1190" x2="1520" y2="1190" class="hair"/>
+
+  <!-- Claude Code -->
+  <text x="110" y="1224" class="adapter">Claude Code</text>
+  <text x="110" y="1248" class="adapter-line">CLAUDE.md index · deterministic safety hooks · personas &amp; skills</text>
+  <text x="110" y="1268" class="row-path">adapters/claude</text>
+
+  <line x1="430" y1="1200" x2="430" y2="1282" class="hair"/>
+
+  <!-- Hermes -->
+  <text x="460" y="1224" class="adapter">Hermes</text>
+  <text x="460" y="1248" class="adapter-line">OPERATOR.md composite · SOUL.md identity · native skills</text>
+  <text x="460" y="1268" class="row-path">adapters/hermes</text>
+
+  <line x1="780" y1="1200" x2="780" y2="1282" class="hair"/>
+
+  <!-- OMO / OMX -->
+  <text x="810" y="1224" class="adapter">OMO / OMX</text>
+  <text x="810" y="1248" class="adapter-line">agents &amp; skills bundle · shared governance · Claude-format settings</text>
+  <text x="810" y="1268" class="row-path">core/adapters/*.json</text>
+
+  <line x1="1160" y1="1200" x2="1160" y2="1282" class="hair"/>
+
+  <!-- Future runtimes -->
+  <g class="adapter-future">
+    <text x="1190" y="1224" class="adapter"><tspan style="font-style:italic">Future runtimes</tspan></text>
+    <text x="1190" y="1248" class="adapter-line">Codex · Cursor · opencode · MCP — same kernel, ~50-line shim each</text>
+    <text x="1190" y="1268" class="row-path">drop a core/adapters/*.json</text>
+  </g>
+
+  <!-- =========================================================
+       DOMAIN PACKS (y 1290 – 1320) — the positioning stratum
+       ========================================================= -->
+  <line x1="80" y1="1290" x2="1520" y2="1290" class="hair"/>
+  <text x="80"  y="1310" class="pack-heading">Domain packs ride atop delivery — any skill bundle inherits the kernel above.</text>
+  <text x="1520" y="1310" class="pack-chip end"><tspan style="font-style:italic">medsci-skills</tspan>  ·  ml-research  ·  web-app  ·  data-pipeline  ·  python-library  ·  &lt;your-pack&gt;</text>
+
 </svg>
