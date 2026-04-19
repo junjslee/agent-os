@@ -1,5 +1,13 @@
 # Operator Profile Schema
 
+**Operational summary:**
+- Required files: `overview.md` (one-paragraph stance), `workflow_policy.md` (Frame→Decompose→Execute→Verify→Handoff stages + risk/autonomy policy + memory contract), `cognitive_profile.md` (core philosophy + decision protocol + red flags), `operator_profile.md` (scorecard).
+- Scorecard axes (0–3): `planning_strictness`, `risk_tolerance`, `testing_rigor`, `parallelism_preference`, `documentation_rigor`, `automation_level`. Missing = unknown; filled = commitment.
+- Authority hierarchy: project docs > operator profile > kernel defaults > runtime defaults.
+- A profile must *distinguish* this operator from defaults. Generic best-practice = failed profile.
+
+---
+
 An **operator profile** is the explicit encoding of a human operator's
 cognitive preferences, reasoning posture, and working style. It is the file
 the kernel reads to personalize orientation to a specific person, so every

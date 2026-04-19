@@ -1,0 +1,43 @@
+# cognitive-os
+
+> A portable cognitive kernel for AI agents. Markdown. Vendor-neutral. The kernel outlives the tooling.
+
+cognitive-os is the durable layer between an operator and whatever AI tool they use next. Tools cycle every 18–36 months; how one reasons does not. The kernel is a small set of markdown files defining the agent's worldview — reasoning protocol, named counters to the most dangerous failure modes, and schema for encoding operator preferences. Adapters mount the same kernel files into specific runtimes (Claude Code, Hermes, future).
+
+## Kernel (load first, in priority order)
+
+- [SUMMARY](./kernel/SUMMARY.md): 30-line distillation of the entire kernel
+- [CONSTITUTION](./kernel/CONSTITUTION.md): root claim, four principles, six failure modes
+- [REASONING_SURFACE](./kernel/REASONING_SURFACE.md): Knowns/Unknowns/Assumptions/Disconfirmation protocol
+- [FAILURE_MODES](./kernel/FAILURE_MODES.md): six failure modes mapped 1:1 to counter artifacts
+- [KERNEL_LIMITS](./kernel/KERNEL_LIMITS.md): when this kernel is the wrong tool; declared structural gaps
+- [OPERATOR_PROFILE_SCHEMA](./kernel/OPERATOR_PROFILE_SCHEMA.md): schema for encoding operator preferences
+- [REFERENCES](./kernel/REFERENCES.md): attribution for every load-bearing borrowed concept
+- [CHANGELOG](./kernel/CHANGELOG.md): versioned kernel history
+- [HOOKS_MAP](./kernel/HOOKS_MAP.md): kernel invariants ↔ runtime enforcement
+
+## Demos (reference deliverables)
+
+- [01_attribution-audit](./demos/01_attribution-audit/): canonical four-artifact shape (reasoning-surface.json → decision-trace.md → verification.md → handoff.md). The kernel applied to itself.
+
+## Agent operating contract
+
+- [AGENTS.md](./AGENTS.md): deterministic build/test/sync, kernel invariants, prohibited patterns, delegation conventions
+
+## Human documentation
+
+- [README](./README.md): project overview, quick start, comparisons
+- [docs/COGNITIVE_OS_ARCHITECTURE.md](./docs/COGNITIVE_OS_ARCHITECTURE.md): architecture deep dive
+- [docs/COGNITIVE_SYSTEM_PLAYBOOK.md](./docs/COGNITIVE_SYSTEM_PLAYBOOK.md): operational playbook
+
+## Contracts (governance)
+
+- [docs/MEMORY_CONTRACT.md](./docs/MEMORY_CONTRACT.md): memory class schema + conflict semantics
+- [docs/EVOLUTION_CONTRACT.md](./docs/EVOLUTION_CONTRACT.md): propose → critique → gate → promote loop for kernel changes
+- [docs/ANTHROPIC_MANAGED_AGENTS_BRIDGE.md](./docs/ANTHROPIC_MANAGED_AGENTS_BRIDGE.md): bridging managed runtimes into the memory contract
+
+## Optional
+
+- [docs/OPEN_SOURCE_YOUR_PROFILE.md](./docs/OPEN_SOURCE_YOUR_PROFILE.md): publishing your operator profile
+- [docs/PRD_WORKSTYLE_PROFILER.md](./docs/PRD_WORKSTYLE_PROFILER.md): workstyle profiler product requirements
+- [docs/PRD_REASONING_SYNTHESIS.md](./docs/PRD_REASONING_SYNTHESIS.md): reasoning synthesis product requirements

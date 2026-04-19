@@ -1,5 +1,13 @@
 # References
 
+**Operational summary — primary sources (14) and what they anchor:**
+- Kahneman → six-failure-mode taxonomy. Munger → latticework (Principle III). Boyd → OODA (Principle II + workflow tempo). Dalio → radical transparency (Assumptions without cover).
+- Popper → Disconfirmation field. Shannon → signal vs noise. Polanyi → tacit/explicit boundary (Kernel Limits 4). Meadows → orientation as system structure. Alexander → composable partial models. Deming → PDSA ancestry of the workflow loop. Simon → bounded rationality. Argyris & Schön → espoused vs in-use theory. Graham + Orwell → plain language as Principle I. Taleb → antifragility. Pearl → causal reasoning.
+
+Full concept→kernel-wording maps below. Introducing a new load-bearing concept into kernel wording without a primary-source entry here violates Principle I.
+
+---
+
 The kernel body does not import jargon from external frameworks. Concepts
 are described in the kernel's own vocabulary so the principles stand on
 their own, without requiring the reader to already know the source

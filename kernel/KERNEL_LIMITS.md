@@ -1,5 +1,17 @@
 # Kernel Limits
 
+**Operational summary — when this kernel is the wrong tool:**
+1. Cost of thinking exceeds cost of being wrong (collapse the loop).
+2. Disconfirmation paralysis (ship the smallest reversible move).
+3. Orientation over-fit (profile is stale; re-elicit).
+4. Tacit knowledge dominates (mark decision as judgment-driven; do not fabricate legible Knowns).
+5. Multi-operator loops (single-operator assumption breaks; name authority per decision class).
+6. Unvalidated claims about the kernel itself (no calibration telemetry yet; recommendations rest on coherence).
+
+Declared gaps (known, not yet closed): calibration telemetry · profile staleness · team/pair mode · tacit-call decision mode.
+
+---
+
 Every kernel has a domain of applicability. This file names the conditions
 under which cognitive-os is the wrong tool, or is the right tool misapplied.
 Naming the limits is itself a Principle I act: the constraint that is not

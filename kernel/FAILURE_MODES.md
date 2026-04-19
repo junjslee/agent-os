@@ -1,5 +1,20 @@
 # Failure Modes and Their Counters
 
+**Operational summary — six modes ↔ counters:**
+
+| # | Failure mode                          | Counter artifact                                      |
+|---|---------------------------------------|-------------------------------------------------------|
+| 1 | Reasoning only from what is present   | Unknowns field (Reasoning Surface)                    |
+| 2 | Answering a nearby easier question    | Core Question (required in Frame)                     |
+| 3 | First-framing persistence (anchoring) | Disconfirmation field                                 |
+| 4 | Story-fit over evidence               | Facts / inferences / preferences split                |
+| 5 | Systematic underestimation of risk    | Failure-first + 30–50% buffer (high-impact)           |
+| 6 | Confidence exceeding accuracy         | Assumptions field + weight-by-track-record            |
+
+Removing or bypassing a counter means naming which mode is now unprotected. If the answer is "none," the counter was not earning its place.
+
+---
+
 The [Constitution](./CONSTITUTION.md) names six failure modes as the reason
 agents produce confident wrongness. This document maps each one to the
 specific kernel artifact that counters it.

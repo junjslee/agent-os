@@ -1,5 +1,12 @@
 # The Cognitive Constitution
 
+**Operational summary** (load first if you have a token budget):
+- Root claim: the danger is *confident wrongness*, not incompetence.
+- Four principles: I. Explicit > implicit · II. Orientation precedes observation · III. No model is sufficient alone · IV. The loop is the unit of progress.
+- Six failure modes named in this file; counters enumerated in [FAILURE_MODES.md](./FAILURE_MODES.md).
+- Authority: project docs > operator profile > kernel defaults > runtime defaults.
+- Boundary: [KERNEL_LIMITS.md](./KERNEL_LIMITS.md). Attribution: [REFERENCES.md](./REFERENCES.md).
+
 The governing document of cognitive-os. Philosophy before implementation.
 Every other kernel file is derived from this one.
 

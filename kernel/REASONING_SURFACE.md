@@ -1,5 +1,13 @@
 # The Reasoning Surface
 
+**Operational summary:**
+- Four required fields: **Knowns** (verifiable), **Unknowns** (sharp), **Assumptions** (with falsification conditions), **Disconfirmation** (specific observable outcome).
+- Fill always before irreversible or blast-radius actions; usually before non-trivial design choices.
+- Blank Unknowns = refusal signal. Knowns-as-assumptions = most common failure. Unfalsifiable plan = story, not plan.
+- State stored at `.cognitive-os/reasoning-surface.json` for high-impact ops; enforced via `kernel/HOOKS_MAP.md`.
+
+---
+
 The Reasoning Surface is the operational form of Principle I
 (*Explicit > Implicit*). It is the minimum viable explicitness required
 before any consequential decision.
