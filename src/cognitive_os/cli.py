@@ -3624,6 +3624,27 @@ def build_parser() -> argparse.ArgumentParser:
     viewer.add_argument("--host", default="127.0.0.1")
     viewer.add_argument("--port", type=int, default=37776)
 
+    capture = sub.add_parser(
+        "capture",
+        help="Draft a reasoning-surface.json skeleton from unstructured text (Slack thread, PR desc, ticket, email). Reads stdin if --input is omitted.",
+    )
+    capture.add_argument("--input", type=Path, default=None, help="Path to text input file (default: stdin)")
+    capture.add_argument("--output", type=Path, default=None, help="Path to write draft JSON (default: stdout)")
+    capture.add_argument("--by", dest="captured_by", default=None, help="Operator name to record in captured_by")
+    capture.add_argument(
+        "--core-question",
+        dest="core_question",
+        default=None,
+        help="Override auto-extracted Core Question (recommended when the input is ambiguous)",
+    )
+    capture.add_argument(
+        "--friction",
+        dest="friction",
+        default=None,
+        help="Override auto-extracted uncomfortable_friction description",
+    )
+    capture.add_argument("--print", dest="print_only", action="store_true", help="Print to stdout and do not write even if --output is given")
+
     evolve = sub.add_parser("evolve", help="Run and manage gated self-evolution episodes")
     evolve_sub = evolve.add_subparsers(dest="evolve_action", required=True)
 
@@ -3872,6 +3893,16 @@ def main(argv: Iterable[str] | None = None) -> int:
     if args.command == "viewer":
         from cognitive_os.viewer.server import serve
         return serve(host=args.host, port=args.port)
+    if args.command == "capture":
+        from cognitive_os.capture import run_capture
+        return run_capture(
+            input_path=args.input,
+            output_path=args.output,
+            captured_by=args.captured_by,
+            core_question=args.core_question,
+            friction=args.friction,
+            print_only=args.print_only,
+        )
     if args.command == "evolve":
         if args.evolve_action == "run":
             return _evolve_run(

@@ -1,7 +1,7 @@
 {
   "name": "cognitive-os",
-  "description": "A portable cognitive kernel for AI agents. Ships the Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop as Claude Code skills, agents, and hooks. The kernel outlives the tooling.",
-  "version": "0.4.0",
+  "description": "The epistemic-posture layer for AI coding agents. Ships the Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop as Claude Code skills, agents, and hooks. Posture first. Kernel outlives the tooling.",
+  "version": "0.5.0",
   "author": {
     "name": "Jun Lee",
     "url": "https://github.com/junjslee"
@@ -11,11 +11,18 @@
   "license": "MIT",
   "keywords": [
     "cognitive-os",
+    "epistemic-posture",
     "reasoning",
     "memory-contract",
     "operator-profile",
     "kernel",
     "governance",
     "evolution-contract"
-  ]
+  ],
+  "agents": "./core/agents",
+  "skills": [
+    "./skills/custom",
+    "./skills/vendor"
+  ],
+  "hooks": "./hooks/hooks.json"
 }

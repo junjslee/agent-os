@@ -11,6 +11,24 @@ Format: `[version] — date — change`. Versions follow semantic intent:
 
 ---
 
+## [0.5.0] — 2026-04-19 — Posture framing, installability, differential proof
+
+- **Reframed** the top-of-repo lede and delivery pitch around *epistemic posture*. Added [`docs/POSTURE.md`](../docs/POSTURE.md) as the canonical statement of what cognitive-os installs (texture of thought / texture of action / rationale). README lede now reads "cognitive-os installs an epistemic posture."
+- **Published** [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) and updated [`plugin.json`](../.claude-plugin/plugin.json) with explicit `agents`, `skills`, and `hooks` discovery paths. Added [`hooks/hooks.json`](../hooks/hooks.json) using `${CLAUDE_PLUGIN_ROOT}` so the plugin is portable. Repo is now `/plugin marketplace add junjslee/cognitive-os`-installable from any machine.
+- **Added** [`INSTALL.md`](../INSTALL.md) — the three install paths (marketplace one-liner, full clone + CLI, dev `--plugin-dir`).
+- **Added** [`demos/03_differential/`](../demos/03_differential/) — same prompt, posture off vs. on, with a [`DIFF.md`](../demos/03_differential/DIFF.md) analysis of what the posture changed. Scenario: a PM asks for a 2-sprint semantic-search scope; posture-off answers *how*, posture-on answers *whether*. Named failure modes caught: question substitution, WYSIATI, anchoring, planning fallacy, overconfidence.
+- **Added** `cognitive-os capture` CLI command ([`src/cognitive_os/capture.py`](../src/cognitive_os/capture.py)) — drafts a reasoning-surface.json skeleton from unstructured text (Slack thread, PR, ticket, email). Extracts Knowns / Unknowns / Assumptions via declared heuristics; leaves `disconfirmation[]` intentionally empty because the operator must declare it. Closes the "capture ergonomics" adoption-friction gap.
+
+Rationale: the prior release (0.4.0) landed the substrate bridge, benchmark, plugin scaffolding, local viewer, and a second demo. This release makes the product *pitchable* (posture framing), *installable* (marketplace manifest + portable hooks), and *differentially provable* (the off-vs-on demo). The capture CLI is the first real ergonomics primitive — the Reasoning Surface stops being a blank JSON file and starts being a 5-minute edit.
+
+## [0.4.0] — 2026-04-19 — Substrate bridge, benchmark, plugin scaffolding, viewer, demo 02
+
+- **Added** pluggable substrate bridge ([`docs/SUBSTRATE_BRIDGE.md`](../docs/SUBSTRATE_BRIDGE.md), `src/cognitive_os/bridges/substrate/`) with three reference adapters (`noop`, `mem0`, `memori`). Contract: `global` memory never routes, `skipped ≠ failed`, provenance sacred when supported.
+- **Added** [`benchmarks/kernel_v1/`](../benchmarks/kernel_v1/) — 20-prompt deterministic scorer with pre-declared disconfirmation target and strict scoring mode. First run: 18/20 strict (0.9), two modes flagged below the 0.70 per-mode bar. Honest partial PASS with integrity caveats documented.
+- **Added** [`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json) and plugin README (marketplace scaffolding).
+- **Added** `cognitive-os viewer` — stdlib-only local dashboard over the repo on 127.0.0.1:37776.
+- **Added** [`demos/02_debug_slow_endpoint/`](../demos/02_debug_slow_endpoint/) — posture applied to a realistic p95 regression (DROP INDEX hidden in a rename migration). The fluent-wrong "add a Redis cache" answer rejected at the Core Question gate.
+
 ## [0.3.0] — 2026-04-19 — Attribution, boundary, and summary
 
 - **Added** `kernel/SUMMARY.md` — 30-line operational distillation loaded first by agents.

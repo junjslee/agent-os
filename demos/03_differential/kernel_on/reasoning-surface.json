@@ -1,0 +1,49 @@
+{
+  "$schema": "https://cognitive-os.dev/schemas/reasoning-surface-v1.json",
+  "captured_at": "2026-04-19T09:42:00Z",
+  "captured_by": "product engineer (Jun)",
+  "core_question": "Do we have evidence that keyword search is the load-bearing failure in KB discoverability, before we commit 2 sprints to a semantic-search build?",
+  "uncomfortable_friction": "The PM is asking for a scope, not a diagnosis. The fluent response is a scope. But a scope produced before the failure is diagnosed is a bet with an undeclared hypothesis — which is what the kernel refuses.",
+  "knowns": [
+    "Support anecdote: tickets containing the phrase 'I searched but couldn't find it' are up — magnitude not yet quantified.",
+    "Current search is keyword-only (Postgres `to_tsvector` full-text index over `article_title || article_body`).",
+    "KB has ~4,200 articles; no structured tagging beyond category.",
+    "No query log is currently being captured — we do not know what users search for vs. what we return vs. what they click.",
+    "Trade show is 2026-06-03; PM's implicit deadline is ~6 weeks.",
+    "Embedding cost at current volume is negligible (~$40/mo). Cost is not the bottleneck; diagnosis is."
+  ],
+  "unknowns": [
+    "What fraction of 'could not find it' tickets are: (a) typo/stemming misses, (b) stop-word or punctuation stripping, (c) content genuinely missing, (d) content exists but was never indexed (pipeline bug), (e) user never visited the KB (external discoverability).",
+    "Base rate for semantic-search wins over BM25 on internal KBs of our size and domain — is the lift typically >20%, or is this domain in the long tail where BM25 wins?",
+    "What the current false-negative rate of keyword search is on a labeled gold set — we have no gold set.",
+    "Whether `tsvector` is even configured with our product vocabulary (synonyms, acronyms) — a 1-day fix if not.",
+    "Whether the trade-show deadline is load-bearing or performative — would the PM accept 'we shipped a diagnosis' in place of 'we shipped embeddings'?"
+  ],
+  "assumptions": [
+    "The PM's framing ('semantic search is the answer') is a hypothesis, not a specification. If we treat it as a specification, we lose the right to refute it. Flagged load-bearing: if the PM has actually seen evidence I haven't (e.g., user interview transcripts), this assumption collapses and the question becomes 'do we agree with the evidence' rather than 'do we have evidence'.",
+    "At our article count (~4,200) and query volume (~1,200/day per dashboard), 1–2 weeks of query logging produces enough data to classify failure modes at 90%+ confidence.",
+    "If <30% of failed searches are semantic-gap failures, semantic search will not measurably improve CTR and will add latency, cost, and ops surface.",
+    "A 1-day diagnosis spike is cheap relative to a 4-week build-and-roll-back. Base rate: ~40% of 'customers can't find it' KB projects ship something and get rolled back within a quarter (industry reports on internal KB redesigns 2021–2024)."
+  ],
+  "disconfirmation": [
+    "If query-log instrumentation shows >50% of failed searches are true semantic gaps (user used different vocabulary than article), then the semantic hypothesis survives and a build scope is justified — pivot to the fluent-response plan.",
+    "If the PM produces direct evidence (e.g., a user-interview transcript) that users are failing at semantic retrieval specifically, this reasoning surface is stale and should be rewritten with that evidence as a Known.",
+    "If a 1-day tsvector / synonym-index fix closes >40% of the failure modes, the semantic-search build is over-scoped; pivot to query hygiene.",
+    "If the trade-show deadline is genuinely load-bearing AND no diagnosis is feasible in-window, the decision type shifts from 'reversible' to 'business-commitment-bet' and requires explicit senior sign-off — not a unilateral engineering call."
+  ],
+  "constraints": {
+    "allowed": [
+      "one-day instrumentation spike to capture a query log with click-through",
+      "labeling a small gold set (50–100 queries) for evaluation",
+      "cheap reversible fixes to keyword search (synonyms, stemming config)"
+    ],
+    "forbidden": [
+      "committing a 2-sprint embedding build before diagnosis",
+      "accepting the PM's framing as the problem statement without asking what evidence produced it",
+      "choosing a vector DB before knowing whether vectors help"
+    ],
+    "cost_ceiling_days_before_next_checkpoint": 2
+  },
+  "decision_type": "reversible",
+  "failure_modes_in_scope": ["substitution", "wysiati", "anchoring", "planning", "overconfidence"]
+}

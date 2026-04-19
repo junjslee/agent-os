@@ -1,6 +1,17 @@
 # cognitive-os — Claude Code plugin
 
-Installs the cognitive-os kernel, skills, and agent personas into Claude Code via the plugin system. Uses the same markdown artifacts this repo ships; the plugin manifest is a thin distribution wrapper, not a fork of the kernel.
+Installs the cognitive-os **epistemic posture** — the Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop — into Claude Code as skills, agents, and hooks.
+
+Not a fork of the kernel. A distribution wrapper over the same markdown this repo ships.
+
+## Install (marketplace)
+
+```
+/plugin marketplace add junjslee/cognitive-os
+/plugin install cognitive-os@cognitive-os
+```
+
+The marketplace manifest lives at [`./marketplace.json`](./marketplace.json); the plugin manifest at [`./plugin.json`](./plugin.json).
 
 ## Install (local / development)
 
@@ -8,20 +19,11 @@ Installs the cognitive-os kernel, skills, and agent personas into Claude Code vi
 claude --plugin-dir /path/to/cognitive-os
 ```
 
-## Install (marketplace)
+## What lands in the session
 
-Once submitted via <https://claude.ai/settings/plugins/submit> or <https://platform.claude.com/plugins/submit>:
-
-```
-/plugin marketplace add cognitive-os
-/plugin install cognitive-os
-```
-
-## What you get
-
-- **Skills** — every file under `skills/custom/` and `skills/vendor/` at the repo root (namespaced as `/cognitive-os:<skill-name>`).
-- **Agents** — every persona under `adapters/claude/agents/` (`planner`, `researcher`, `implementer`, `reviewer`, `test-runner`, `docs-handoff`, `domain-architect`, `reasoning-auditor`, `governance-safety`, `orchestrator`, `domain-owner`).
-- **Hooks** — safety + workflow hooks from `core/hooks/` (e.g. `block_dangerous`, `workflow_guard`, `checkpoint`, `quality_gate`).
+- **Skills** — everything under [`skills/custom/`](../skills/custom/) and [`skills/vendor/`](../skills/vendor/), namespaced as `/cognitive-os:<skill-name>`.
+- **Agents** — personas from [`core/agents/`](../core/agents/) (`planner`, `researcher`, `implementer`, `reviewer`, `test-runner`, `docs-handoff`, `domain-architect`, `reasoning-auditor`, `governance-safety`, `orchestrator`, `domain-owner`).
+- **Hooks** — safety + workflow hooks declared in [`../hooks/hooks.json`](../hooks/hooks.json); hook commands use `${CLAUDE_PLUGIN_ROOT}` so they work from any install location.
 
 ## Authority
 
@@ -44,3 +46,9 @@ cognitive-os bridge substrate verify noop
 ```
 
 Uninstall removes plugin-managed surfaces. Your authoritative files (`core/memory/global/*.md`, project `docs/*.md`) are untouched.
+
+## See also
+
+- [`../INSTALL.md`](../INSTALL.md) — the three install paths compared.
+- [`../docs/POSTURE.md`](../docs/POSTURE.md) — what the plugin actually installs, in posture terms.
+- [`../demos/03_differential/`](../demos/03_differential/) — same scenario with the posture off vs. on.

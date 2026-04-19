@@ -1,10 +1,10 @@
 # cognitive-os
 
-> A portable cognitive kernel for AI agents. Markdown. Vendor-neutral. The kernel outlives the tooling.
+> **cognitive-os installs an epistemic posture.** The artifacts are how the posture becomes enforceable. Markdown. Vendor-neutral. The kernel outlives the tooling.
 
-Tools cycle every 18–36 months. How you reason does not. `cognitive-os` is the durable layer between you and whatever AI tool comes next — your worldview, working style, and reasoning protocol expressed once and delivered to every runtime you use.
+A *posture* is how a reasoner holds themselves before a decision: which questions get asked, which unknowns get named, which options are pre-rejected, and which conditions force a pivot. Tools and memory stores cycle every 18–36 months — the posture does not. `cognitive-os` is the layer that installs the posture once and delivers it into every runtime and substrate you use.
 
-**[60-second demo →](./demos/01_attribution-audit/)** · **[Constitution →](./kernel/CONSTITUTION.md)** · **[Quick start ↓](#quick-start)**
+**[What this installs →](./docs/POSTURE.md)** · **[Differential demo (off vs on) →](./demos/03_differential/)** · **[Install as plugin →](./.claude-plugin/README.md)** · **[Quick start ↓](#quick-start)**
 
 ---
 
@@ -12,9 +12,12 @@ Tools cycle every 18–36 months. How you reason does not. `cognitive-os` is the
 
 | Goal                                                | Command / pointer                                                   |
 |-----------------------------------------------------|---------------------------------------------------------------------|
-| Understand what this is in 3 minutes                | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md)                          |
-| See what it produces end-to-end                     | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/)      |
-| Install on my machine                               | `pip install -e . && cognitive-os init`                             |
+| Understand what this is in 3 minutes                | [`docs/POSTURE.md`](./docs/POSTURE.md) · [`kernel/SUMMARY.md`](./kernel/SUMMARY.md) |
+| See the posture *off vs on* on the same prompt      | [`demos/03_differential/`](./demos/03_differential/)                |
+| See what it produces end-to-end                     | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
+| Install as a Claude Code plugin (one line)          | `/plugin marketplace add junjslee/cognitive-os`                     |
+| Install on my machine (CLI + editable kernel)       | `pip install -e . && cognitive-os init` — see [`INSTALL.md`](./INSTALL.md) |
+| Draft a reasoning surface from a Slack thread       | `cognitive-os capture --input thread.txt --output surface.json`    |
 | Sync identity to every AI tool I use                | `cognitive-os sync`                                                 |
 | Encode working style + reasoning posture            | `cognitive-os setup . --interactive`                                |
 | Apply the right harness for my project type         | `cognitive-os detect . && cognitive-os harness apply <type> .`      |
@@ -26,9 +29,13 @@ Tools cycle every 18–36 months. How you reason does not. `cognitive-os` is the
 
 ## See it in 60 seconds
 
-The canonical shape of a cognitive-os deliverable — *reasoning surface → decision trace → verification → handoff* — is demonstrated in [`demos/01_attribution-audit/`](./demos/01_attribution-audit/): the kernel applied to itself, auditing whether every borrowed concept (Kahneman's WYSIATI, Boyd's OODA, Popper's falsification, …) is traceable to a primary source.
+Three demos, increasing in what they prove:
 
-Open the four files in order. You will know what cognitive-os produces before reading any philosophy.
+- [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) — canonical four-artifact shape (reasoning-surface → decision-trace → verification → handoff). The kernel applied to itself, auditing whether every borrowed concept is traceable to a primary source.
+- [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) — posture applied to a realistic p95 regression. The fluent-wrong "add a cache" answer rejected at the Core Question gate.
+- [`demos/03_differential/`](./demos/03_differential/) — **same prompt, posture off vs. on**. The demo that converts skeptics: a PM asks for a 2-sprint semantic-search scope; off answers *how*, on answers *whether*. [`DIFF.md`](./demos/03_differential/DIFF.md) shows which failure modes the posture caught.
+
+Open any of the three. You will know what cognitive-os produces before reading any philosophy.
 
 ---
 
@@ -170,6 +177,9 @@ cognitive-os profile [survey|infer|hybrid] [path] [--write]
 cognitive-os cognition [survey|infer|hybrid] [path] [--write]
 cognitive-os setup [path] [--interactive] [--write] [--sync] [--doctor]
 cognitive-os bridge anthropic-managed --input <events.json> [--dry-run]
+cognitive-os bridge substrate [list-adapters|describe|verify|push|pull] ...
+cognitive-os capture [--input <file>] [--output <file>] [--by <name>]
+cognitive-os viewer [--host 127.0.0.1] [--port 37776]
 cognitive-os evolve [run|report|promote|rollback] ...
 ```
 
@@ -193,8 +203,13 @@ Memory model, Memory Contract v1, Evolution Contract v1, and managed-runtime coe
 
 | Topic                                      | Where                                                            |
 |--------------------------------------------|------------------------------------------------------------------|
+| What cognitive-os installs (posture framing) | [`docs/POSTURE.md`](./docs/POSTURE.md)                         |
 | Kernel distillation (30 lines)             | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md)                       |
-| What the kernel produces                   | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/)   |
+| What the kernel produces                   | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
+| Same prompt, posture off vs. on            | [`demos/03_differential/`](./demos/03_differential/)             |
+| Install paths (marketplace, CLI, dev)      | [`INSTALL.md`](./INSTALL.md)                                     |
+| Benchmark with disconfirmation target      | [`benchmarks/kernel_v1/`](./benchmarks/kernel_v1/)               |
+| Substrate bridge (mem0, memori, noop)      | [`docs/SUBSTRATE_BRIDGE.md`](./docs/SUBSTRATE_BRIDGE.md)         |
 | Profile + cognition setup                  | [`docs/SETUP.md`](./docs/SETUP.md)                               |
 | Sync matrix, memory model, contracts       | [`docs/SYNC_AND_MEMORY.md`](./docs/SYNC_AND_MEMORY.md)           |
 | Harness system                             | [`docs/HARNESSES.md`](./docs/HARNESSES.md)                       |
