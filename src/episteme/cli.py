@@ -2953,6 +2953,38 @@ def _print_profile_summary(mode: str, payload: dict) -> None:
             print(f"  {dim}: {dim_evidence[0]}")
 
 
+def _profile_audit_cli(*, since: str, write: bool, as_json: bool) -> int:
+    """CLI entry for `episteme profile audit` (phase 12).
+
+    Spec: docs/DESIGN_V0_11_PHASE_12.md.
+    Library: src/episteme/_profile_audit.py (D2 retrospective-only,
+    D3 re-elicitation not correction).
+    """
+    from episteme import _profile_audit
+
+    m = re.match(r"^(\d+)d$", since)
+    if not m:
+        print(f"invalid --since value: {since!r} (expected e.g. '30d')", file=sys.stderr)
+        return 1
+    since_days = int(m.group(1))
+    if since_days <= 0:
+        print(f"--since must be a positive number of days; got {since_days}", file=sys.stderr)
+        return 1
+
+    result = _profile_audit.run_audit(since_days=since_days)
+
+    if as_json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        print(_profile_audit.render_text_report(result))
+
+    if write:
+        path = _profile_audit.write_audit_record(result)
+        print(f"Wrote audit record: {path}", file=sys.stderr)
+
+    return 0
+
+
 def _profile_show() -> int:
     scores_path = GENERATED_PROFILE_DIR / "workstyle_scores.json"
     profile_path = GENERATED_PROFILE_DIR / "workstyle_profile.json"
@@ -4009,6 +4041,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     profile_sub.add_parser("show", help="Show the latest generated workstyle scorecard")
 
+    p_audit = profile_sub.add_parser(
+        "audit",
+        help="Audit the declared cognitive profile against the lived episodic record (phase 12)",
+    )
+    p_audit.add_argument(
+        "--since",
+        default="30d",
+        metavar="<N>d",
+        help="Rolling window over episodic records (default: 30d)",
+    )
+    p_audit.add_argument(
+        "--write",
+        action="store_true",
+        help="Append the audit record to ~/.episteme/memory/reflective/profile_audit.jsonl",
+    )
+    p_audit.add_argument(
+        "--json",
+        dest="as_json",
+        action="store_true",
+        help="Emit the full audit record as JSON instead of human-readable Markdown (stable format)",
+    )
+
     cognition_cmd = sub.add_parser("cognition", help="Deterministic cognitive/philosophy profiling")
     cognition_sub = cognition_cmd.add_subparsers(dest="cognition_action", required=True)
     c_survey = cognition_sub.add_parser("survey", help="Interactive cognitive-style survey")
@@ -4326,6 +4380,12 @@ def main(argv: Iterable[str] | None = None) -> int:
     if args.command == "profile":
         if args.profile_action == "show":
             return _profile_show()
+        if args.profile_action == "audit":
+            return _profile_audit_cli(
+                since=args.since,
+                write=args.write,
+                as_json=args.as_json,
+            )
         if args.profile_action in ("survey", "infer", "hybrid", "gap"):
             path_arg = getattr(args, "path", ".")
             answers = None

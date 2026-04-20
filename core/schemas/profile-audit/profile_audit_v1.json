@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "episteme/profile-audit/v1",
+  "title": "Profile audit record (v1)",
+  "description": "One record per `episteme profile audit` run. Appended to ~/.episteme/memory/reflective/profile_audit.jsonl — never overwritten, never auto-mutated, never modified outside an explicit operator ack. Produced by src/episteme/_profile_audit.py::run_audit. Spec: docs/DESIGN_V0_11_PHASE_12.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "run_id", "run_ts", "episodic_window", "lexicon_fingerprint", "axes", "acknowledged"],
+  "properties": {
+    "version": {
+      "const": "profile-audit-v1",
+      "description": "Schema version. v1 axes are the 15 named in kernel/OPERATOR_PROFILE_SCHEMA.md section 4 (6 process + 9 cognitive-style)."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^audit-[0-9]{8}-[0-9]{6}-[0-9a-f]{4}$",
+      "description": "Stable id of the audit run. Format audit-YYYYMMDD-HHMMSS-<4-hex>. Used by `episteme profile audit ack <run_id>` to mark a record as acknowledged."
+    },
+    "run_ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of when the audit was run."
+    },
+    "episodic_window": {
+      "type": "string",
+      "pattern": "^[0-9]+d$",
+      "description": "Rolling window over episodic records that this audit read (e.g. '30d'). See spec §Cold-start for why the default is 30d."
+    },
+    "lexicon_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "First 16 hex chars of sha256 over the sorted canonicalized lexicon contents at run time. A change in any lexicon entry produces a different fingerprint — lexicon drift is visible in the record stream, never silent. See kernel/PHASE_12_LEXICON.md."
+    },
+    "axes": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "description": "Exactly 15 axis results — 6 process + 9 cognitive-style. Order matches kernel/OPERATOR_PROFILE_SCHEMA.md section 4.",
+      "items": { "$ref": "#/definitions/axis_audit_result" }
+    },
+    "acknowledged": {
+      "type": "boolean",
+      "description": "Initially false. Flipped to true by `episteme profile audit ack <run_id>`. SessionStart surfacing only fires on unacknowledged records."
+    }
+  },
+  "definitions": {
+    "axis_audit_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["axis_name", "claim", "verdict", "evidence_count", "signatures", "signature_predictions", "confidence", "evidence_refs", "reason", "suggested_reelicitation"],
+      "properties": {
+        "axis_name": {
+          "type": "string",
+          "description": "One of the 15 axis names from kernel/OPERATOR_PROFILE_SCHEMA.md section 4."
+        },
+        "claim": {
+          "description": "The value declared in core/memory/global/operator_profile.md — shape varies by axis (string / integer / list / object). Null when the profile declares no value (axis carries `confidence: default`)."
+        },
+        "verdict": {
+          "enum": ["aligned", "drift", "insufficient_evidence"],
+          "description": "aligned = all required signatures within claim's predicted range. drift = at least two signatures misaligned (D1 convergence) OR one catastrophic misalignment on a high-consequence axis. insufficient_evidence = under the axis's evidence_minimum; never flags."
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of episodic records contributing to this axis's signatures for this run."
+        },
+        "signatures": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Observed signature values keyed by signature name (e.g. 'S1_failure_frame_ratio'). Empty when verdict is insufficient_evidence."
+        },
+        "signature_predictions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "number" }
+          },
+          "description": "Per-signature [low, high] range predicted by the declared claim. Empty when no claim is declared or verdict is insufficient_evidence."
+        },
+        "confidence": {
+          "enum": ["high", "medium", "low"],
+          "description": "Confidence in the verdict — function of evidence_count and signature convergence."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "correlation_ids of episodic records contributing to the signatures. Capped at 20 to keep the record readable; 'evidence_count' carries the true total."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Human-readable reason for the verdict."
+        },
+        "suggested_reelicitation": {
+          "type": ["string", "null"],
+          "description": "Non-null only when verdict is 'drift'. A one-line prompt the operator can read at SessionStart (see core/hooks/session_context.py)."
+        }
+      }
+    }
+  }
+}

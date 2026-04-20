@@ -19,6 +19,71 @@ def run(args: list[str]) -> str:
     return r.stdout.strip() if r.returncode == 0 else ""
 
 
+def _profile_audit_line() -> str | None:
+    """Return a re-elicitation prompt string from the latest unacknowledged
+    profile-audit record, or None when nothing to surface.
+
+    Phase 12 · D3 · re-elicitation not correction. This function only
+    reads ~/.episteme/memory/reflective/profile_audit.jsonl; it never
+    mutates the operator profile. Operator acks via
+    `episteme profile audit ack <run_id>` (lands in a later checkpoint).
+
+    Inlined rather than imported from src/episteme/_profile_audit.py —
+    the session_context hook is invoked as a standalone script by the
+    host runtime with no guaranteed sys.path setup. Matches the
+    "hooks stay self-contained" convention used by reasoning_surface_guard.py
+    and calibration_telemetry.py.
+    """
+    path = Path.home() / ".episteme" / "memory" / "reflective" / "profile_audit.jsonl"
+    if not path.exists():
+        return None
+    last: str | None = None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                s = line.strip()
+                if s:
+                    last = s
+    except OSError:
+        return None
+    if not last:
+        return None
+    try:
+        record = json.loads(last)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(record, dict):
+        return None
+    if record.get("acknowledged", False):
+        return None
+    drifts = [
+        a for a in record.get("axes", [])
+        if isinstance(a, dict) and a.get("verdict") == "drift"
+    ]
+    if not drifts:
+        return None
+    run_id = record.get("run_id", "unknown")
+    if len(drifts) == 1:
+        a = drifts[0]
+        return (
+            f"profile-audit: drift on {a.get('axis_name', '?')} — "
+            f"{a.get('reason', 'see audit record')} "
+            f"Re-elicit or ack via `episteme profile audit ack {run_id}`."
+        )
+    if len(drifts) <= 3:
+        names = ", ".join(a.get("axis_name", "?") for a in drifts)
+        return (
+            f"profile-audit: drift on {names} — run "
+            f"`episteme profile audit` for details. "
+            f"Ack via `episteme profile audit ack {run_id}`."
+        )
+    return (
+        f"profile-audit: drift on {len(drifts)} axes — run "
+        f"`episteme profile audit` for details. "
+        f"Ack via `episteme profile audit ack {run_id}`."
+    )
+
+
 def _surface_line() -> str | None:
     path = Path(".episteme/reasoning-surface.json")
     if not path.exists():
@@ -78,6 +143,11 @@ def main() -> int:
     surface_line = _surface_line()
     if surface_line:
         lines.append(surface_line)
+
+    # Phase 12 · profile-audit drift, when present and unacknowledged
+    audit_line = _profile_audit_line()
+    if audit_line:
+        lines.append(audit_line)
 
     # NEXT_STEPS.md if present
     ns = Path("docs/NEXT_STEPS.md")
