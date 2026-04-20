@@ -188,17 +188,22 @@ def _read_reasoning_surface(cwd: str) -> dict | None:
 def _redact(cmd: str) -> str:
     """Crude secret-redaction — command_executed must not carry tokens.
 
-    Not a replacement for proper secret scanning. This catches obvious
-    shapes (AWS-style keys, bearer tokens, password= args) and leaves
-    everything else alone. The write-never-writes-secrets rule in
-    MEMORY_ARCHITECTURE.md is enforced defensively here; the primary fix
-    for a leaked secret is the agent not emitting it in the first place.
+    Not a replacement for proper secret scanning. Catches obvious shapes
+    (password=/token=/api_key=/secret=/bearer=/:, AWS-style keys, GitHub
+    PATs) and leaves everything else alone. The write-never-writes-secrets
+    rule in MEMORY_ARCHITECTURE.md is enforced defensively here; the
+    primary fix for a leaked secret is the agent not emitting it in the
+    first place.
     """
     if not cmd:
         return cmd
     patterns = [
-        (re.compile(r"(?i)(?:password|passwd|token|secret|api[_-]?key|bearer)\s*[=:]\s*\S+"),
-         r"\g<0>".split("=")[0] + "=<REDACTED>"),
+        # key-value secret patterns — capture the key + separator, replace
+        # only the value. Prior version evaluated the replacement at module
+        # load time and appended "=<REDACTED>" after the full match, leaving
+        # the secret intact.
+        (re.compile(r"(?i)((?:password|passwd|token|secret|api[_-]?key|bearer))(\s*[=:]\s*)\S+"),
+         r"\1\2<REDACTED>"),
         (re.compile(r"AKIA[0-9A-Z]{16}"), "<REDACTED-AWS-KEY>"),
         (re.compile(r"(?i)ghp_[a-z0-9]{30,}"), "<REDACTED-GH-TOKEN>"),
     ]

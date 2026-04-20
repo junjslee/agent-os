@@ -22,9 +22,31 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _redact(cmd: str) -> str:
+    """Crude secret-redaction — command_executed must not carry tokens.
+
+    Inlined (not imported from episodic_writer) because the hook is invoked
+    as a standalone script with no guaranteed sys.path. If this pattern set
+    diverges from episodic_writer._redact, unify by editing both.
+    """
+    if not cmd:
+        return cmd
+    patterns = [
+        (re.compile(r"(?i)((?:password|passwd|token|secret|api[_-]?key|bearer))(\s*[=:]\s*)\S+"),
+         r"\1\2<REDACTED>"),
+        (re.compile(r"AKIA[0-9A-Z]{16}"), "<REDACTED-AWS-KEY>"),
+        (re.compile(r"(?i)ghp_[a-z0-9]{30,}"), "<REDACTED-GH-TOKEN>"),
+    ]
+    redacted = cmd
+    for pat, repl in patterns:
+        redacted = pat.sub(repl, redacted)
+    return redacted
 
 
 def _tool_name(payload: dict) -> str:
@@ -129,7 +151,7 @@ def main() -> int:
             "correlation_id": _correlation_id(payload, cmd, ts),
             "tool": "Bash",
             "cwd": str(payload.get("cwd") or os.getcwd()),
-            "command_executed": cmd,
+            "command_executed": _redact(cmd),
             "exit_code": _extract_exit_code(payload),
             "status": _extract_status(payload),
         }

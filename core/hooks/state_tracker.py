@@ -31,16 +31,15 @@ Tracked inputs:
 Entries older than TTL_SECONDS are purged on every write so the store
 does not grow unbounded.
 
-Concurrency: exclusive `fcntl.flock` on a sibling lock file; the state
-file itself is replaced atomically via temp+rename. If locking fails (on
-exotic filesystems) the tracker degrades to last-write-wins rather than
-blocking.
+Concurrency: exclusive `fcntl.flock` on a sibling lock file when `fcntl`
+is available (POSIX); the state file itself is replaced atomically via
+temp+rename. On Windows (no `fcntl`) or exotic filesystems where locking
+fails, the tracker degrades to last-write-wins rather than blocking.
 
 Any exception → return 0. This hook must never block a tool call.
 """
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import os
@@ -48,6 +47,11 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:
+    import fcntl  # POSIX-only; absent on Windows.
+except ImportError:
+    fcntl = None  # type: ignore[assignment]
 
 
 STATE_VERSION = 1
@@ -165,10 +169,12 @@ def _update_state(adds: list[tuple[Path, str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lockfile = path.with_suffix(".lock")
     with open(lockfile, "a+") as lf:
-        try:
-            fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
-        except OSError:
-            pass  # degrade to last-write-wins
+        if fcntl is not None:
+            try:
+                fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+            except OSError:
+                pass  # degrade to last-write-wins
+        # else: Windows — no advisory locking; same degrade path.
         state = _load_state(path)
         now = datetime.now(timezone.utc)
         _purge_stale(state, now)

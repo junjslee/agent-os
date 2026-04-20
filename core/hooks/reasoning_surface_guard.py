@@ -497,6 +497,27 @@ def _extract_prediction(surface: dict | None) -> dict:
     }
 
 
+def _redact(cmd: str) -> str:
+    """Crude secret-redaction — command_executed must not carry tokens.
+
+    Inlined (not imported from episodic_writer) because the hook is invoked
+    as a standalone script with no guaranteed sys.path. If this pattern set
+    diverges from episodic_writer._redact, unify by editing both.
+    """
+    if not cmd:
+        return cmd
+    patterns = [
+        (re.compile(r"(?i)((?:password|passwd|token|secret|api[_-]?key|bearer))(\s*[=:]\s*)\S+"),
+         r"\1\2<REDACTED>"),
+        (re.compile(r"AKIA[0-9A-Z]{16}"), "<REDACTED-AWS-KEY>"),
+        (re.compile(r"(?i)ghp_[a-z0-9]{30,}"), "<REDACTED-GH-TOKEN>"),
+    ]
+    redacted = cmd
+    for pat, repl in patterns:
+        redacted = pat.sub(repl, redacted)
+    return redacted
+
+
 def _telemetry_path(ts: str) -> Path:
     date = ts[:10]  # YYYY-MM-DD
     return Path.home() / ".episteme" / "telemetry" / f"{date}-audit.jsonl"
@@ -529,7 +550,7 @@ def _write_prediction(
         "tool": tool,
         "op": op,
         "cwd": str(cwd),
-        "command_executed": cmd,
+        "command_executed": _redact(cmd),
         "epistemic_prediction": _extract_prediction(surface),
         "exit_code": None,
     }
