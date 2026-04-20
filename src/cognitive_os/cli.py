@@ -3724,8 +3724,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Iterable[str] | None = None) -> int:
+    argv_list = list(argv) if argv is not None else sys.argv[1:]
+    if argv_list and argv_list[0] in ("?", "help"):
+        # `cognitive-os ?` or `cognitive-os help` → main help
+        # `cognitive-os ? sync` or `cognitive-os help sync` → subcommand help
+        if len(argv_list) > 1:
+            argv_list = argv_list[1:] + ["--help"]
+        else:
+            argv_list = ["--help"]
     parser = build_parser()
-    args = parser.parse_args(list(argv) if argv is not None else None)
+    args = parser.parse_args(argv_list)
 
     if args.command == "init":
         return _init_memory()
