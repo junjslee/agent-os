@@ -23,7 +23,7 @@ A 30-line distillation of the entire cognitive-os kernel. Load this first.
 | Planning fallacy                  | Failure-first + buffer (high-impact)       |
 | Overconfidence                    | Assumptions field + weight-by-track-record |
 
-**Reasoning Surface.** Four fields, filled in before any consequential action: Knowns, Unknowns, Assumptions, Disconfirmation. Blank Unknowns = refusal signal.
+**Reasoning Surface.** Four fields, filled in before any consequential action: Knowns, Unknowns, Assumptions, Disconfirmation. Blank Unknowns = refusal signal. This is a feedforward gate — run before Execute, not as retrospective audit. In DbC terms: Preconditions (Knowns + Assumptions), Postconditions (Verify/Handoff), Invariants (this kernel).
 
 **Authority hierarchy.** Project docs > operator profile > kernel defaults > runtime defaults. Most specific explicit truth wins.
 

@@ -14,7 +14,7 @@
         "url": "https://github.com/junjslee/cognitive-os.git"
       },
       "description": "Install the cognitive-os kernel, skills, agent personas, and safety hooks into Claude Code. Posture-first: structures Core Question + Knowns / Unknowns / Assumptions / Disconfirmation before high-impact actions.",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "category": "productivity",
       "tags": [
         "reasoning",
