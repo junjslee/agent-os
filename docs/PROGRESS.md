@@ -4,9 +4,27 @@ Running log of completed work. Most recent first.
 
 ---
 
-## 0.11.0-entry — 2026-04-20 — Kernel depth pass: attribution surface expansion, operator profile v2, memory architecture contract
+## 0.11.0 — 2026-04-20 — Kernel depth + profile v2 runtime + episodic tier writer
 
-Docs-only landing. No code paths touched; hook enforcement and adapter wiring of the new behavior knobs are phases 9–12 of the 0.11.0 plan and remain not-started.
+Docs + code. Phases 1–10 complete; phases 11–14 remain (semantic promotion, profile-audit loop, CHANGELOG, MANIFEST regen).
+
+### Phases 9–10 — profile becomes control signal, memory becomes storage
+
+- **Phase 9 — derived behavior knobs, end-to-end.** New module `core/hooks/_derived_knobs.py` carries the axis-to-knob derivation rules declared in kernel/OPERATOR_PROFILE_SCHEMA.md section 5. Adapter computes knobs from profile and atomic-writes to `~/.episteme/derived_knobs.json`. `core/hooks/reasoning_surface_guard.py` inlines a minimal reader (no sibling import; hook stays self-contained) and replaces the module-level `MIN_DISCONFIRMATION_LEN` / `MIN_UNKNOWN_LEN` constants with callable lookups against the knob file, fallback 15 on any failure. First knob wired: `disconfirmation_specificity_min` (and the companion `unknown_specificity_min`), both derived from `uncertainty_tolerance` (epistemic) + `testing_rigor` (consequential). For the maintainer's profile (uncertainty 4 / testing 4) the minimum raises 15 → 27. An 18-char disconfirmation that would have passed at default-15 now fails; a 39-char disconfirmation passes. This is the first moment the v2 profile actually modulates hook behavior, proving the bridge end-to-end before the other seven knobs follow.
+- **Phase 10 — episodic-tier writer.** New PostToolUse hook `core/hooks/episodic_writer.py` assembles a record per the `memory-contract-v1` schema (common.json + episodic_record.json) and appends to `~/.episteme/memory/episodic/YYYY-MM-DD.jsonl`. First-pass trigger is the high-impact Bash pattern set only; the three other triggers declared in MEMORY_ARCHITECTURE.md (hook-blocked, Disconfirmation-fired, operator-elected) need signals this hook does not yet have. Records attach a Reasoning-Surface snapshot when the surface exists in cwd; `confidence` on provenance reflects available signal (high = surface+exit, medium = one, low = neither). Secrets are redacted before write (AWS keys, GH tokens, `password=`-shape args). Wired into `hooks/hooks.json` under PostToolUse/Bash alongside `state_tracker` and `calibration_telemetry`, all async. Correlation-id algorithm mirrors `calibration_telemetry.py` so episodic + telemetry records join.
+- Test suite: 121 → 157 (**36 new**; 17 derived-knobs, 19 episodic-writer). Full suite green; zero regressions.
+- End-to-end smoke: fired a synthetic `git push` payload through `episodic_writer.py`; record appeared at `~/.episteme/memory/episodic/2026-04-20.jsonl` with the expected shape. `~/.episteme/derived_knobs.json` carries the compiled knob set for the maintainer's v2 profile.
+
+### Operator profile v2 — filled and partly elicited
+
+- `core/memory/global/operator_profile.md` migrated to v2 schema on 2026-04-20. All 6 process axes rescored 0–3 → 0–5 with anchor-backed rationale (`elicited`). All 9 cognitive-style axes filled; 3 flipped from `inferred` to `elicited` where source documents directly support the value: `abstraction_entry: purpose-first` (cognitive_profile.md: "top-down: abstraction first, then mechanism, then iteration"), `explanation_depth: causal-chain` (cognitive_profile.md: "prefer depth and causal clarity"), `asymmetry_posture: loss-averse` (workflow_policy separates reversible vs irreversible by construction). 5 axes remain `inferred`: `dominant_lens` (ordering is judgment), `noise_signature` (operator's own susceptibility — my least-confident guess), `decision_cadence` (tempo unstated in source), `uncertainty_tolerance` (specific 0–5 value is judgment), `fence_discipline` (specific 0–5 value is judgment). Per-axis metadata (`confidence`, `last_observed`, `evidence_refs`) populated. Expertise map populated with 7 domains.
+
+### Axis sharpening (schema self-audit on first landing)
+
+Three of the 9 cognitive-style axes originally read like generic best-practice advice — the exact failure the schema's own rule forbids. Fixed in OPERATOR_PROFILE_SCHEMA.md:
+- `abstraction_entry`: textbook `top-down/bottom-up/middle-out` → concrete entry points (`purpose-first / mechanism-first / boundary-first / analogy-first`) each with a named agent-explanation consequence.
+- `decision_cadence`: reframed to `{tempo, commit_after}` so it is orthogonal to `planning_strictness` (tempo = loop frequency, not planning depth).
+- `uncertainty_tolerance`: labeled explicitly epistemic (open Unknowns) vs `risk_tolerance` as consequential (act under uncertainty). The two are independent.
 
 ### Attribution surface expansion — `kernel/REFERENCES.md`
 - Nine new primary sources added: Ashby (requisite variety → grounds escalate-by-default in hook layer); Gall (working-simple precedes working-complex → grounds evolution posture); Tetlock (calibration culture → grounds telemetry loop target); Laplace/Jaynes (probabilistic inference → grounds evidence-weighted plausibility update); Goodhart / Strathern (measure-as-target drift → grounds scorecard audit discipline); Klein (recognition-primed decision → grounds `tacit_call` + `expertise_map`); Chesterton (the fence → grounds Fence-Check gate); Feynman (self-deception → sharpens Principle I); Festinger (cognitive dissonance → sharpens confidence/accuracy counter).
@@ -45,10 +63,13 @@ Docs-only landing. No code paths touched; hook enforcement and adapter wiring of
 - `kernel/README.md` — file list adds `MEMORY_ARCHITECTURE.md` with a one-line description; `OPERATOR_PROFILE_SCHEMA.md` description updated to reflect v2 structure.
 
 ### What did *not* land in this pass (explicit)
-- No code changes. Hook layer does not yet read the derived behavior knobs; episodic records are not yet written by the Handoff stage; semantic promotion job does not exist. These are phases 9–12 of the 0.11.0 plan.
-- `kernel/MANIFEST.sha256` is stale as of this commit — will be regenerated after all 0.11.0 kernel doc edits settle (phase 14). `episteme doctor` will emit drift warnings until then.
-- `kernel/CHANGELOG.md` entry deferred until the implementation phases land (so the changelog reflects both the docs and the wiring). Current `CHANGELOG.md` still reads 0.10.0.
-- Version strings in `pyproject.toml` / `plugin.json` / `marketplace.json` unchanged at 0.10.0 — bump pinned to 0.11.0 tag readiness (after phases 9–14).
+- **Phases 11–12 remain:** semantic-tier promotion job (`episteme memory promote`) that clusters episodic records into semantic patterns; profile-audit loop that compares claimed scored axes against episodic evidence and flags drift for re-elicitation. Phases 9–10 shipped the first two bridges (profile → hook, decision → episodic record); 11–12 close the calibration loop by letting episodic evidence propose profile updates.
+- **Seven derived knobs still unwired:** phase 9 shipped one end-to-end (`disconfirmation_specificity_min` + its companion `unknown_specificity_min`). The other six knobs declared in OPERATOR_PROFILE_SCHEMA.md section 5 (`default_autonomy_class`, `preferred_lens_order`, `noise_watch_set`, `explanation_form`, `checkpoint_frequency`, `scaffold_vs_terse`, `fence_check_strictness`) are computed and written to `~/.episteme/derived_knobs.json` but no hook reads them yet. Each is a one-file wiring pattern-match on phase 9.
+- **Three episodic-tier triggers still deferred:** phase 10 fires only on high-impact Bash pattern match (trigger #1 of the four declared in MEMORY_ARCHITECTURE.md). Hook-blocked actions (trigger #2) need PreToolUse-side cooperation; Disconfirmation-fired (trigger #3) needs signal the writer doesn't see; operator-elected (trigger #4) needs UI affordance.
+- `kernel/MANIFEST.sha256` is stale — regenerated after phase 14. `episteme doctor` will emit drift warnings until then.
+- `kernel/CHANGELOG.md` 0.11.0 entry deferred until phases 11–12 land so the changelog reflects a complete loop. Current `CHANGELOG.md` still reads 0.10.0.
+- Version strings in `pyproject.toml` / `plugin.json` / `marketplace.json` unchanged at 0.10.0 — bump pinned to 0.11.0 tag readiness (after phases 11–14).
+- Adoption-path split (move author's profile to `examples/` + ship schema stubs + interactive `episteme init`) is explicitly a **0.12.0** scope, not 0.11. Rationale in NEXT_STEPS.md.
 
 ### Residual architectural gaps — still honest
 1. **Intra-call indirection** — unchanged from 0.10.0. Still needs a cross-runtime proxy daemon.

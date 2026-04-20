@@ -4,16 +4,28 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ---
 
-## Immediate (0.11.0 kernel-depth pass — docs landed, implementation pending)
+## Immediate (0.11.0 — phases 9–10 landed, phases 11–14 to go)
 
-Phases 1–8 of the 0.11.0 plan are complete as docs. Phases 9–14 give the new docs runtime effect. None of the items below require work outside the kernel + `core/hooks/` + `core/schemas/memory-contract/` directories.
+Phases 1–10 of the 0.11.0 plan are complete. The v2 profile now modulates at least one hook (`disconfirmation_specificity_min`), and the memory layer has its first active writer (episodic tier). Phases 11–12 close the calibration loop; phases 13–14 package the release.
 
-1. **Hook-layer consumption of derived behavior knobs** — smallest viable wiring: connect `disconfirmation_specificity_min` (from the operator profile's cognitive-style layer) to the existing `MIN_DISCONFIRMATION_LEN` constant in `core/hooks/reasoning_surface_guard.py`. One knob, one hook, end-to-end. Proves the wiring before scaling to the other seven knobs. Axis-to-knob derivation lives in the adapter layer (`core/adapters/claude.py` and siblings), not the kernel.
-2. **Episodic-tier writer** — `core/schemas/memory-contract/episodic_record.json` exists; no code writes it. Add a PostToolUse writer that appends to `~/.episteme/memory/episodic/YYYY-MM-DD.jsonl` when any of the four declared triggers fires (high-impact action / hook-blocked / Disconfirmation fired / operator-elected). The write is the Handoff step for memory; without it the tier stays empty and everything downstream (semantic promotion, profile audit) has nothing to operate on.
-3. **Semantic-tier promotion job** — deterministic CLI subcommand (`episteme memory promote`). Clusters similar episodic records (embedding-free: keyword + domain marker + action-class match is enough for first pass). Emits proposals into the reflective tier; never writes to semantic without an explicit review flag. Borrows its structure from the existing `episteme evolve friction` — this is the same shape of tool, operating one tier up.
-4. **Profile-audit loop** — on-demand comparison of each claimed scored axis against episodic evidence. Flags drift to reflective tier; surfaces as re-elicitation prompt at SessionStart. Operationalizes the Audit Discipline section of OPERATOR_PROFILE_SCHEMA.md. Without this loop, measure-as-target drift (failure mode 8) is named in docs but unchecked in running code.
-5. **`kernel/CHANGELOG.md` 0.11.0 entry** + version reconcile (`pyproject.toml`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`). Deferred until items 1–4 land so the changelog describes a delivered, not aspirational, version.
-6. **`kernel/MANIFEST.sha256` regeneration** via `episteme kernel update`. Currently stale — `episteme doctor` emits drift warnings until regenerated. Run last so a single regen covers all 0.11 kernel doc edits.
+1. **Semantic-tier promotion job (`episteme memory promote`).** Deterministic CLI subcommand. Clusters similar episodic records (embedding-free first pass: keyword + domain marker + action-class match). Emits proposals into the reflective tier; never auto-writes to semantic without an explicit review flag. Borrows its structure from `episteme evolve friction` — same shape of tool, operating one tier up. Unblocks phase 12 (profile audit needs the semantic tier for pattern-stability signals).
+2. **Profile-audit loop.** On-demand comparison of each claimed scored axis against the episodic record. Flags drift to the reflective tier; surfaces as a re-elicitation prompt at SessionStart. Operationalizes the *Audit Discipline* section of OPERATOR_PROFILE_SCHEMA.md. Without this loop, measure-as-target drift (failure mode 8) is named in docs but unchecked in running code. This is the loop that gives the 5 axes currently marked `inferred` in the maintainer's profile actual meaning — drift surfaces them for elicitation, rather than them silently decaying into defaults.
+3. **`kernel/CHANGELOG.md` 0.11.0 entry** + version reconcile (`pyproject.toml`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`). Deferred until items 1–2 land so the changelog describes a delivered, not aspirational, version.
+4. **`kernel/MANIFEST.sha256` regeneration** via `episteme kernel update`. Currently stale — `episteme doctor` emits drift warnings until regenerated. Run last so a single regen covers all 0.11 kernel edits.
+
+## Follow-on wiring (can land alongside phases 11–14 or in 0.11.1)
+
+Phase 9 shipped one knob end-to-end (`disconfirmation_specificity_min` + companion `unknown_specificity_min`). The other six declared knobs are *computed* in `~/.episteme/derived_knobs.json` but *not consumed* by any hook yet. Each is a small pattern-match on phase 9's wiring:
+
+- **`default_autonomy_class`** → gate in `block_dangerous.py` or a new PreToolUse escalation shim. Highest-leverage of the six: actually changes which commands an agent can run without confirmation.
+- **`noise_watch_set`** → surfaced by `session_context.py` at SessionStart as an explicit "watch for: status-pressure, false-urgency" banner. Cheap to wire.
+- **`preferred_lens_order`** → pure advisory; inject into the Reasoning Surface template or the Frame-stage prompts.
+- **`explanation_form`**, **`checkpoint_frequency`**, **`scaffold_vs_terse`**, **`fence_check_strictness`** → same shape, progressively lower leverage.
+
+Episodic-tier also has three declared triggers not yet firing (only high-impact pattern match is active). Adding them:
+- **Hook-blocked action** → episodic_writer reads `~/.episteme/audit.jsonl` at PostToolUse and correlates blocks to the current tool call.
+- **Disconfirmation-fired** → needs the Verify stage to signal; not available without explicit operator interaction or a Verify hook.
+- **Operator-elected** → needs a CLI / slash-command affordance (`episteme note "<text>"`).
 
 ## Carryover from 0.10.0 — still live, independent of the 0.11 pass
 
@@ -42,6 +54,13 @@ v0.10.0 closed write-then-execute *across tool calls* (state tracker + deep-scan
 4. **Scripts > 64 KB (scan) / > 256 KB (hash).** Unchanged caps. Raising them increases hook latency and creates a DoS surface on pathologically large files. Accepted until a real FN is reported.
 
 ---
+
+## Closed in 0.11.0 (phases 1–10)
+
+- **Phase 9 — profile becomes control signal.** New `core/hooks/_derived_knobs.py` (axis-to-knob derivation + reader/writer). `reasoning_surface_guard.py` replaces module-level `MIN_DISCONFIRMATION_LEN` / `MIN_UNKNOWN_LEN` constants with lookups against `~/.episteme/derived_knobs.json`, fallback 15. For the maintainer's v2 profile the minimum raises 15 → 27; an 18-char disconfirmation now fails, a 39-char passes. First end-to-end proof the v2 profile modulates hook behavior. 17 new tests.
+- **Phase 10 — episodic-tier writer.** New PostToolUse hook `core/hooks/episodic_writer.py` fires on high-impact Bash pattern match; assembles a record per the `memory-contract-v1` schema (common.json + episodic_record.json); appends to `~/.episteme/memory/episodic/YYYY-MM-DD.jsonl`. Reasoning-Surface snapshot attached when present; secrets redacted before write; provenance confidence reflects available signal. Wired into `hooks/hooks.json` PostToolUse/Bash alongside `state_tracker` and `calibration_telemetry`, all async. Correlation-id algorithm mirrors calibration telemetry so records join. 19 new tests; end-to-end smoke-test verified a real record at `~/.episteme/memory/episodic/2026-04-20.jsonl`.
+- **Operator profile v2 filled.** `core/memory/global/operator_profile.md` migrated. 6 process axes rescored 0–3 → 0–5. All 9 cognitive-style axes populated (3 flipped to `elicited` based on source-doc citations: `abstraction_entry`, `explanation_depth`, `asymmetry_posture`; 5 remain `inferred` pending phase-12 audit). Expertise map populated.
+- **Test suite 121 → 157** (36 new). Zero regressions.
 
 ## Closed in 0.11.0-entry (docs-only pass)
 

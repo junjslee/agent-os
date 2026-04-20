@@ -47,8 +47,40 @@ from pathlib import Path
 SURFACE_TTL_SECONDS = 30 * 60  # 30 minutes
 
 # Minimum character thresholds — lazy one-word answers are rejected.
-MIN_DISCONFIRMATION_LEN = 15
-MIN_UNKNOWN_LEN = 15
+# These are now derived from the operator profile's uncertainty_tolerance +
+# testing_rigor via ~/.episteme/derived_knobs.json (written by the adapter
+# at `episteme sync` time; see `core/hooks/_derived_knobs.py` and
+# `kernel/OPERATOR_PROFILE_SCHEMA.md` section 5). Fallback is the historic
+# default (15) when no profile-derived knobs have been computed yet.
+# Inlined rather than imported so this hook stays self-contained — the hook
+# is invoked as a standalone script by the host runtime with no guaranteed
+# sys.path setup.
+_MIN_LEN_DEFAULT = 15
+_DERIVED_KNOBS_PATH = Path.home() / ".episteme" / "derived_knobs.json"
+
+
+def _load_derived_knob(name: str, default):
+    try:
+        if not _DERIVED_KNOBS_PATH.is_file():
+            return default
+        with open(_DERIVED_KNOBS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict) or name not in data:
+            return default
+        value = data[name]
+        if default is not None and not isinstance(value, type(default)):
+            return default
+        return value
+    except (OSError, json.JSONDecodeError):
+        return default
+
+
+def _min_disconfirmation_len() -> int:
+    return int(_load_derived_knob("disconfirmation_specificity_min", _MIN_LEN_DEFAULT))
+
+
+def _min_unknown_len() -> int:
+    return int(_load_derived_knob("unknown_specificity_min", _MIN_LEN_DEFAULT))
 
 # Lazy-token blocklist: strings that defeat the Reasoning Surface contract
 # by providing fluent-looking placeholders instead of measurable conditions.
@@ -367,6 +399,9 @@ def _surface_missing_fields(surface: dict) -> list[str]:
     if not core_q or _is_lazy(core_q):
         missing.append("core_question")
 
+    unknown_min = _min_unknown_len()
+    disc_min = _min_disconfirmation_len()
+
     unknowns = surface.get("unknowns")
     if not isinstance(unknowns, list):
         missing.append("unknowns")
@@ -376,13 +411,13 @@ def _surface_missing_fields(surface: dict) -> list[str]:
             for u in unknowns
             if str(u).strip()
             and not _is_lazy(str(u))
-            and len(str(u).strip()) >= MIN_UNKNOWN_LEN
+            and len(str(u).strip()) >= unknown_min
         ]
         if not substantive:
             missing.append("unknowns")
 
     disc = str(surface.get("disconfirmation") or "").strip()
-    if not disc or _is_lazy(disc) or len(disc) < MIN_DISCONFIRMATION_LEN:
+    if not disc or _is_lazy(disc) or len(disc) < disc_min:
         missing.append("disconfirmation")
 
     return missing
@@ -403,8 +438,8 @@ def _surface_status(cwd: Path) -> tuple[str, str]:
         detail = (
             f"surface fails validation on: {', '.join(missing)}. "
             f"Disconfirmation must be a concrete observable condition "
-            f"(>= {MIN_DISCONFIRMATION_LEN} chars, not 'none'/'n/a'/'tbd'/'해당 없음'). "
-            f"At least one unknown must be sharp and specific (>= {MIN_UNKNOWN_LEN} chars)."
+            f"(>= {_min_disconfirmation_len()} chars, not 'none'/'n/a'/'tbd'/'해당 없음'). "
+            f"At least one unknown must be sharp and specific (>= {_min_unknown_len()} chars)."
         )
         return "incomplete", detail
     return "ok", ""

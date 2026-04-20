@@ -76,11 +76,11 @@ noise_signature:
   note: cognitive_profile.md names four candidates (regret / anxiety / status-pressure / social-scripts). Primary guess is status-pressure because cognitive governance as a product has structural pressure to sound impressive (buzzword-compliant) rather than measurably correct — and this operator actively counter-screens for exactly that (asked for buzzword stripping in-body, references-only attribution). Secondary false-urgency because the project runs on versioned cadence with explicit "resist urgency" signal-vs-noise rules. Least certain of the 9 axes — correct if you know yourself better here.
 
 abstraction_entry:
-  value: mechanism-first
-  confidence: inferred
+  value: purpose-first
+  confidence: elicited
   last_observed: 2026-04-20
   evidence_refs: []
-  note: Before accepting the "drift" claim in this conversation, operator asked the agent to audit the code structure — mechanism before abstract acceptance. cognitive_profile.md also says "implementation is a tested approximation, not automatic equivalence," which rejects purpose-first-only framing. purpose-first (governing intent) is still stated as primary frame but mechanism is the entry point.
+  note: cognitive_profile.md is explicit: "Default posture is top-down: abstraction first, then mechanism, then iteration." "Treat abstract purpose as governing intent; implementation is a tested approximation, not automatic equivalence." The operator's own entry on their own problems is purpose-first. (Separate behavior when *evaluating a claim made by someone else*: they check mechanism before accepting the claim — but that is a rigor move within the posture, not the entry point.)
 
 decision_cadence:
   tempo: medium
@@ -92,10 +92,10 @@ decision_cadence:
 
 explanation_depth:
   value: causal-chain
-  confidence: inferred
+  confidence: elicited
   last_observed: 2026-04-20
   evidence_refs: []
-  note: cognitive_profile.md: "prefer depth and causal clarity over surface-level discussion"; Decision Engine rule "convert why into how quickly." The agent's explanations should trace the mechanism, not argue from pattern-match or analogy.
+  note: cognitive_profile.md: "prefer depth and causal clarity over surface-level discussion"; Decision Engine rule "convert why into how quickly." Elicited — source doc states it directly. The agent's explanations should trace the mechanism, not argue from pattern-match or analogy.
 
 feedback_mode:
   value: direct-critique
@@ -113,10 +113,10 @@ uncertainty_tolerance:
 
 asymmetry_posture:
   value: loss-averse
-  confidence: inferred
+  confidence: elicited
   last_observed: 2026-04-20
   evidence_refs: []
-  note: workflow_policy separates reversible (autonomy allowed) from irreversible (checkpoint required). The whole kernel counters "confident wrongness" on irreversible actions — that is loss-averse by construction. Caveat: on reversible local work this operator is closer to `balanced` than `loss-averse`; if the schema allowed a per-action-class posture this would split. The single enum value reflects the posture on the decisions the profile is actually protecting (irreversible).
+  note: workflow_policy explicitly separates reversible (autonomy allowed) from irreversible (checkpoint required); the whole kernel is built against confident-wrongness on irreversible actions — loss-averse by construction. Elicited because the source documents state it. Caveat (kept for audit): on reversible local work this operator is closer to `balanced`; if the schema allowed a per-action-class posture this would split. Single enum reflects the posture on decisions the profile is protecting (irreversible).
 
 fence_discipline:
   value: 4
