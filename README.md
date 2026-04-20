@@ -10,7 +10,8 @@ Advisory mode (warn-don't-block) is opt-in per-project: `touch .episteme/advisor
 
 **[What this installs →](./docs/POSTURE.md)** · **[The narrative spine →](./docs/NARRATIVE.md)** · **[Differential demo (off vs on) →](./demos/03_differential/)** · **[Install as plugin →](./.claude-plugin/README.md)** · **[Quick start ↓](#quick-start)**
 
-![Episteme Strict Mode Block](docs/assets/strict_mode_demo.gif)
+<!-- ![Episteme Strict Mode Block](docs/assets/strict_mode_demo.gif) -->
+ ![Episteme — posture as thinking](docs/assets/posture_demo.gif)
 
 > **Two demos · two halves of the posture.**
 >
