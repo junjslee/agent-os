@@ -65,7 +65,7 @@
     <text x="0" y="135" class="line l5">Run episteme sync now? [Y/n]: y</text>
     <text x="0" y="165" class="line l6">Run episteme doctor now? [Y/n]: y</text>
     
-    <text x="0" y="225" class="line l7 path">Setup target: /Users/junlee/episteme</text>
+    <text x="0" y="225" class="line l7 path">Setup target: ~/episteme</text>
     <text x="0" y="255" class="line l8">- Running profile hybrid</text>
     <text x="0" y="285" class="line l9">- Running cognition infer</text>
     

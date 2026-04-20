@@ -278,6 +278,152 @@ class ReasoningSurfaceGuardTests(unittest.TestCase):
         self.assertEqual(rc, 2)
         self.assertIn("npm publish", err)
 
+    def test_backtick_wrapped_git_push_is_caught(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "echo `git push`"}},
+                Path(td),
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("git push", err)
+
+    # ----- indirection heuristics (Phase 4) -----
+
+    def test_eval_of_variable_is_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": 'eval "$CMD"'}},
+                Path(td),
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("eval", err)
+
+    def test_eval_bare_variable_is_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "eval $CMD"}},
+                Path(td),
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("eval", err)
+
+    def test_eval_literal_string_passes(self):
+        # `eval "echo hi"` has no variable indirection — should not trip.
+        with tempfile.TemporaryDirectory() as td:
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": 'eval "echo hi"'}},
+                Path(td),
+            )
+        self.assertEqual(rc, 0)
+
+    # ----- script-execution interception (Phase 4) -----
+
+    def test_bash_script_containing_git_push_is_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            (cwd / "deploy.sh").write_text("#!/bin/bash\ngit push origin main\n", encoding="utf-8")
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "bash deploy.sh"}},
+                cwd,
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("git push", err)
+        self.assertIn("deploy.sh", err)
+
+    def test_relative_dot_slash_script_is_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            (cwd / "release.sh").write_text("#!/usr/bin/env bash\nnpm publish\n", encoding="utf-8")
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "./release.sh"}},
+                cwd,
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("npm publish", err)
+
+    def test_sourced_script_is_scanned(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            (cwd / "env.sh").write_text("export X=1\nterraform apply\n", encoding="utf-8")
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "source env.sh"}},
+                cwd,
+            )
+        self.assertEqual(rc, 2)
+        self.assertIn("terraform apply", err)
+
+    def test_benign_script_passes(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            (cwd / "hello.sh").write_text("#!/bin/bash\necho hello world\n", encoding="utf-8")
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "bash hello.sh"}},
+                cwd,
+            )
+        self.assertEqual(rc, 0)
+
+    def test_missing_script_passes_silently(self):
+        # Best-effort: if the referenced script isn't there, don't block.
+        with tempfile.TemporaryDirectory() as td:
+            rc, out, err = self._run(
+                {"tool_name": "Bash", "tool_input": {"command": "bash /nonexistent-script.sh"}},
+                Path(td),
+            )
+        self.assertEqual(rc, 0)
+
+    # ----- calibration telemetry (Phase 2) -----
+
+    def test_allowed_bash_writes_prediction_telemetry(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            (cwd / ".episteme").mkdir()
+            (cwd / ".episteme" / "reasoning-surface.json").write_text(
+                json.dumps(_fresh_surface_payload()), encoding="utf-8"
+            )
+            telemetry_root = cwd / "telemetry_home"
+            with patch.object(guard.Path, "home", return_value=telemetry_root):
+                rc, _, _ = self._run(
+                    {
+                        "tool_name": "Bash",
+                        "tool_input": {"command": "git push origin main"},
+                        "tool_use_id": "tu_abc123",
+                    },
+                    cwd,
+                )
+            self.assertEqual(rc, 0)
+            day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            tpath = telemetry_root / ".episteme" / "telemetry" / f"{day}-audit.jsonl"
+            self.assertTrue(tpath.exists(), f"expected telemetry file at {tpath}")
+            lines = [ln for ln in tpath.read_text(encoding="utf-8").splitlines() if ln.strip()]
+            self.assertEqual(len(lines), 1)
+            rec = json.loads(lines[0])
+            self.assertEqual(rec["event"], "prediction")
+            self.assertEqual(rec["correlation_id"], "tu_abc123")
+            self.assertEqual(rec["command_executed"], "git push origin main")
+            self.assertEqual(rec["op"], "git push")
+            self.assertIsNone(rec["exit_code"])
+            pred = rec["epistemic_prediction"]
+            self.assertEqual(
+                pred["disconfirmation"],
+                "CI fails on main after push or tag verification rejects",
+            )
+            self.assertTrue(pred["unknowns"])
+
+    def test_blocked_bash_writes_no_telemetry(self):
+        with tempfile.TemporaryDirectory() as td:
+            cwd = Path(td)
+            telemetry_root = cwd / "telemetry_home"
+            with patch.object(guard.Path, "home", return_value=telemetry_root):
+                rc, _, _ = self._run(
+                    {"tool_name": "Bash", "tool_input": {"command": "git push origin main"}},
+                    cwd,
+                )
+            self.assertEqual(rc, 2)
+            # Telemetry is prediction+outcome only — blocked calls stay in
+            # the audit log, not the telemetry stream.
+            tpath = telemetry_root / ".episteme" / "telemetry"
+            self.assertFalse(tpath.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

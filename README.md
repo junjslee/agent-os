@@ -10,6 +10,10 @@ Advisory mode (warn-don't-block) is opt-in per-project: `touch .episteme/advisor
 
 **[What this installs →](./docs/POSTURE.md)** · **[Differential demo (off vs on) →](./demos/03_differential/)** · **[Install as plugin →](./.claude-plugin/README.md)** · **[Quick start ↓](#quick-start)**
 
+![Episteme Strict Mode Block](docs/assets/strict_mode_demo.gif)
+
+> **30-second demo above:** a lazy agent writes `disconfirmation: "None"`, attempts `git push`, and gets blocked with exit 2. Then it rewrites a valid surface — execution passes. Reproduce it yourself with [`scripts/demo_strict_mode.sh`](./scripts/demo_strict_mode.sh). Recording instructions: [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md#recording-the-strict-mode-demo).
+
 ---
 
 ## I want to… → do this

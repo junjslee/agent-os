@@ -1,7 +1,7 @@
 {
   "schema": "episteme/reasoning-surface@1",
   "decision_id": "2026-04-17-attribution-audit",
-  "operator": "junlee",
+  "operator": "default",
   "core_question": "Are the concepts load-bearing the episteme kernel (WYSIATI, OODA, latticework, radical transparency, falsification, etc.) attributed to their primary sources — or is the kernel presenting borrowed ideas as its own?",
   "constraint_regime": {
     "allowed": [

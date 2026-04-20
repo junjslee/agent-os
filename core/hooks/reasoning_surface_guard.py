@@ -8,9 +8,15 @@ Behavior:
 - Matches a high-impact pattern in Bash commands (git push, publish,
   migrations, cloud deletes, DB destructive SQL) or Write|Edit to irreversible
   files (lock files, secrets). Command text is normalized (quotes, commas,
-  brackets, parens mapped to whitespace) before matching so bypass shapes like
-  `python -c "subprocess.run(['git','push'])"` or `os.system('git push')` trip
-  the same patterns as bare shell.
+  brackets, parens, backticks mapped to whitespace) before matching so bypass
+  shapes like `python -c "subprocess.run(['git','push'])"`,
+  `os.system('git push')`, or `` `git push` `` trip the same patterns as bare
+  shell.
+- **Indirection heuristics** (best-effort, avoid FPs):
+    * `eval $VAR` / `eval "$VAR"` — blocked as variable-indirection.
+    * Direct shell-script execution (`./x.sh`, `bash x.sh`, `sh x.sh`,
+      `source x.sh`, `. x.sh`) is opened and scanned for high-impact patterns
+      (capped at 64 KB; silently passed through if unreadable).
 - Reads `.episteme/reasoning-surface.json` in the project cwd.
 - A Surface is valid when: timestamp within SURFACE_TTL_SECONDS, non-empty
   core_question, at least one substantive unknown, and a disconfirmation
@@ -20,9 +26,15 @@ Behavior:
   surfaces exit 2 and block the op. Opt out per-project by creating
   `.episteme/advisory-surface`; the hook then emits advisory context only.
 - Legacy marker `.episteme/strict-surface` is now a no-op (strict is default).
+- **Calibration telemetry (Gap A):** on allowed Bash executions, writes a
+  prediction record to `~/.episteme/telemetry/YYYY-MM-DD-audit.jsonl` with
+  correlation_id, timestamp, command_executed, epistemic_prediction. A
+  companion PostToolUse hook (`calibration_telemetry.py`) writes the matching
+  outcome record carrying exit_code. Records are local-only, never committed.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -86,11 +98,34 @@ IRREVERSIBLE_WRITE_PATHS = (
     "go.sum",
 )
 
-# Characters that separate tokens in quoted / bracketed / parenthesized
-# invocations. Normalize these to a space so regex-word-boundary patterns
-# catch `subprocess.run(['git','push'])` and `os.system("git push")` the
-# same way they catch bare `git push`.
-_NORMALIZE_SEPARATORS = re.compile(r"[,'\"\[\]\(\)\{\}]")
+# Characters that separate tokens in quoted / bracketed / parenthesized /
+# backtick invocations. Normalize these to a space so regex-word-boundary
+# patterns catch `subprocess.run(['git','push'])`, `os.system("git push")`,
+# and `` `git push` `` the same way they catch bare `git push`.
+_NORMALIZE_SEPARATORS = re.compile(r"[,'\"\[\]\(\)\{\}`]")
+
+# Indirection patterns — blocked even when the direct op name isn't literally
+# present. These intentionally target constructs whose legitimate uses are
+# rare enough that per-project advisory opt-out is an acceptable escape.
+INDIRECTION_BASH = [
+    (re.compile(r"\beval\s+[\"']?\$"), "eval with variable indirection"),
+]
+
+# Shell-script execution interceptors. Matched AFTER direct/indirection
+# patterns miss; if any matches, the referenced script is opened and scanned
+# for high-impact patterns. Only `.sh` files are considered (avoids scanning
+# binaries / arbitrary executables).
+_SCRIPT_EXEC_PATTERNS = [
+    # `bash X.sh`, `sh X.sh`, `zsh X.sh`, `ksh X.sh`
+    re.compile(r"\b(?:bash|sh|zsh|ksh)\s+([^\s;&|]+\.sh)\b"),
+    # `source X.sh`, `. X.sh`
+    re.compile(r"(?:\bsource\s+|(?:^|[;&|]\s*)\.\s+)([^\s;&|]+\.sh)\b"),
+    # `./X.sh`, `/abs/path/X.sh`
+    re.compile(r"(?:^|\s)((?:\.\/|\/)[^\s;&|]+\.sh)\b"),
+]
+
+# Cap script reads to keep the hook fast and bounded.
+MAX_SCRIPT_SCAN_BYTES = 64 * 1024
 
 
 def _normalize_command(cmd: str) -> str:
@@ -117,14 +152,75 @@ def _write_target(payload: dict) -> str:
     return str(ti.get("file_path") or ti.get("path") or ti.get("target_file") or "")
 
 
+def _match_against_patterns(text: str) -> str | None:
+    """Return the first high-impact / indirection label that matches `text`."""
+    for pattern, label in HIGH_IMPACT_BASH:
+        if pattern.search(text):
+            return label
+    for pattern, label in INDIRECTION_BASH:
+        if pattern.search(text):
+            return label
+    return None
+
+
+def _resolve_script_path(cwd: Path, raw: str) -> Path | None:
+    """Best-effort resolution of a script reference against `cwd`.
+
+    Returns None if the path escapes bounds, doesn't exist, or is not a file.
+    """
+    raw = raw.strip()
+    if not raw:
+        return None
+    try:
+        candidate = Path(raw) if Path(raw).is_absolute() else (cwd / raw)
+        candidate = candidate.resolve(strict=False)
+    except (OSError, RuntimeError):
+        return None
+    if not candidate.exists() or not candidate.is_file():
+        return None
+    return candidate
+
+
+def _match_script_execution(cwd: Path, cmd: str) -> str | None:
+    """If `cmd` runs a .sh script, scan that script's content for high-impact ops.
+
+    Best-effort: missing / unreadable / oversized scripts pass through without
+    blocking. This keeps legitimate automation unaffected when script content
+    is absent or produced on-the-fly.
+    """
+    for pattern in _SCRIPT_EXEC_PATTERNS:
+        for match in pattern.finditer(cmd):
+            script_ref = match.group(1)
+            resolved = _resolve_script_path(cwd, script_ref)
+            if resolved is None:
+                continue
+            try:
+                with open(resolved, "rb") as f:
+                    raw_bytes = f.read(MAX_SCRIPT_SCAN_BYTES + 1)
+            except OSError:
+                continue
+            if len(raw_bytes) > MAX_SCRIPT_SCAN_BYTES:
+                # Truncate at cap; still scan what we have.
+                raw_bytes = raw_bytes[:MAX_SCRIPT_SCAN_BYTES]
+            try:
+                content = raw_bytes.decode("utf-8", errors="replace")
+            except Exception:
+                continue
+            inner_label = _match_against_patterns(_normalize_command(content))
+            if inner_label:
+                return f"{inner_label} via {script_ref}"
+    return None
+
+
 def _match_high_impact(tool_name: str, payload: dict) -> str | None:
     if tool_name == "Bash":
         cmd = _bash_command(payload)
         normalized = _normalize_command(cmd)
-        for pattern, label in HIGH_IMPACT_BASH:
-            if pattern.search(normalized):
-                return label
-        return None
+        label = _match_against_patterns(normalized)
+        if label:
+            return label
+        cwd = Path(payload.get("cwd") or os.getcwd())
+        return _match_script_execution(cwd, cmd)
     if tool_name in {"Write", "Edit", "MultiEdit"}:
         target = _write_target(payload).replace("\\", "/")
         name = Path(target).name if target else ""
@@ -246,6 +342,78 @@ def _write_audit(tool: str, op: str, cwd: Path, status: str, action: str, mode: 
         pass  # Audit failure must never block operations
 
 
+def _correlation_id(payload: dict, cmd: str, ts: str) -> str:
+    """Derive a correlation id tying a PreToolUse prediction to its PostToolUse outcome.
+
+    Prefers the runtime-provided `tool_use_id`. Falls back to a SHA-1 over
+    (ts-second, cwd, cmd) which will match between the two hook invocations
+    on any sane hook runner that fires them within the same second for the
+    same call.
+    """
+    rid = payload.get("tool_use_id") or payload.get("toolUseId") or payload.get("request_id")
+    if isinstance(rid, str) and rid.strip():
+        return rid.strip()
+    cwd = str(payload.get("cwd") or os.getcwd())
+    bucket = ts.split(".")[0]  # truncate to whole-second resolution
+    seed = f"{bucket}|{cwd}|{cmd}".encode("utf-8", errors="replace")
+    return "h_" + hashlib.sha1(seed).hexdigest()[:16]
+
+
+def _extract_prediction(surface: dict | None) -> dict:
+    """Extract the falsifiable claims of a Reasoning Surface for calibration.
+
+    Records only the fields load-bearing for predicted-vs-observed audit:
+    the core question, disconfirmation condition, unknowns, and hypothesis.
+    """
+    if not isinstance(surface, dict):
+        return {}
+    return {
+        "core_question": str(surface.get("core_question") or "").strip(),
+        "disconfirmation": str(surface.get("disconfirmation") or "").strip(),
+        "unknowns": [str(u).strip() for u in (surface.get("unknowns") or []) if str(u).strip()],
+        "hypothesis": str(surface.get("hypothesis") or "").strip(),
+    }
+
+
+def _telemetry_path(ts: str) -> Path:
+    date = ts[:10]  # YYYY-MM-DD
+    return Path.home() / ".episteme" / "telemetry" / f"{date}-audit.jsonl"
+
+
+def _write_telemetry(record: dict) -> None:
+    """Append a JSONL record to the day-scoped telemetry file. Never raises."""
+    try:
+        path = _telemetry_path(record["ts"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except (OSError, KeyError):
+        pass  # Telemetry failure must never block operations
+
+
+def _write_prediction(
+    payload: dict,
+    tool: str,
+    op: str,
+    cmd: str,
+    cwd: Path,
+    surface: dict | None,
+) -> None:
+    ts = datetime.now(timezone.utc).isoformat()
+    record = {
+        "ts": ts,
+        "event": "prediction",
+        "correlation_id": _correlation_id(payload, cmd, ts),
+        "tool": tool,
+        "op": op,
+        "cwd": str(cwd),
+        "command_executed": cmd,
+        "epistemic_prediction": _extract_prediction(surface),
+        "exit_code": None,
+    }
+    _write_telemetry(record)
+
+
 def _surface_template() -> str:
     return (
         "Write .episteme/reasoning-surface.json with:\n"
@@ -282,6 +450,13 @@ def main() -> int:
 
     if status == "ok":
         _write_audit(tool_name, label, cwd, status, "passed", mode)
+        # Calibration telemetry: record the prediction so a PostToolUse hook
+        # can pair it with the observed exit_code. Only fires for Bash, since
+        # only Bash calls have a meaningful "outcome" against a prediction.
+        if tool_name == "Bash":
+            cmd = _bash_command(payload)
+            surface = _read_surface(cwd)
+            _write_prediction(payload, tool_name, label, cmd, cwd, surface)
         return 0
 
     header = f"REASONING SURFACE {status.upper()}: high-impact op `{label}` with {detail}."

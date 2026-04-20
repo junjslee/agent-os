@@ -4,6 +4,43 @@ Running log of completed work. Most recent first.
 
 ---
 
+## 0.9.0-entry — 2026-04-20 — Privacy scrub + calibration telemetry + visual demo + bypass hardening
+
+### Repository neutrality (Phase 1)
+- Replaced `/Users/junlee/...` paths with `~/...` or placeholder equivalents in `docs/PROGRESS.md`, `docs/NEXT_STEPS.md`, `docs/assets/setup-demo.svg`.
+- Neutralized `"operator": "junlee"` → `"operator": "default"` in `demos/01_attribution-audit/reasoning-surface.json`.
+- `junjslee` GitHub references retained — public identity for the open-source repo.
+- `.gitignore` confirmed clean: `.episteme/`, `core/memory/global/*.md` (personal), secrets, and generated profile artifacts all covered. New telemetry writes to `~/.episteme/telemetry/` (outside repo), no gitignore change needed.
+
+### Calibration telemetry (Phase 2 — Gap A closure)
+- `core/hooks/reasoning_surface_guard.py` — on allowed Bash (`status == "ok"`), writes a `prediction` record to `~/.episteme/telemetry/YYYY-MM-DD-audit.jsonl` with `correlation_id`, `timestamp`, `command_executed`, `epistemic_prediction` (core_question + disconfirmation + unknowns + hypothesis), `exit_code: null`.
+- `core/hooks/calibration_telemetry.py` — new PostToolUse hook; writes the matching `outcome` record with observed `exit_code` and `status`. Correlates via `tool_use_id` first, SHA-1 `(ts-second, cwd, cmd)` fallback when absent.
+- `hooks/hooks.json` — new PostToolUse Bash matcher wires `calibration_telemetry.py` (async).
+- Telemetry is operator-local, append-only JSONL, never transmitted.
+
+### Visual demo (Phase 3)
+- `scripts/demo_strict_mode.sh` — hermetic three-act script: (1) lazy agent writes `disconfirmation: "None"`, (2) `git push` attempt blocked with exit 2 + stderr shown, (3) valid surface rewritten, retry passes. Narrated via `sleep` for asciinema cadence (overridable with `DEMO_PAUSE`).
+- `docs/CONTRIBUTING.md` — recording workflow documented (`brew install asciinema agg`, `asciinema rec -c ./scripts/demo_strict_mode.sh`, `agg` to render GIF, size/cadence targets).
+- `README.md` — placeholder `![Episteme Strict Mode Block](docs/assets/strict_mode_demo.gif)` embedded above the "I want to…" table. GIF asset itself produced in a separate maintainer pass.
+
+### Bypass-vector hardening (Phase 4 — best-effort)
+- `_NORMALIZE_SEPARATORS` now includes backticks — catches `` `git push` `` command substitution.
+- `INDIRECTION_BASH` list added; blocks `eval $VAR` / `eval "$VAR"`. Literal-string `eval "echo hi"` still passes (no `$` trigger).
+- `_match_script_execution` — resolves scripts referenced by `./x.sh`, `bash x.sh`, `sh x.sh`, `zsh x.sh`, `source x.sh`, `. x.sh`; reads up to 64 KB; scans content with the same pattern set as inline commands. Missing / unreadable scripts pass through (FP-averse).
+- Label format: `"<inner label> via <script path>"` — e.g., `"git push via deploy.sh"` — so the block message carries the provenance.
+
+### Test coverage
+- `tests/test_reasoning_surface_guard.py` — +10 cases: backtick substitution, eval-of-variable (two shapes), eval-of-literal (pass), script-scan blocks (bash/`.sh`, `./script.sh`, `source`), benign-script pass-through, missing-script pass-through, allowed-Bash telemetry write, blocked-Bash telemetry suppression.
+- `tests/test_calibration_telemetry.py` — new file, 7 cases: non-Bash ignored, success outcome recorded, failure outcome recorded, missing exit_code → null, `returncode` fallback honored, empty command skipped, malformed payload never raises.
+- Full suite: **86 passed** (was 68), 8 subtests passed, 0 regressions.
+
+### Residual gaps (deferred, logged to NEXT_STEPS.md)
+- **Write-then-execute across two tool calls** remains uncatchable by a stateless hook. Candidate for cross-runtime MCP proxy daemon (0.10+).
+- **Dynamic shell assembly** (`A=git; B=push; $A $B`) still evades detection. Would require a lightweight shell parser. Deferred pending cost/benefit evidence.
+- **Strict Mode demo GIF** — the asset file itself is one `asciinema rec` away; README placeholder is in place.
+
+---
+
 ## 0.8.1 — 2026-04-20 — Strict-by-default enforcement + semantic validator + bypass-resistant matching
 
 ### Hook behavior changes (`core/hooks/reasoning_surface_guard.py`)
@@ -88,11 +125,11 @@ Running log of completed work. Most recent first.
 ### Environment completion (completed in-session)
 - GitHub repo renamed via `gh repo rename` → `github.com/junjslee/episteme` (old URL 301-redirects)
 - Local `origin` remote updated; all in-repo URLs now point at the new canonical URL
-- Physical repo directory renamed `/Users/junlee/cognitive-os` → `/Users/junlee/episteme`
+- Physical repo directory renamed `~/cognitive-os` → `~/episteme`
 - Pip: `pip uninstall cognitive-os` → `pip install -e .` (registers `episteme` console script)
-- `~/.claude/settings.json` hook command paths rewritten to `/Users/junlee/episteme/core/hooks/*`
+- `~/.claude/settings.json` hook command paths rewritten to `~/episteme/core/hooks/*`
 - `~/.zshrc` aliases and hint function renamed (`ainit`, `awt`, `cci`, `aci`, `adoctor`, `aos`)
-- `episteme sync` regenerated `~/.claude/CLAUDE.md` with new `@/Users/junlee/episteme/...` includes
+- `episteme sync` regenerated `~/.claude/CLAUDE.md` with new `@~/episteme/...` includes
 
 ### Dynamic Python runtime (0.8.0 follow-on)
 - `CONDA_ROOT` hardcoded to `~/miniconda3` → `PYTHON_PREFIX` derived from `sys.prefix`
@@ -101,7 +138,7 @@ Running log of completed work. Most recent first.
 - `episteme doctor` skips conda checks on non-conda runtimes unless `EPISTEME_REQUIRE_CONDA=1`
 
 ### Temporary compatibility shim
-- Symlink `/Users/junlee/cognitive-os → /Users/junlee/episteme` created to keep the current shell session's cwd valid. Remove with `rm /Users/junlee/cognitive-os` after restarting any shells/editors that had the old path cached.
+- Symlink `~/cognitive-os → ~/episteme` created to keep the current shell session's cwd valid. Remove with `rm ~/cognitive-os` after restarting any shells/editors that had the old path cached.
 
 ---
 

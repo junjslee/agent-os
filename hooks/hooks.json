@@ -49,6 +49,16 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/calibration_telemetry.py",
+            "async": true
+          }
+        ]
       }
     ],
     "PreCompact": [
