@@ -1,6 +1,6 @@
 # Kernel Changelog
 
-Versioned history of the cognitive-os kernel. The kernel is a contract;
+Versioned history of the episteme kernel. The kernel is a contract;
 changes to it are load-bearing for every adapter and every operator
 profile downstream. This file is the audit trail.
 
@@ -13,11 +13,11 @@ Format: `[version] — date — change`. Versions follow semantic intent:
 
 ## [0.7.0] — 2026-04-19 — Real enforcement: audit log, inject command, strict blocking
 
-- **Added** `_write_audit()` to `core/hooks/reasoning_surface_guard.py` — every reasoning-surface check (passed / advisory / blocked) now writes a structured entry to `~/.cognitive-os/audit.jsonl`. Audit failure is silenced so it can never itself block an operation.
-- **Added** `cognitive-os inject [path] [--no-strict]` CLI command — deploys cognitive enforcement to any repository in one command: creates `.cognitive-os/strict-surface` (hard-block mode) and a blank reasoning-surface template. Default: strict. Closes onboarding friction gap.
-- **Added** `cognitive-os log [--limit N] [--blocked]` CLI command — reads `~/.cognitive-os/audit.jsonl` and renders a formatted time-series audit table with 🟢/🟡/🔴 action indicators. Closes observability gap.
+- **Added** `_write_audit()` to `core/hooks/reasoning_surface_guard.py` — every reasoning-surface check (passed / advisory / blocked) now writes a structured entry to `~/.episteme/audit.jsonl`. Audit failure is silenced so it can never itself block an operation.
+- **Added** `episteme inject [path] [--no-strict]` CLI command — deploys cognitive enforcement to any repository in one command: creates `.episteme/strict-surface` (hard-block mode) and a blank reasoning-surface template. Default: strict. Closes onboarding friction gap.
+- **Added** `episteme log [--limit N] [--blocked]` CLI command — reads `~/.episteme/audit.jsonl` and renders a formatted time-series audit table with 🟢/🟡/🔴 action indicators. Closes observability gap.
 - **Bumped** `plugin.json` version to `0.6.0`.
-- **Added** `?` / `help [subcommand]` CLI aliases — `cognitive-os ?` and `cognitive-os help sync` both resolve to the correct help output.
+- **Added** `?` / `help [subcommand]` CLI aliases — `episteme ?` and `episteme help sync` both resolve to the correct help output.
 
 Rationale: 0.6.0 established the philosophical control plane. 0.7.0 makes it physically enforceable and observable. The hook now produces a real block (exit 2) when strict mode is active — not advisory text. The audit log turns governance from "trust the agent read the markdown" into "here is every check, timestamped." The inject command reduces onboarding from sync + setup + survey to one command for any repo that needs immediate coverage.
 
@@ -26,8 +26,8 @@ Architectural gap still open: enforcement scope is currently limited to Claude C
 ## [0.6.0] — 2026-04-19 — Epistemic control plane, DbC framing, zero-trust positioning
 
 - **Fixed** `.claude-plugin/marketplace.json` schema: `plugins[0].source` was `"."` (invalid relative path); corrected to `"https://github.com/junjslee/cognitive-os"`. Plugin is now installable via `/plugin marketplace add junjslee/cognitive-os`.
-- **Removed** `src/cognitive_os/viewer/index.html` — deprecated UI artifact; `cognitive-os viewer` CLI command remains.
-- **Reframed** `README.md` opening with explicit governance positioning: cognitive-os as a *deterministic control plane* and *epistemic policy engine*, not just a workflow tool. Added feedforward-vs-feedback contrast, DbC contract framing (Preconditions / Postconditions / Invariants), and OPA analogy.
+- **Removed** `src/episteme/viewer/index.html` — deprecated UI artifact; `episteme viewer` CLI command remains.
+- **Reframed** `README.md` opening with explicit governance positioning: episteme as a *deterministic control plane* and *epistemic policy engine*, not just a workflow tool. Added feedforward-vs-feedback contrast, DbC contract framing (Preconditions / Postconditions / Invariants), and OPA analogy.
 - **Added** "Zero-trust execution" section to `README.md`: maps OWASP Agentic AI Top 10 risks to Reasoning Surface counters (prompt injection → Core Question gate, overreach → constraint regime, hallucination → mandatory Unknowns, infinite loops → Disconfirmation).
 - **Added** "Human prompt debugging" section to `README.md`: frames the Knowns/Unknowns mapping as a mechanism for exposing logical gaps in the *user's original intent* before execution proceeds.
 - **Added** interoperability statement and control-plane architecture diagram placeholder to `README.md`.
@@ -38,20 +38,20 @@ Rationale: 0.5.0 made the system installable and demonstrable. 0.6.0 makes it *l
 
 ## [0.5.0] — 2026-04-19 — Posture framing, installability, differential proof
 
-- **Reframed** the top-of-repo lede and delivery pitch around *epistemic posture*. Added [`docs/POSTURE.md`](../docs/POSTURE.md) as the canonical statement of what cognitive-os installs (texture of thought / texture of action / rationale). README lede now reads "cognitive-os installs an epistemic posture."
+- **Reframed** the top-of-repo lede and delivery pitch around *epistemic posture*. Added [`docs/POSTURE.md`](../docs/POSTURE.md) as the canonical statement of what episteme installs (texture of thought / texture of action / rationale). README lede now reads "episteme installs an epistemic posture."
 - **Published** [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) and updated [`plugin.json`](../.claude-plugin/plugin.json) with explicit `agents`, `skills`, and `hooks` discovery paths. Added [`hooks/hooks.json`](../hooks/hooks.json) using `${CLAUDE_PLUGIN_ROOT}` so the plugin is portable. Repo is now `/plugin marketplace add junjslee/cognitive-os`-installable from any machine.
 - **Added** [`INSTALL.md`](../INSTALL.md) — the three install paths (marketplace one-liner, full clone + CLI, dev `--plugin-dir`).
 - **Added** [`demos/03_differential/`](../demos/03_differential/) — same prompt, posture off vs. on, with a [`DIFF.md`](../demos/03_differential/DIFF.md) analysis of what the posture changed. Scenario: a PM asks for a 2-sprint semantic-search scope; posture-off answers *how*, posture-on answers *whether*. Named failure modes caught: question substitution, WYSIATI, anchoring, planning fallacy, overconfidence.
-- **Added** `cognitive-os capture` CLI command ([`src/cognitive_os/capture.py`](../src/cognitive_os/capture.py)) — drafts a reasoning-surface.json skeleton from unstructured text (Slack thread, PR, ticket, email). Extracts Knowns / Unknowns / Assumptions via declared heuristics; leaves `disconfirmation[]` intentionally empty because the operator must declare it. Closes the "capture ergonomics" adoption-friction gap.
+- **Added** `episteme capture` CLI command ([`src/episteme/capture.py`](../src/episteme/capture.py)) — drafts a reasoning-surface.json skeleton from unstructured text (Slack thread, PR, ticket, email). Extracts Knowns / Unknowns / Assumptions via declared heuristics; leaves `disconfirmation[]` intentionally empty because the operator must declare it. Closes the "capture ergonomics" adoption-friction gap.
 
 Rationale: the prior release (0.4.0) landed the substrate bridge, benchmark, plugin scaffolding, local viewer, and a second demo. This release makes the product *pitchable* (posture framing), *installable* (marketplace manifest + portable hooks), and *differentially provable* (the off-vs-on demo). The capture CLI is the first real ergonomics primitive — the Reasoning Surface stops being a blank JSON file and starts being a 5-minute edit.
 
 ## [0.4.0] — 2026-04-19 — Substrate bridge, benchmark, plugin scaffolding, viewer, demo 02
 
-- **Added** pluggable substrate bridge ([`docs/SUBSTRATE_BRIDGE.md`](../docs/SUBSTRATE_BRIDGE.md), `src/cognitive_os/bridges/substrate/`) with three reference adapters (`noop`, `mem0`, `memori`). Contract: `global` memory never routes, `skipped ≠ failed`, provenance sacred when supported.
+- **Added** pluggable substrate bridge ([`docs/SUBSTRATE_BRIDGE.md`](../docs/SUBSTRATE_BRIDGE.md), `src/episteme/bridges/substrate/`) with three reference adapters (`noop`, `mem0`, `memori`). Contract: `global` memory never routes, `skipped ≠ failed`, provenance sacred when supported.
 - **Added** [`benchmarks/kernel_v1/`](../benchmarks/kernel_v1/) — 20-prompt deterministic scorer with pre-declared disconfirmation target and strict scoring mode. First run: 18/20 strict (0.9), two modes flagged below the 0.70 per-mode bar. Honest partial PASS with integrity caveats documented.
 - **Added** [`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json) and plugin README (marketplace scaffolding).
-- **Added** `cognitive-os viewer` — stdlib-only local dashboard over the repo on 127.0.0.1:37776.
+- **Added** `episteme viewer` — stdlib-only local dashboard over the repo on 127.0.0.1:37776.
 - **Added** [`demos/02_debug_slow_endpoint/`](../demos/02_debug_slow_endpoint/) — posture applied to a realistic p95 regression (DROP INDEX hidden in a rename migration). The fluent-wrong "add a Redis cache" answer rejected at the Core Question gate.
 
 ## [0.3.0] — 2026-04-19 — Attribution, boundary, and summary

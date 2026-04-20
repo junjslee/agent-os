@@ -1,6 +1,6 @@
 # Setup — Profile, Cognition, One-Command
 
-Deterministic onboarding for cognitive-os. Two axes:
+Deterministic onboarding for episteme. Two axes:
 
 - **profile** — *how work runs* (planning, testing, docs, automation).
 - **cognition** — *how decisions are made* (reasoning depth, challenge style, uncertainty posture).
@@ -26,10 +26,10 @@ Treat `survey` / `infer` outputs as a starting point, not doctrine. For long-ter
 ## Commands
 
 ```bash
-cognitive-os profile survey --answers-file templates/profile_answers.example.json
-cognitive-os profile infer .
-cognitive-os profile hybrid . --answers-file templates/profile_answers.example.json --write
-cognitive-os profile show
+episteme profile survey --answers-file templates/profile_answers.example.json
+episteme profile infer .
+episteme profile hybrid . --answers-file templates/profile_answers.example.json --write
+episteme profile show
 ```
 
 Generated artifacts land under `core/memory/global/.generated/`:
@@ -41,22 +41,22 @@ Generated artifacts land under `core/memory/global/.generated/`:
 To compile generated scores into global memory files:
 
 ```bash
-cognitive-os profile hybrid . --write --overwrite
-cognitive-os sync
-cognitive-os doctor
+episteme profile hybrid . --write --overwrite
+episteme sync
+episteme doctor
 ```
 
 ## One-command setup (execution + thinking)
 
 ```bash
 # Interactive
-cognitive-os setup . --interactive
+episteme setup . --interactive
 
 # Non-interactive with explicit post-steps
-cognitive-os setup . --write --sync --governance-pack strict --doctor
+episteme setup . --write --sync --governance-pack strict --doctor
 
 # Fully scripted (survey/hybrid non-interactive requires answer files)
-cognitive-os setup . \
+episteme setup . \
   --profile-mode hybrid \
   --cognition-mode infer \
   --profile-answers-file templates/profile_answers.example.json \
@@ -72,7 +72,7 @@ cognitive-os setup . \
 
 ## Terminal tools (recommended)
 
-Agents running under cognitive-os expect these to be present. `cognitive-os doctor` verifies them.
+Agents running under episteme expect these to be present. `episteme doctor` verifies them.
 
 - `rg` (ripgrep) — codebase search; fast, respects `.gitignore`
 - `fd` — file discovery; cleaner than `find`

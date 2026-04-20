@@ -13,21 +13,21 @@ labs/skills/*/runs/
 labs/skills/*/tmp/
 
 # ─── Session transcripts backed up by precompact hook ────────────────────────
-# The hook now writes to ~/.cache/cognitive-os/backups/ instead of this repo,
+# The hook now writes to ~/.cache/episteme/backups/ instead of this repo,
 # but keep this rule so any legacy backups/ directory stays untracked.
 backups/
 
-# ─── Personal cognitive-os memory files ──────────────────────────────────────
+# ─── Personal episteme memory files ──────────────────────────────────────
 # These ship with the repo as the author's real profiles (see core/memory/global/).
-# Forks: edit them to make them your own, then run `cognitive-os sync`.
+# Forks: edit them to make them your own, then run `episteme sync`.
 #
 # python_runtime_policy.md is gitignored because it contains machine-specific
-# paths (Conda root) that differ per user. Run `cognitive-os init` to generate it
+# paths (Conda root) that differ per user. Run `episteme init` to generate it
 # from examples/python_runtime_policy.example.md.
 core/memory/global/python_runtime_policy.md
 
 # ─── Machine-generated profile artifacts ─────────────────────────────────────
-# Output of `cognitive-os profile` and `cognitive-os cognition` commands.
+# Output of `episteme profile` and `episteme cognition` commands.
 # Non-authoritative until compiled with --write. Local-only, don't commit.
 core/memory/global/.generated/workstyle_profile.json
 core/memory/global/.generated/workstyle_scores.json
@@ -37,7 +37,7 @@ core/memory/global/.generated/cognitive_explanations.md
 core/memory/global/.generated/personalization_blueprint.md
 
 # ─── Evolution run files ──────────────────────────────────────────────────────
-# Output of `cognitive-os evolve run`. Local-only episode records.
+# Output of `episteme evolve run`. Local-only episode records.
 core/memory/evolution/episodes/*.json
 
 # ─── Secrets and sensitive local artifacts ───────────────────────────────────

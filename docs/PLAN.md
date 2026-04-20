@@ -1,8 +1,8 @@
 # Plan
 
-Current active plan for cognitive-os development.
+Current active plan for episteme development.
 
-**Core Question (this cycle):** How do we make cognitive-os legible to systems engineers and enterprise adopters without diluting the epistemic depth of the kernel?
+**Core Question (this cycle):** How do we make episteme legible to systems engineers and enterprise adopters without diluting the epistemic depth of the kernel?
 
 **Constraint regime:**
 - Allowed: augmenting kernel docs, README, issue templates, ops docs
@@ -14,7 +14,7 @@ Current active plan for cognitive-os development.
 ## Active milestone: 0.6.0 — Epistemic control plane positioning
 
 ### Goal
-Translate the philosophical depth of cognitive-os into language that maps to existing infrastructure-safety intuitions (DbC, OPA, zero-trust, feedforward control), while preserving the kernel's authority and tone.
+Translate the philosophical depth of episteme into language that maps to existing infrastructure-safety intuitions (DbC, OPA, zero-trust, feedforward control), while preserving the kernel's authority and tone.
 
 ### Phases
 

@@ -2,7 +2,7 @@
 
 How the kernel + operator profile reach every runtime, and how memory is structured, scoped, and reconciled.
 
-## What `cognitive-os sync` propagates
+## What `episteme sync` propagates
 
 | Asset                                                              | Claude Code    | Hermes                       | OMO / OMX |
 |--------------------------------------------------------------------|----------------|------------------------------|-----------|
@@ -18,7 +18,7 @@ This matrix describes current adapter capabilities, not architectural authority.
 ## Memory model
 
 ```
-global memory (this repo, ~/cognitive-os/core/memory/global/)
+global memory (this repo, ~/episteme/core/memory/global/)
 └── stable cross-project context: who you are, how you work, safety policy
 
 project memory (each repo's docs/)
@@ -46,7 +46,7 @@ Explicit memory classes: `global`, `project`, `episodic`.
 
 Conflict order: `project > global > episodic`, then status / recency / confidence, with human override as terminal.
 
-Additive bridges for external runtimes (e.g., `cognitive-os bridge anthropic-managed`) transform runtime events into memory-contract envelopes without changing existing sync behavior. See [`ANTHROPIC_MANAGED_AGENTS_BRIDGE.md`](./ANTHROPIC_MANAGED_AGENTS_BRIDGE.md).
+Additive bridges for external runtimes (e.g., `episteme bridge anthropic-managed`) transform runtime events into memory-contract envelopes without changing existing sync behavior. See [`ANTHROPIC_MANAGED_AGENTS_BRIDGE.md`](./ANTHROPIC_MANAGED_AGENTS_BRIDGE.md).
 
 ## Evolution Contract v1
 
@@ -61,16 +61,16 @@ Core loop: generator proposes bounded mutation → critic attempts disconfirmati
 
 1. Local runtime memory evolves fast during execution (high-velocity adaptation).
 2. Durable lessons are promoted into authoritative files (`core/memory/global/*`, `docs/*`, reusable skills).
-3. `cognitive-os sync` republishes that contract to every runtime.
+3. `episteme sync` republishes that contract to every runtime.
 4. Runtime-native memory remains a cache, not the source of truth.
 
 Result: fast local learning **and** deterministic cross-platform consistency.
 
 ## Managed runtime positioning
 
-`cognitive-os` and managed runtimes (e.g., Anthropic Managed Agents) are complementary.
+`episteme` and managed runtimes (e.g., Anthropic Managed Agents) are complementary.
 
 - **Managed runtime** — execution substrate: orchestration, sandbox/tool execution, durable session/event logs.
-- **cognitive-os** — cross-runtime cognitive control plane: identity, memory governance, authoritative docs, deterministic policy sync.
+- **episteme** — cross-runtime cognitive control plane: identity, memory governance, authoritative docs, deterministic policy sync.
 
-Operating pattern: run long tasks in a managed runtime → bridge session events into cognitive-os envelopes → promote durable lessons into authoritative docs → sync the updated contract back to every local runtime.
+Operating pattern: run long tasks in a managed runtime → bridge session events into episteme envelopes → promote durable lessons into authoritative docs → sync the updated contract back to every local runtime.

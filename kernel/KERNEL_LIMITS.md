@@ -13,7 +13,7 @@ Declared gaps (known, not yet closed): calibration telemetry · profile stalenes
 ---
 
 Every kernel has a domain of applicability. This file names the conditions
-under which cognitive-os is the wrong tool, or is the right tool misapplied.
+under which episteme is the wrong tool, or is the right tool misapplied.
 Naming the limits is itself a Principle I act: the constraint that is not
 stated runs without accountability.
 
@@ -57,7 +57,7 @@ must be *named*.
 
 ### 3. Orientation over-fit
 
-cognitive-os is orientation infrastructure. Orientation shaped by last
+episteme is orientation infrastructure. Orientation shaped by last
 week's context can govern this week's decisions without being re-examined.
 The more coherent the operator profile, the more confidently it filters
 contradicting evidence out.
@@ -201,7 +201,7 @@ serving it, walk this list. If the situation matches one of the six named
 limits, the kernel is misapplied — relax it for this decision, and record
 which limit triggered the relaxation.
 
-When a recommendation to "just use cognitive-os here" meets resistance,
+When a recommendation to "just use episteme here" meets resistance,
 check whether the resistance is the kernel encountering one of its own
 declared limits. The limit is not a failure of discipline. It is a
 boundary of applicability, named in advance so discipline does not become

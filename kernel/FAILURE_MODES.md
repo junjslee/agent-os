@@ -19,7 +19,7 @@ The [Constitution](./CONSTITUTION.md) names six failure modes as the reason
 agents produce confident wrongness. This document maps each one to the
 specific kernel artifact that counters it.
 
-The mapping is the audit trail: every element of cognitive-os exists against
+The mapping is the audit trail: every element of episteme exists against
 a named failure mode. If a proposed change removes or bypasses one of these
 artifacts, name which failure mode is now unprotected against. If the answer
 is "none" — the artifact was not earning its place.

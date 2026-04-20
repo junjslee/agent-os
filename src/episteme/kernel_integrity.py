@@ -58,8 +58,8 @@ def parse_manifest(text: str) -> dict[str, str]:
 def render_manifest(manifest: dict[str, str]) -> str:
     """Emit shasum-style text, sorted by path."""
     lines = [
-        "# cognitive-os kernel integrity manifest.",
-        "# Regenerate with: cognitive-os kernel update",
+        "# episteme kernel integrity manifest.",
+        "# Regenerate with: episteme kernel update",
         "",
     ]
     for path in sorted(manifest):

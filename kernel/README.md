@@ -1,6 +1,6 @@
 # The Cognitive Kernel
 
-The canonical specification of cognitive-os.
+The canonical specification of episteme.
 
 Pure markdown. No code. No tooling. Nothing vendor-specific.
 
@@ -42,8 +42,8 @@ growing, the fix is in the kernel's portability, not in more adapter code.
   state file and the integrity manifest commands.
 
 - **MANIFEST.sha256** — sha256 digest of every managed kernel file.
-  `cognitive-os kernel verify` detects drift; `cognitive-os kernel update`
-  regenerates after intentional edits. `cognitive-os doctor` surfaces
+  `episteme kernel verify` detects drift; `episteme kernel update`
+  regenerates after intentional edits. `episteme doctor` surfaces
   drift as a non-blocking warning.
 
 ---

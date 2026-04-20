@@ -1,6 +1,6 @@
-# cognitive-os Overview
+# episteme Overview
 
-- `cognitive-os` is the operating layer for cross-project development and research workflows.
+- `episteme` is the operating layer for cross-project development and research workflows.
 - Claude Code is the primary orchestration surface.
 - Codex and Cursor are supported through synced skills and shared project structure.
 - `AGENTS.md` is the vendor-neutral repo operating policy — every tool reads from it.

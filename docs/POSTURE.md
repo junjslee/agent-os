@@ -1,8 +1,8 @@
-# What cognitive-os installs: an epistemic posture
+# What episteme installs: an epistemic posture
 
 One-line answer to *what is this*:
 
-> **cognitive-os installs an epistemic posture. The artifacts are how the posture becomes enforceable.**
+> **episteme installs an epistemic posture. The artifacts are how the posture becomes enforceable.**
 
 Every other framing (memory layer, agent runtime, prompt library, plugin kit) is
 a downstream description of the delivery surface, not the thing being delivered.
@@ -26,7 +26,7 @@ auditable, and transferable across operators and runtimes.
 
 ## Why *posture*, not *disposition* / *framework* / *prompt*
 
-- **Not disposition.** "Disposition" skews toward innate temperament. cognitive-os
+- **Not disposition.** "Disposition" skews toward innate temperament. episteme
   is not something you *have* — it is something you *practice*, maintained
   against specific, named failure modes.
 - **Not framework.** A framework is inert until someone wields it. A posture is
@@ -78,9 +78,9 @@ with the posture *off* vs. *on* on the same prompt.
 
 ## Why this framing matters for delivery
 
-If cognitive-os is pitched as a *memory system*, the reasonable buyer asks
+If episteme is pitched as a *memory system*, the reasonable buyer asks
 "vs. mem0?" If pitched as a *framework*, the buyer asks "vs. LangChain?" Both
-framings route the conversation into a category where cognitive-os is not the
+framings route the conversation into a category where episteme is not the
 best-in-class answer — and shouldn't be.
 
 Pitched as **the posture layer** — installed beneath whichever memory
@@ -91,7 +91,7 @@ thing.
 
 ```
                       ┌────────────────────────────────┐
-                      │        epistemic posture       │   ← cognitive-os
+                      │        epistemic posture       │   ← episteme
                       │  (reasoning surface, failure   │     installs this
                       │   modes, decision trace,       │
                       │   verification, handoff)       │

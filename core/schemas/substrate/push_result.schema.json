@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cognitive-os.dev/schemas/substrate-v1/push_result.json",
+  "$id": "https://episteme.dev/schemas/substrate-v1/push_result.json",
   "title": "Substrate Push Result v1",
   "type": "object",
   "additionalProperties": false,

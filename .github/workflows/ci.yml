@@ -31,7 +31,7 @@ jobs:
           python3 -m pip install -e .
 
       - name: Compile check
-        run: python3 -m py_compile src/cognitive_os/cli.py
+        run: python3 -m py_compile src/episteme/cli.py
 
       - name: Run tests
         run: python3 -m pytest -v

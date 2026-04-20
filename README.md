@@ -17,7 +17,7 @@ A *posture* is how a reasoner holds themselves before a decision: which question
 | Understand what this is in 3 minutes                | [`docs/POSTURE.md`](./docs/POSTURE.md) · [`kernel/SUMMARY.md`](./kernel/SUMMARY.md) |
 | See the posture *off vs on* on the same prompt      | [`demos/03_differential/`](./demos/03_differential/)                |
 | See what it produces end-to-end                     | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
-| Install as a Claude Code plugin (one line)          | `/plugin marketplace add junjslee/cognitive-os`                     |
+| Install as a Claude Code plugin (one line)          | `/plugin marketplace add junjslee/episteme`                     |
 | Install on my machine (CLI + editable kernel)       | `pip install -e . && episteme init` — see [`INSTALL.md`](./INSTALL.md) |
 | Draft a reasoning surface from a Slack thread       | `episteme capture --input thread.txt --output surface.json`    |
 | Sync identity to every AI tool I use                | `episteme sync`                                                 |
@@ -97,7 +97,7 @@ Authority hierarchy: **project docs > operator profile > kernel defaults > runti
 ## System overview
 
 <p align="center">
-  <img src="docs/assets/system-overview.svg" alt="cognitive-os system overview" width="100%" />
+  <img src="docs/assets/system-overview.svg" alt="episteme system overview" width="100%" />
 </p>
 
 Structural stack: kernel (philosophy) → operator profile (personalization) → adapters (delivery) → runtime (execution).
@@ -138,8 +138,8 @@ Structural stack: kernel (philosophy) → operator profile (personalization) →
 ## Quick start
 
 ```bash
-git clone https://github.com/junjslee/cognitive-os ~/cognitive-os
-cd ~/cognitive-os
+git clone https://github.com/junjslee/cognitive-os ~/episteme
+cd ~/episteme
 pip install -e .
 
 episteme init              # generate personal memory files from templates
@@ -257,7 +257,7 @@ No assumption is trusted unless named. No action is taken unless the preconditio
 
 ## Human prompt debugging
 
-cognitive-os doesn't just govern the AI—it debugs the human's intent. When an agent maps Knowns vs. Unknowns against a user request, it exposes logical gaps in the *original prompt* before executing flawed assumptions. The Unknowns field is often where the human realizes their question was underspecified. The Disconfirmation field is often where they realize they have not thought about falsification at all.
+Episteme doesn't just govern the AI—it debugs the human's intent. When an agent maps Knowns vs. Unknowns against a user request, it exposes logical gaps in the *original prompt* before executing flawed assumptions. The Unknowns field is often where the human realizes their question was underspecified. The Disconfirmation field is often where they realize they have not thought about falsification at all.
 
 This is not a side effect. It is a design property. A system that forces the agent to declare what it does not know forces the human to confront what they did not specify.
 
@@ -267,7 +267,7 @@ This is not a side effect. It is a design property. A system that forces the age
 
 | Topic                                      | Where                                                            |
 |--------------------------------------------|------------------------------------------------------------------|
-| What cognitive-os installs (posture framing) | [`docs/POSTURE.md`](./docs/POSTURE.md)                         |
+| What episteme installs (posture framing) | [`docs/POSTURE.md`](./docs/POSTURE.md)                         |
 | Kernel distillation (30 lines)             | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md)                       |
 | What the kernel produces                   | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
 | Same prompt, posture off vs. on            | [`demos/03_differential/`](./demos/03_differential/)             |
@@ -281,7 +281,7 @@ This is not a side effect. It is a design property. A system that forces the age
 | Skills + agent personas + provenance       | [`docs/SKILLS_AND_PERSONAS.md`](./docs/SKILLS_AND_PERSONAS.md)   |
 | Personal customization (memory/hooks/skills) | [`docs/CUSTOMIZATION.md`](./docs/CUSTOMIZATION.md)             |
 | Agent repo operating contract              | [`AGENTS.md`](./AGENTS.md)                                       |
-| Architecture deep-dive                     | [`docs/COGNITIVE_OS_ARCHITECTURE.md`](./docs/COGNITIVE_OS_ARCHITECTURE.md) |
+| Architecture deep-dive                     | [`docs/EPISTEME_ARCHITECTURE.md`](./docs/EPISTEME_ARCHITECTURE.md) |
 | Cognitive system playbook                  | [`docs/COGNITIVE_SYSTEM_PLAYBOOK.md`](./docs/COGNITIVE_SYSTEM_PLAYBOOK.md) |
 
 ---
@@ -290,7 +290,7 @@ This is not a side effect. It is a design property. A system that forces the age
 
 ```bash
 PYTHONPATH=. pytest -q tests/test_profile_cognition.py
-python3 -m py_compile src/cognitive_os/cli.py
-cognitive-os doctor
+python3 -m py_compile src/episteme/cli.py
+episteme doctor
 git status && git rev-list --left-right --count @{u}...HEAD
 ```

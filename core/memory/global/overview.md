@@ -1,6 +1,6 @@
-# cognitive-os Overview
+# episteme Overview
 
-- `cognitive-os` is the cognitive identity and governance layer for all agent platforms.
+- `episteme` is the cognitive identity and governance layer for all agent platforms.
 - Claude Code is the richest orchestration surface.
 - Codex and opencode are supported through synced skills and shared project structure.
 - `AGENTS.md` is the vendor-neutral repo operating policy.

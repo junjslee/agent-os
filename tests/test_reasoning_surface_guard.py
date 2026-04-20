@@ -73,8 +73,8 @@ class ReasoningSurfaceGuardTests(unittest.TestCase):
     def test_high_impact_bash_with_fresh_surface_passes(self):
         with tempfile.TemporaryDirectory() as td:
             cwd = Path(td)
-            (cwd / ".cognitive-os").mkdir()
-            (cwd / ".cognitive-os" / "reasoning-surface.json").write_text(
+            (cwd / ".episteme").mkdir()
+            (cwd / ".episteme" / "reasoning-surface.json").write_text(
                 json.dumps(_fresh_surface_payload()), encoding="utf-8"
             )
             rc, out, err = self._run(
@@ -87,8 +87,8 @@ class ReasoningSurfaceGuardTests(unittest.TestCase):
     def test_stale_surface_emits_advisory(self):
         with tempfile.TemporaryDirectory() as td:
             cwd = Path(td)
-            (cwd / ".cognitive-os").mkdir()
-            (cwd / ".cognitive-os" / "reasoning-surface.json").write_text(
+            (cwd / ".episteme").mkdir()
+            (cwd / ".episteme" / "reasoning-surface.json").write_text(
                 json.dumps(_stale_surface_payload()), encoding="utf-8"
             )
             rc, out, err = self._run(
@@ -102,10 +102,10 @@ class ReasoningSurfaceGuardTests(unittest.TestCase):
     def test_incomplete_surface_emits_advisory(self):
         with tempfile.TemporaryDirectory() as td:
             cwd = Path(td)
-            (cwd / ".cognitive-os").mkdir()
+            (cwd / ".episteme").mkdir()
             bad = _fresh_surface_payload()
             bad.pop("disconfirmation")
-            (cwd / ".cognitive-os" / "reasoning-surface.json").write_text(
+            (cwd / ".episteme" / "reasoning-surface.json").write_text(
                 json.dumps(bad), encoding="utf-8"
             )
             rc, out, err = self._run(
@@ -121,8 +121,8 @@ class ReasoningSurfaceGuardTests(unittest.TestCase):
     def test_strict_mode_blocks_without_surface(self):
         with tempfile.TemporaryDirectory() as td:
             cwd = Path(td)
-            (cwd / ".cognitive-os").mkdir()
-            (cwd / ".cognitive-os" / "strict-surface").write_text("", encoding="utf-8")
+            (cwd / ".episteme").mkdir()
+            (cwd / ".episteme" / "strict-surface").write_text("", encoding="utf-8")
             rc, out, err = self._run(
                 {"tool_name": "Bash", "tool_input": {"command": "git push --force origin main"}},
                 cwd,

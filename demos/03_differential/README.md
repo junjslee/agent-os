@@ -1,6 +1,6 @@
 # Demo 03 — Differential: same prompt, posture off vs. on
 
-The same engineering decision, presented twice. Once with a fluent agent that answers the question as asked. Once with the cognitive-os posture engaged. Both are good-faith attempts to help. One ships software that gets rolled back six weeks later. One does not.
+The same engineering decision, presented twice. Once with a fluent agent that answers the question as asked. Once with the episteme posture engaged. Both are good-faith attempts to help. One ships software that gets rolled back six weeks later. One does not.
 
 ## Premise
 

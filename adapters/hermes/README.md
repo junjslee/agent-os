@@ -1,20 +1,20 @@
 # Hermes Adapter
 
-The Hermes adapter bridges cognitive-os's authoritative memory with Hermes's fast local learning loop. These two systems complement each other — they aren't competing.
+The Hermes adapter bridges episteme's authoritative memory with Hermes's fast local learning loop. These two systems complement each other — they aren't competing.
 
 ## The coexistence model
 
 Hermes is designed to adapt quickly. It learns locally, refines skills in-session, and evolves its working memory fast. That's its strength.
 
-cognitive-os is designed to govern durably. It maintains your definitive identity, policy, and memory across tools and sessions. That's its strength.
+episteme is designed to govern durably. It maintains your definitive identity, policy, and memory across tools and sessions. That's its strength.
 
 The two lanes:
 
 | Lane | System | Role |
 |---|---|---|
 | Fast adaptation | Hermes memory/skills | Learns fast, session-local |
-| Authoritative governance | cognitive-os memory/contracts | Slow, deliberate, cross-tool |
-| Bridge | `cognitive-os sync` + promotion | Promotes durable wins into governance |
+| Authoritative governance | episteme memory/contracts | Slow, deliberate, cross-tool |
+| Bridge | `episteme sync` + promotion | Promotes durable wins into governance |
 
 **Rule**: learn locally fast. Promote durable lessons slowly and explicitly.
 
@@ -22,7 +22,7 @@ When a Hermes session produces a pattern worth keeping — a skill refinement, a
 
 ## What gets synced
 
-`cognitive-os sync` automatically detects Hermes at `~/.hermes/` and syncs if installed.
+`episteme sync` automatically detects Hermes at `~/.hermes/` and syncs if installed.
 
 | Asset | Destination |
 |---|---|
@@ -38,15 +38,15 @@ A generated composite of your global memory sources:
 - `python_runtime_policy.md`
 - `cognitive_profile.md`
 
-`cognitive-os sync` writes this to `~/.hermes/OPERATOR.md`.
+`episteme sync` writes this to `~/.hermes/OPERATOR.md`.
 
 ### Governance header
 
-Every `OPERATOR.md` starts with a cognitive-os governance declaration block. It appears before any personal memory sections and reads roughly:
+Every `OPERATOR.md` starts with a episteme governance declaration block. It appears before any personal memory sections and reads roughly:
 
-> You are operating under the cognitive-os governance system. cognitive-os is the authoritative identity and reasoning layer above any agent platform. The cognitive profile, workflow policy, and memory contracts below define how you are required to think and act. The agent platform is the delivery vessel — cognitive-os is the governing soul.
+> You are operating under the episteme governance system. episteme is the authoritative identity and reasoning layer above any agent platform. The cognitive profile, workflow policy, and memory contracts below define how you are required to think and act. The agent platform is the delivery vessel — episteme is the governing soul.
 
-This block is injected automatically by `cognitive-os sync`. Its purpose: ensure the agent receiving OPERATOR.md immediately understands the authority structure — cognitive-os governs, the platform delivers. Do not remove or edit it manually; it is regenerated on every sync.
+This block is injected automatically by `episteme sync`. Its purpose: ensure the agent receiving OPERATOR.md immediately understands the authority structure — episteme governs, the platform delivers. Do not remove or edit it manually; it is regenerated on every sync.
 
 For deterministic behavior, load it from `~/.hermes/SOUL.md`:
 
@@ -57,11 +57,11 @@ You are a technical AI assistant working with the operator contract below.
 {{read ~/.hermes/OPERATOR.md}}
 ```
 
-This keeps Hermes runtime behavior aligned with authoritative cognitive-os memory after each sync.
+This keeps Hermes runtime behavior aligned with authoritative episteme memory after each sync.
 
 ## Skills
 
-Hermes uses the [agentskills.io](https://agentskills.io) format — the same `SKILL.md` layout cognitive-os already uses. All `custom/` and `vendor/` skills sync directly.
+Hermes uses the [agentskills.io](https://agentskills.io) format — the same `SKILL.md` layout episteme already uses. All `custom/` and `vendor/` skills sync directly.
 
 ## Hooks
 

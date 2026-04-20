@@ -1,10 +1,10 @@
-# cognitive-os Architecture
+# episteme Architecture
 
 ## Purpose
 
-`cognitive-os` is the cognitive + execution operating system for cross-project development and research workflows. It operationalizes decision quality, memory governance, execution cognition, and accountable evolution.
+`episteme` is the cognitive + execution operating system for cross-project development and research workflows. It operationalizes decision quality, memory governance, execution cognition, and accountable evolution.
 
-Distributed via the `cognitive-os` CLI/package.
+Distributed via the `episteme` CLI/package.
 
 It provides:
 - stable memory outside chat sessions
@@ -19,13 +19,13 @@ It is not:
 
 ## Positioning
 
-cognitive-os is the governance and identity layer that sits above agent platforms. The platforms are delivery vessels; cognitive-os is the authority.
+episteme is the governance and identity layer that sits above agent platforms. The platforms are delivery vessels; episteme is the authority.
 
-- cognitive-os lives above Claude Code, Codex, opencode, and Hermes. Those tools are adapters -- they consume the cognitive contract but do not define it.
-- No single agent platform is authoritative. cognitive-os is. A context reset in Claude Code, a new Codex session, or a Cursor workspace change does not reset your identity -- only cognitive-os holds that.
-- The layer distinction matters: agent platforms handle execution (run code, call tools, respond in sessions). cognitive-os handles governance (who the agent is, what it knows, how it behaves, what it remembers across sessions and tools).
-- Sync flows one direction: from cognitive-os outward to platforms. Platforms do not write back into cognitive-os automatically; durable lessons are explicitly promoted via `cognitive-os evolve` or manual authoring.
-- This architecture makes cognitive-os portable across the current toolchain and any future tools -- a new adapter can be added without changing the identity layer.
+- episteme lives above Claude Code, Codex, opencode, and Hermes. Those tools are adapters -- they consume the cognitive contract but do not define it.
+- No single agent platform is authoritative. episteme is. A context reset in Claude Code, a new Codex session, or a Cursor workspace change does not reset your identity -- only episteme holds that.
+- The layer distinction matters: agent platforms handle execution (run code, call tools, respond in sessions). episteme handles governance (who the agent is, what it knows, how it behaves, what it remembers across sessions and tools).
+- Sync flows one direction: from episteme outward to platforms. Platforms do not write back into episteme automatically; durable lessons are explicitly promoted via `episteme evolve` or manual authoring.
+- This architecture makes episteme portable across the current toolchain and any future tools -- a new adapter can be added without changing the identity layer.
 
 ## 🧬 Layer Model: The Soul and the Vessel
 
@@ -45,7 +45,7 @@ Defines how the agent acts and adapts.
 - **Harnesses**: Project-type-specific operating environments — execution profiles, constraints, safety notes.
 - **Lifecycle Hooks**: Deterministic quality enforcement — post-write formatting, pre-commit tests, stop-gate checks.
 
-### 1. Global cognitive-os
+### 1. Global episteme
 
 Source of truth for:
 - personal workflow policy
@@ -70,7 +70,7 @@ A harness specifies:
 Available harness types: `ml-research`, `python-library`, `web-app`, `data-pipeline`, `generic`.
 Add custom types by dropping a JSON file into `core/harnesses/`.
 
-Detection: `cognitive-os detect [path]` scores signals in the repo (dependency files, file patterns, directory names) and recommends the best match.
+Detection: `episteme detect [path]` scores signals in the repo (dependency files, file patterns, directory names) and recommends the best match.
 
 ### 3. Project Memory
 
@@ -94,7 +94,7 @@ Current adapters:
 - Codex:
   `AGENTS.md`, `.codex/config.toml`, repo or global skills, and project-local agents if needed
 - opencode:
-  `~/.config/opencode/agents/cognitive-os-governance.md` (global governance subagent),
+  `~/.config/opencode/agents/episteme-governance.md` (global governance subagent),
   `AGENTS.md` (per-project behavioral contract, same file Codex reads)
 - Hermes:
   `~/.hermes/OPERATOR.md` (synced composite), `~/.hermes/SOUL.md` (auto-created on first sync),
@@ -105,10 +105,10 @@ Current adapters:
 ### 5. Managed Runtime Bridges (additive)
 
 Managed runtimes (for example Anthropic Managed Agents) are execution substrates that emit durable event logs.
-`cognitive-os` ingests those events through bridge commands and converts them into Memory Contract envelopes.
+`episteme` ingests those events through bridge commands and converts them into Memory Contract envelopes.
 
 Current bridge:
-- `cognitive-os bridge anthropic-managed --input <events.json>`
+- `episteme bridge anthropic-managed --input <events.json>`
   - outputs `memory-contract-v1` envelopes under `core/memory/bridges/anthropic-managed/`
   - does not modify existing adapter sync behavior
 
@@ -128,7 +128,7 @@ These additions may accelerate work but must never become the only place where p
 When layers disagree, this order wins:
 1. Repo requirements and execution docs
 2. Repo runtime files
-3. Global `cognitive-os` defaults
+3. Global `episteme` defaults
 4. Optional plugins or memory services
 
 Plugins and local memory services are helpers, not authorities.
@@ -137,9 +137,9 @@ Plugins and local memory services are helpers, not authorities.
 
 The memory model is split on purpose.
 
-`cognitive-os profile` adds a deterministic onboarding layer that generates explainable scorecards and compiles workflow policy from explicit rules. Generated artifacts live under `core/memory/global/.generated/` and remain non-authoritative until compiled to global memory markdown (`--write`). Survey-driven modes also support non-interactive `--answers-file` JSON input.
+`episteme profile` adds a deterministic onboarding layer that generates explainable scorecards and compiles workflow policy from explicit rules. Generated artifacts live under `core/memory/global/.generated/` and remain non-authoritative until compiled to global memory markdown (`--write`). Survey-driven modes also support non-interactive `--answers-file` JSON input.
 
-`cognitive-os cognition` adds a deterministic cognitive layer for philosophy, decision attitude, and thinking posture. It supports survey, infer, and hybrid modes, and compiles into `cognitive_profile.md` when requested.
+`episteme cognition` adds a deterministic cognitive layer for philosophy, decision attitude, and thinking posture. It supports survey, infer, and hybrid modes, and compiles into `cognitive_profile.md` when requested.
 
 ### Memory Contract v1
 
@@ -223,7 +223,7 @@ Strengths:
 - AGENTS.md-compatible (same contract as Codex)
 - strong multi-agent / subagent support via @agent-name invocation
 
-cognitive-os syncs a global governance subagent to `~/.config/opencode/agents/`.
+episteme syncs a global governance subagent to `~/.config/opencode/agents/`.
 Per-project contract is AGENTS.md, same as Codex. No per-project adapter file needed.
 
 ## Execution Model
@@ -250,7 +250,7 @@ The standard automation boundary:
 - Keep shared workflow docs and reproducible runtime files in Git.
 - Use Conventional Commits.
 - Prefer review gates for risky code or schema changes.
-- Keep local Python-backed `cognitive-os` work on Conda `base`.
+- Keep local Python-backed `episteme` work on Conda `base`.
 
 ## Plugin Integration Policy
 
@@ -262,9 +262,9 @@ Before adding a plugin or memory layer, verify:
 
 ### Optional adapters
 
-`claude-mem` overlaps with `cognitive-os` only partially.
+`claude-mem` overlaps with `episteme` only partially.
 
-What `cognitive-os` already covers:
+What `episteme` already covers:
 - explicit markdown memory
 - handoff docs
 - stable workflow policy
@@ -275,7 +275,7 @@ What `claude-mem` adds:
 - retrieval of past Claude activity across sessions
 - plugin-managed memory search
 
-So `claude-mem` is a useful optional Claude layer, but it does not replace `cognitive-os`.
+So `claude-mem` is a useful optional Claude layer, but it does not replace `episteme`.
 
 ### Codex and `claude-mem`
 
@@ -292,9 +292,9 @@ If deeper Codex memory is needed later, add a Codex-native or tool-neutral layer
 ## Bootstrap and Sync
 
 The workflow:
-1. Edit `cognitive-os`
-2. Run `cognitive-os sync`
-3. Bootstrap new repos with `cognitive-os bootstrap`
+1. Edit `episteme`
+2. Run `episteme sync`
+3. Bootstrap new repos with `episteme bootstrap`
 4. Use worktrees and repo memory inside each project
 
 ## Non-Goals

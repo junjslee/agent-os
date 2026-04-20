@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from cognitive_os import kernel_integrity as ki
+from episteme import kernel_integrity as ki
 
 
 def _write_kernel(root: Path) -> None:

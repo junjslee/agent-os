@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from cognitive_os import cli
-from cognitive_os.adapters import claude as claude_adapter
+from episteme import cli
+from episteme.adapters import claude as claude_adapter
 
 
 class ProfileCognitionTests(unittest.TestCase):

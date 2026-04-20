@@ -8,11 +8,11 @@ Behavior:
 - Matches a high-impact pattern in Bash commands (git push, publish,
   migrations, cloud deletes, DB destructive SQL) or Write|Edit to irreversible
   files (lock files, secrets).
-- Reads `.cognitive-os/reasoning-surface.json` in the project cwd.
+- Reads `.episteme/reasoning-surface.json` in the project cwd.
 - A Surface is valid when: timestamp within SURFACE_TTL_SECONDS, has non-empty
   core_question, at least one unknown, and a disconfirmation field.
 - Advisory by default (non-blocking). Block (exit 2) when the project contains
-  `.cognitive-os/strict-surface`.
+  `.episteme/strict-surface`.
 """
 from __future__ import annotations
 
@@ -99,7 +99,7 @@ def _match_high_impact(tool_name: str, payload: dict) -> str | None:
 
 
 def _read_surface(cwd: Path) -> dict | None:
-    p = cwd / ".cognitive-os" / "reasoning-surface.json"
+    p = cwd / ".episteme" / "reasoning-surface.json"
     if not p.exists():
         return None
     try:
@@ -138,7 +138,7 @@ def _surface_missing_fields(surface: dict) -> list[str]:
 def _surface_status(cwd: Path) -> tuple[str, str]:
     surface = _read_surface(cwd)
     if surface is None:
-        return "missing", "no .cognitive-os/reasoning-surface.json found"
+        return "missing", "no .episteme/reasoning-surface.json found"
     age = _surface_age_seconds(surface)
     if age is None:
         return "invalid", "surface has no parseable timestamp"
@@ -152,7 +152,7 @@ def _surface_status(cwd: Path) -> tuple[str, str]:
 
 
 def _write_audit(tool: str, op: str, cwd: Path, status: str, action: str, strict: bool) -> None:
-    audit_path = Path.home() / ".cognitive-os" / "audit.jsonl"
+    audit_path = Path.home() / ".episteme" / "audit.jsonl"
     audit_path.parent.mkdir(parents=True, exist_ok=True)
     entry = {
         "ts": datetime.now(timezone.utc).isoformat(),
@@ -172,7 +172,7 @@ def _write_audit(tool: str, op: str, cwd: Path, status: str, action: str, strict
 
 def _surface_template() -> str:
     return (
-        "Write .cognitive-os/reasoning-surface.json with:\n"
+        "Write .episteme/reasoning-surface.json with:\n"
         "{\n"
         '  "timestamp": "<ISO-8601 UTC>",\n'
         '  "core_question": "<one question this work answers>",\n'
@@ -200,7 +200,7 @@ def main() -> int:
 
     cwd = Path(payload.get("cwd") or os.getcwd())
     status, detail = _surface_status(cwd)
-    strict = (cwd / ".cognitive-os" / "strict-surface").exists()
+    strict = (cwd / ".episteme" / "strict-surface").exists()
 
     if status == "ok":
         _write_audit(tool_name, label, cwd, status, "passed", strict)

@@ -1,14 +1,14 @@
 # Open Source Your Profile
 
-Your personal cognitive-os files — `cognitive_profile.md`, `operator_profile.md`, `workflow_policy.md`, `overview.md`, `python_runtime_policy.md` — are the deepest expression of what cognitive-os is meant to do.
+Your personal episteme files — `cognitive_profile.md`, `operator_profile.md`, `workflow_policy.md`, `overview.md`, `python_runtime_policy.md` — are the deepest expression of what episteme is meant to do.
 
 The `*.example.md` files in `core/memory/global/` are minimal templates. They show the shape. Your personal files show the depth: the actual reasoning philosophy, the real workflow constraints, the genuine cognitive posture that shapes every session you run.
 
-Sharing your personal files (with appropriate redactions) is the most valuable thing you can contribute to the cognitive-os community.
+Sharing your personal files (with appropriate redactions) is the most valuable thing you can contribute to the episteme community.
 
 ## Why opening your profile matters
 
-Other users can read the README and understand what cognitive-os does architecturally. But most people don't understand what a fully realized cognitive-os profile actually looks like until they see one.
+Other users can read the README and understand what episteme does architecturally. But most people don't understand what a fully realized episteme profile actually looks like until they see one.
 
 A real profile shows:
 - How someone actually encodes their reasoning philosophy (not just placeholder text)
@@ -68,7 +68,7 @@ The `.gitignore` already allows `*.reference.md` files — only bare `*.md` pers
 | `*.reference.md` | Real implementation — shows what's possible | High — actual philosophy, real choices |
 
 The `*.example.md` files are already public. They're the starter kit.
-`*.reference.md` files show what a mature, personally authored cognitive-os profile looks like.
+`*.reference.md` files show what a mature, personally authored episteme profile looks like.
 
 ## A note on vulnerability
 
@@ -76,4 +76,4 @@ Sharing your cognitive profile is somewhat personal. It encodes your reasoning d
 
 You're not sharing secrets. You're sharing craft.
 
-The cognitive-os community benefits most from people who've done the work of actually encoding their philosophy, not just filling in templates. If you've gotten that far, consider sharing it.
+The episteme community benefits most from people who've done the work of actually encoding their philosophy, not just filling in templates. If you've gotten that far, consider sharing it.

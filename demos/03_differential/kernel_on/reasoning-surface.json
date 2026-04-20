@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cognitive-os.dev/schemas/reasoning-surface-v1.json",
+  "$schema": "https://episteme.dev/schemas/reasoning-surface-v1.json",
   "captured_at": "2026-04-19T09:42:00Z",
   "captured_by": "product engineer (Jun)",
   "core_question": "Do we have evidence that keyword search is the load-bearing failure in KB discoverability, before we commit 2 sprints to a semantic-search build?",

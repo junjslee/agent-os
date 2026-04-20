@@ -1,6 +1,6 @@
 # Memory Contract v1
 
-Purpose: define a portable, deterministic memory model for cognitive-os and adapter runtimes.
+Purpose: define a portable, deterministic memory model for episteme and adapter runtimes.
 
 This contract enables cross-tool continuity (Claude/Codex/opencode/Hermes) while maintaining a single source of truth.
 
@@ -13,7 +13,7 @@ Memory classes:
 
 Authority order:
 1. Project docs/runtime files in repo
-2. Global memory in cognitive-os
+2. Global memory in episteme
 3. Tool-native/plugin memory caches
 
 Tool-native memory is acceleration only. It is never authoritative on its own.
@@ -80,7 +80,7 @@ Adapters MUST NOT:
 
 ## Bridge expectations (external runtimes)
 
-Bridge commands that ingest external runtime logs (for example `cognitive-os bridge anthropic-managed`) SHOULD:
+Bridge commands that ingest external runtime logs (for example `episteme bridge anthropic-managed`) SHOULD:
 - emit `memory_envelope.json`-compatible payloads (`contract_version=memory-contract-v1`)
 - normalize imported runtime events into `episodic` records with valid `event_type`
 - set `provenance.source_type=imported` and preserve a traceable `source_ref`

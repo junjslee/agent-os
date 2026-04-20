@@ -12,7 +12,7 @@ Every benchmark here ships with:
 4. **A disconfirmation target.** The *exact* result that would prove the hypothesis wrong. Published *before* the score, not after.
 5. **A published result.** `RESULTS.md` holds the latest run, dated, reproducible with a single command.
 
-Per cognitive-os's own principles: claims without disconfirmation conditions are creed, not engineering.
+Per episteme's own principles: claims without disconfirmation conditions are creed, not engineering.
 
 ## Current benchmarks
 

@@ -7,7 +7,7 @@ Which runtime hook enforces which kernel invariant. Adapters register these hook
 | Kernel element | Hook | Event | Enforcement |
 |---|---|---|---|
 | Constraint regime — forbidden actions | `block_dangerous.py` | PreToolUse/Bash | hard block on rm -rf, force push, sudo, mkfs, etc. |
-| Reasoning Surface — presence before high-impact op | `reasoning_surface_guard.py` | PreToolUse/Bash\|Write\|Edit\|MultiEdit | advisory (block in strict mode) when `.cognitive-os/reasoning-surface.json` is missing, stale, or incomplete |
+| Reasoning Surface — presence before high-impact op | `reasoning_surface_guard.py` | PreToolUse/Bash\|Write\|Edit\|MultiEdit | advisory (block in strict mode) when `.episteme/reasoning-surface.json` is missing, stale, or incomplete |
 | Frame stage — session boot context | `session_context.py` | SessionStart | prints git state, NEXT_STEPS, and Reasoning Surface status |
 | Execute stage — docs alignment advisory | `workflow_guard.py` | PreToolUse/Write\|Edit\|MultiEdit | nudges agent to keep docs/PLAN.md and docs/PROGRESS.md aligned |
 | Execute stage — prompt-injection defense | `prompt_guard.py` | PreToolUse/Write\|Edit\|MultiEdit | flags suspicious patterns in docs/, AGENTS.md, CLAUDE.md |
@@ -19,7 +19,7 @@ Which runtime hook enforces which kernel invariant. Adapters register these hook
 
 ## Reasoning Surface state file
 
-Path: `.cognitive-os/reasoning-surface.json` in project cwd.
+Path: `.episteme/reasoning-surface.json` in project cwd.
 
 ```
 {
@@ -32,15 +32,15 @@ Path: `.cognitive-os/reasoning-surface.json` in project cwd.
 }
 ```
 
-TTL: 30 minutes. Any high-impact op (git push, publish, migrations, cloud deletes, DB DROP, lockfile edits) requires a fresh Surface. Missing / stale / incomplete → advisory by default; block when `.cognitive-os/strict-surface` exists.
+TTL: 30 minutes. Any high-impact op (git push, publish, migrations, cloud deletes, DB DROP, lockfile edits) requires a fresh Surface. Missing / stale / incomplete → advisory by default; block when `.episteme/strict-surface` exists.
 
 ## Integrity manifest
 
 `kernel/MANIFEST.sha256` tracks sha256 of every managed kernel file. Regenerate after intentional kernel edits:
 
 ```
-cognitive-os kernel update
-cognitive-os kernel verify
+episteme kernel update
+episteme kernel verify
 ```
 
-`cognitive-os doctor` surfaces drift as a non-blocking warning.
+`episteme doctor` surfaces drift as a non-blocking warning.

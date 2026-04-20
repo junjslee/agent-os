@@ -54,7 +54,7 @@
     <g class="cmd">
       <foreignObject x="0" y="-15" width="750" height="30">
         <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 15px; color: #82AAFF; display: flex; align-items: center; height: 100%;">
-          <span class="type">$ cognitive-os setup . --interactive</span>
+          <span class="type">$ episteme setup . --interactive</span>
         </div>
       </foreignObject>
     </g>
@@ -62,10 +62,10 @@
     <text x="0" y="45" class="line l2">Select workstyle profile mode: hybrid</text>
     <text x="0" y="75" class="line l3">Select cognitive profile mode: infer</text>
     <text x="0" y="105" class="line l4">Write authoritative files now? [Y/n]: y</text>
-    <text x="0" y="135" class="line l5">Run cognitive-os sync now? [Y/n]: y</text>
-    <text x="0" y="165" class="line l6">Run cognitive-os doctor now? [Y/n]: y</text>
+    <text x="0" y="135" class="line l5">Run episteme sync now? [Y/n]: y</text>
+    <text x="0" y="165" class="line l6">Run episteme doctor now? [Y/n]: y</text>
     
-    <text x="0" y="225" class="line l7 path">Setup target: /Users/junlee/cognitive-os</text>
+    <text x="0" y="225" class="line l7 path">Setup target: /Users/junlee/episteme</text>
     <text x="0" y="255" class="line l8">- Running profile hybrid</text>
     <text x="0" y="285" class="line l9">- Running cognition infer</text>
     

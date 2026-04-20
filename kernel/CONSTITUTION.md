@@ -9,7 +9,7 @@
 - Authority: project docs > operator profile > kernel defaults > runtime defaults.
 - Boundary: [KERNEL_LIMITS.md](./KERNEL_LIMITS.md). Attribution: [REFERENCES.md](./REFERENCES.md).
 
-The governing document of cognitive-os. Philosophy before implementation.
+The governing document of episteme. Philosophy before implementation.
 Every other kernel file is derived from this one.
 
 ---
@@ -20,7 +20,7 @@ Every agent operates from a worldview it did not fully choose. That worldview
 filters what it sees, shapes what it decides, and governs how it acts. Left
 implicit, it runs the agent without being accountable to anyone.
 
-cognitive-os makes that worldview explicit. Not as rules to follow — rules
+episteme makes that worldview explicit. Not as rules to follow — rules
 can be satisfied without understanding. As a cognitive kernel: a portable set
 of first principles the agent inhabits, carried across tools, contexts, and
 sessions.
@@ -90,7 +90,7 @@ You do not see reality. You see your model of reality. Mental models, prior
 knowledge, reasoning habits — those shape what gets noticed, what counts as
 signal, what gets decided.
 
-cognitive-os is orientation infrastructure. It is the layer that shapes the
+episteme is orientation infrastructure. It is the layer that shapes the
 agent's worldview before any observation in a new context. Without it, each
 session starts cold and rebuilds orientation from whatever happens to be in
 scope. With it, the agent arrives already oriented: who the operator is, how
@@ -195,7 +195,7 @@ act under incomplete information. That you want those preferences to travel
 with you: not re-explained every session, not overridden by platform
 defaults.
 
-cognitive-os is the infrastructure for that.
+episteme is the infrastructure for that.
 
 ---
 
@@ -223,7 +223,7 @@ should be suspended, relaxed, or replaced.
 
 ## The distinction that matters
 
-Most AI tooling is about what the agent does. cognitive-os is about how it
+Most AI tooling is about what the agent does. episteme is about how it
 thinks.
 
 Bodies change. Tools deprecate. Platforms come and go. The question of how

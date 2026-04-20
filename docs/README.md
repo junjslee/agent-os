@@ -1,13 +1,13 @@
-# cognitive-os docs index
+# episteme docs index
 
-Primary navigation for cognitive-os documentation.
+Primary navigation for episteme documentation.
 
 ## Start here
 
 - `../README.md` — project overview, what problem it solves, quickstart, full command surface
 - `../kernel/` — the canonical markdown spec: constitution, reasoning surface, system-1 counters, operator-profile schema
 - `../kernel/CONSTITUTION.md` — the governing philosophy: why this system exists, what it believes, and what it is not
-- `COGNITIVE_OS_ARCHITECTURE.md` — layered architecture, tool matrix, runtime model
+- `EPISTEME_ARCHITECTURE.md` — layered architecture, tool matrix, runtime model
 - `COGNITIVE_SYSTEM_PLAYBOOK.md` — practical cognitive + workflow operating protocol
 
 ## Contracts
@@ -26,7 +26,7 @@ Primary navigation for cognitive-os documentation.
 
 ## Open-source guidance
 
-- `OPEN_SOURCE_YOUR_PROFILE.md` — how and why to share your personal cognitive-os profile as a reference implementation
+- `OPEN_SOURCE_YOUR_PROFILE.md` — how and why to share your personal episteme profile as a reference implementation
 
 ## Recommended reading order
 
@@ -37,7 +37,7 @@ Read the kernel first. Everything else is derived from it.
 3) `../kernel/SYSTEM_1_COUNTERS.md`
 4) `../kernel/OPERATOR_PROFILE_SCHEMA.md`
 5) `../README.md`
-6) `COGNITIVE_OS_ARCHITECTURE.md`
+6) `EPISTEME_ARCHITECTURE.md`
 7) `COGNITIVE_SYSTEM_PLAYBOOK.md`
 8) `MEMORY_CONTRACT.md`
 9) `EVOLUTION_CONTRACT.md`
@@ -47,5 +47,5 @@ Read the kernel first. Everything else is derived from it.
 For major docs updates, ensure:
 - clear problem statement and intended user outcome
 - knowns/unknowns/assumptions/disconfirmation for substantive claims
-- consistency with `cognitive-os` naming and command examples
+- consistency with `episteme` naming and command examples
 - links and commands verified

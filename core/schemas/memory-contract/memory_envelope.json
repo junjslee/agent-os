@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cognitive-os.dev/schemas/memory-contract-v1/memory_envelope.json",
+  "$id": "https://episteme.dev/schemas/memory-contract-v1/memory_envelope.json",
   "title": "Memory Contract v1 Envelope",
   "type": "object",
   "additionalProperties": false,

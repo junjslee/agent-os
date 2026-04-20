@@ -2,7 +2,7 @@
 
 ## 🏛️ Operating Thesis: The Mind-Vessel Duality
 
-`cognitive-os` runs on a dual-system architecture:
+`episteme` runs on a dual-system architecture:
 - **Cognitive System (The Soul)**: Governs *how to think*. Improves decision quality and reasoning integrity through formal protocols.
 - **Execution System (The Vessel)**: Governs *how to act*. Improves delivery reliability and verification discipline through deterministic workflows.
 
@@ -71,7 +71,7 @@ distribution say?), margin of safety (what buffer if assumptions slip?).
 
 ## 🎭 4) Manifestation Loop (Workflow)
 
-**This loop is an OODA loop (Boyd)**: Observe -> Orient -> Decide -> Act. cognitive-os is the
+**This loop is an OODA loop (Boyd)**: Observe -> Orient -> Decide -> Act. episteme is the
 **Orientation infrastructure** -- the system that shapes the agent's worldview before observation
 even begins. Orientation (mental models, memory, reasoning protocols) is the most critical step
 because it filters what gets observed and how decisions are framed. Faster loop iterations beat
@@ -106,11 +106,11 @@ Do not allow direct ungated self-modification.
 
 ## 6) Hermes coexistence model
 
-Treat Hermes as adaptive runtime, cognitive-os as authoritative governance.
+Treat Hermes as adaptive runtime, episteme as authoritative governance.
 
 Pattern:
 - Hermes memory/skills = fast adaptation lane
-- cognitive-os memory/contracts = authoritative lane
+- episteme memory/contracts = authoritative lane
 - sync + promotion = bridge lane
 
 Rule:
@@ -132,7 +132,7 @@ If any fail, the adapter is non-conformant and must be fixed before trusting aut
 
 - Keep generated artifacts in `.generated/` and mark them non-authoritative until compiled
 - Use deterministic commands for bootstrap/setup
-- Keep command surface single-name (`cognitive-os`)
+- Keep command surface single-name (`episteme`)
 - Run CI on every PR/push
 - Record high-impact decisions in `docs/DECISION_STORY.md`
 

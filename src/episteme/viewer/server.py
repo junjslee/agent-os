@@ -1,4 +1,4 @@
-"""Minimal read-only dashboard over the cognitive-os repo.
+"""Minimal read-only dashboard over the episteme repo.
 
 Stdlib only. Serves on localhost; binds 127.0.0.1 by default so the viewer is
 not reachable from the network without explicit --host. Endpoints:
@@ -136,7 +136,7 @@ def _overview() -> dict[str, Any]:
 
 
 class _Handler(BaseHTTPRequestHandler):
-    server_version = "cognitive-os-viewer/0.1"
+    server_version = "episteme-viewer/0.1"
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
         # Quiet by default; the viewer is meant to be a background utility.
@@ -178,7 +178,7 @@ class _Handler(BaseHTTPRequestHandler):
 
         if path == "/" or path == "/index.html":
             html_body = _safe_read(VIEWER_DIR / "index.html")
-            self._send_text(200, html_body or "<h1>cognitive-os viewer</h1><p>index.html missing</p>")
+            self._send_text(200, html_body or "<h1>episteme viewer</h1><p>index.html missing</p>")
             return
 
         if path.startswith("/static/"):
@@ -215,7 +215,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 def serve(host: str = "127.0.0.1", port: int = 37776) -> int:
     server = ThreadingHTTPServer((host, port), _Handler)
-    print(f"cognitive-os viewer: http://{host}:{port}/")
+    print(f"episteme viewer: http://{host}:{port}/")
     print("(Ctrl-C to stop)")
     try:
         server.serve_forever()

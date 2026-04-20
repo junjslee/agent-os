@@ -1,17 +1,17 @@
 # Evolution Contract v1
 
-Purpose: define a safe, auditable self-evolution loop for the cognitive-os cognitive+execution harness.
+Purpose: define a safe, auditable self-evolution loop for the episteme cognitive+execution harness.
 
-This contract lets cognitive-os improve itself without breaking its own governance. Every change is bounded, critiqued, replayed, gated, and reversible. No ungated self-modification is allowed.
+This contract lets episteme improve itself without breaking its own governance. Every change is bounded, critiqued, replayed, gated, and reversible. No ungated self-modification is allowed.
 
 ## Product identity
 
-Public product identity: `cognitive-os`.
-CLI/package/repo identity: `cognitive-os`.
+Public product identity: `episteme`.
+CLI/package/repo identity: `episteme`.
 
 Positioning:
-- cognitive-os is the cognitive + execution harness model.
-- `cognitive-os` is the distribution and CLI surface.
+- episteme is the cognitive + execution harness model.
+- `episteme` is the distribution and CLI surface.
 
 ## Core loop
 
@@ -114,7 +114,7 @@ Promotion rule:
 ## CLI model
 
 Current command surface:
-- `cognitive-os evolve run`
-- `cognitive-os evolve report <episode_id>`
-- `cognitive-os evolve promote <episode_id>`
-- `cognitive-os evolve rollback <episode_id>`
+- `episteme evolve run`
+- `episteme evolve report <episode_id>`
+- `episteme evolve promote <episode_id>`
+- `episteme evolve rollback <episode_id>`

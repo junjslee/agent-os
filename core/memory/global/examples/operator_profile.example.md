@@ -28,6 +28,6 @@
 - Cost acknowledgment required before any paid run (see workflow_policy.md)
 
 ## Python Runtime
-- All local Python-backed `cognitive-os` work runs in Conda `base`.
-- Set `COGNITIVE_OS_CONDA_ROOT` to your Conda path (default: `~/miniconda3`).
-- Homebrew Python is not the supported runtime for `cognitive-os`.
+- All local Python-backed `episteme` work runs in Conda `base`.
+- Set `EPISTEME_CONDA_ROOT` to your Conda path (default: `~/miniconda3`).
+- Homebrew Python is not the supported runtime for `episteme`.

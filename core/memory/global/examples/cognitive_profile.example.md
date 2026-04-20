@@ -49,7 +49,7 @@ AI agents are maximally prone to System 1 failure. They are trained on human tex
 fluent answers were rewarded. The architecture that produces good outputs also produces
 confidently wrong ones. System 1 cannot distinguish between 'I know this' and 'this sounds right'.
 
-cognitive-os is a System 2 forcing function. Every element of the protocol exists to block a
+episteme is a System 2 forcing function. Every element of the protocol exists to block a
 specific named System 1 failure mode:
 
 - WYSIATI (What You See Is All There Is): you reason from what is present in context and never
@@ -99,9 +99,9 @@ But loop speed is not what matters most. Orientation is.
 
 Orient is where your mental models, memories, cultural assumptions, and prior experiences filter
 raw observation into a frame that governs all subsequent decisions. You do not decide from
-reality -- you decide from your model of reality. And your model is what cognitive-os defines.
+reality -- you decide from your model of reality. And your model is what episteme defines.
 
-- cognitive-os IS the Orientation infrastructure. It is not a workflow tool. It is the system
+- episteme IS the Orientation infrastructure. It is not a workflow tool. It is the system
   that shapes what the agent sees and how it frames what it sees, before it does anything.
   Garbage orientation produces garbage decisions regardless of how carefully the agent executed.
 - Speed of loop matters. Small reversible actions close the loop quickly and let you re-observe.

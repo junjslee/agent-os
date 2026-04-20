@@ -1,4 +1,4 @@
-"""Local viewer — read-only HTTP dashboard over ~/cognitive-os.
+"""Local viewer — read-only HTTP dashboard over ~/episteme.
 
 Stdlib-only (http.server). No JS framework, no external deps. Exists so the
 operator profile, recent reasoning surfaces, demo artifacts, benchmark results,

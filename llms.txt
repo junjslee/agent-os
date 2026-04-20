@@ -1,8 +1,8 @@
-# cognitive-os
+# episteme
 
-> **cognitive-os installs an epistemic posture.** The artifacts are how the posture becomes enforceable. Markdown. Vendor-neutral. The kernel outlives the tooling.
+> **episteme installs an epistemic posture.** The artifacts are how the posture becomes enforceable. Markdown. Vendor-neutral. The kernel outlives the tooling.
 
-cognitive-os is the posture layer installed beneath whichever memory substrate and whichever runtime the operator uses. A *posture* is how a reasoner holds themselves before a decision: which questions get asked, which unknowns get named, which options are pre-rejected, and which conditions force a pivot. Tools cycle every 18–36 months; the posture does not. The kernel is a small set of markdown files defining the posture's four observable artifacts (reasoning-surface, decision-trace, verification, handoff), named counters to the most dangerous failure modes, and schema for encoding operator preferences. Adapters mount the same kernel files into specific runtimes (Claude Code, Hermes, future).
+episteme is the posture layer installed beneath whichever memory substrate and whichever runtime the operator uses. A *posture* is how a reasoner holds themselves before a decision: which questions get asked, which unknowns get named, which options are pre-rejected, and which conditions force a pivot. Tools cycle every 18–36 months; the posture does not. The kernel is a small set of markdown files defining the posture's four observable artifacts (reasoning-surface, decision-trace, verification, handoff), named counters to the most dangerous failure modes, and schema for encoding operator preferences. Adapters mount the same kernel files into specific runtimes (Claude Code, Hermes, future).
 
 ## Kernel (load first, in priority order)
 
@@ -18,7 +18,7 @@ cognitive-os is the posture layer installed beneath whichever memory substrate a
 
 ## Delivery framing
 
-- [docs/POSTURE.md](./docs/POSTURE.md): what cognitive-os installs in posture terms — the single canonical statement.
+- [docs/POSTURE.md](./docs/POSTURE.md): what episteme installs in posture terms — the single canonical statement.
 - [INSTALL.md](./INSTALL.md): three install paths (marketplace one-liner, full CLI clone, dev `--plugin-dir`).
 
 ## Demos (reference deliverables)
@@ -29,7 +29,7 @@ cognitive-os is the posture layer installed beneath whichever memory substrate a
 
 ## Install surfaces
 
-- [.claude-plugin/marketplace.json](./.claude-plugin/marketplace.json): Claude Code marketplace manifest. `/plugin marketplace add junjslee/cognitive-os` installs this repo as a plugin.
+- [.claude-plugin/marketplace.json](./.claude-plugin/marketplace.json): Claude Code marketplace manifest. `/plugin marketplace add junjslee/episteme` installs this repo as a plugin.
 - [.claude-plugin/plugin.json](./.claude-plugin/plugin.json): plugin manifest; declares discovery paths for agents, skills, hooks.
 - [.claude-plugin/README.md](./.claude-plugin/README.md): plugin install + uninstall instructions.
 - [hooks/hooks.json](./hooks/hooks.json): portable plugin hooks using `${CLAUDE_PLUGIN_ROOT}`.
@@ -40,7 +40,7 @@ cognitive-os is the posture layer installed beneath whichever memory substrate a
 
 ## Capture ergonomics
 
-- `cognitive-os capture --input <file>` — drafts a reasoning-surface.json skeleton from unstructured text. Implementation: [src/cognitive_os/capture.py](./src/cognitive_os/capture.py).
+- `episteme capture --input <file>` — drafts a reasoning-surface.json skeleton from unstructured text. Implementation: [src/episteme/capture.py](./src/episteme/capture.py).
 
 ## Agent operating contract
 
@@ -49,7 +49,7 @@ cognitive-os is the posture layer installed beneath whichever memory substrate a
 ## Human documentation
 
 - [README](./README.md): project overview, quick start, comparisons
-- [docs/COGNITIVE_OS_ARCHITECTURE.md](./docs/COGNITIVE_OS_ARCHITECTURE.md): architecture deep dive
+- [docs/EPISTEME_ARCHITECTURE.md](./docs/EPISTEME_ARCHITECTURE.md): architecture deep dive
 - [docs/COGNITIVE_SYSTEM_PLAYBOOK.md](./docs/COGNITIVE_SYSTEM_PLAYBOOK.md): operational playbook
 - [docs/SUBSTRATE_BRIDGE.md](./docs/SUBSTRATE_BRIDGE.md): pluggable substrate adapter protocol (mem0, memori, noop reference impls).
 

@@ -95,6 +95,6 @@ A pre-mortem is a structured risk-identification exercise that forces teams to t
 ## Provenance
 
 - Source: `phuryn/pm-skills`
-- Adaptation: curated and modified for cognitive-os workflows; wording, constraints, and examples may differ from upstream.
+- Adaptation: curated and modified for episteme workflows; wording, constraints, and examples may differ from upstream.
 - Policy: inspired-by reference retained for attribution; this runtime copy is not presented as an upstream verbatim artifact.
 

@@ -51,7 +51,7 @@ single ledger) to record each decision's assumptions, disconfirmation
 conditions, and observed outcome — so the kernel's efficacy is itself
 falsifiable.
 
-**Trigger.** Before the next claim that cognitive-os *works*. Right now
+**Trigger.** Before the next claim that episteme *works*. Right now
 the claim is coherence-based; telemetry would make it outcome-based.
 
 **Pointer.** `kernel/KERNEL_LIMITS.md` section "A. Calibration
@@ -59,7 +59,7 @@ telemetry."
 
 ### 2. Attribution regression check
 
-**What.** A doctor check (`cognitive-os doctor --kernel`) that scans
+**What.** A doctor check (`episteme doctor --kernel`) that scans
 kernel files for named concepts and flags any that do not appear in
 REFERENCES.md's primary section. Prevents the attribution audit from
 decaying to a point-in-time property.
@@ -84,7 +84,7 @@ whose cognitive profiles materially differ. First-class dissent (cf.
 Edmondson); named authority per decision class; reconciliation as a
 constraint-regime negotiation rather than averaging.
 
-**Trigger.** First real collaborative use of cognitive-os with a second
+**Trigger.** First real collaborative use of episteme with a second
 person. Not before — the design should be driven by real friction, not
 speculative symmetry.
 
@@ -111,7 +111,7 @@ trade-off unmodeled."
 The next session should restructure `README.md` and
 `docs/assets/system-overview.svg` so that the repository reads
 *demo-first* (like medsci-skills) — a new user should see `demos/` early,
-understand what cognitive-os *does* via this audit artifact, and only
+understand what episteme *does* via this audit artifact, and only
 then encounter the philosophical kernel.
 
 That action is reversible, produces immediate feedback (any new visitor

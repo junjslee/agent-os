@@ -1,8 +1,8 @@
 {
-  "schema": "cognitive-os/reasoning-surface@1",
+  "schema": "episteme/reasoning-surface@1",
   "decision_id": "2026-04-17-attribution-audit",
   "operator": "junlee",
-  "core_question": "Are the concepts load-bearing the cognitive-os kernel (WYSIATI, OODA, latticework, radical transparency, falsification, etc.) attributed to their primary sources — or is the kernel presenting borrowed ideas as its own?",
+  "core_question": "Are the concepts load-bearing the episteme kernel (WYSIATI, OODA, latticework, radical transparency, falsification, etc.) attributed to their primary sources — or is the kernel presenting borrowed ideas as its own?",
   "constraint_regime": {
     "allowed": [
       "edits to kernel/*.md",
@@ -29,7 +29,7 @@
     "How many concepts in kernel wording are borrowed from sources NOT yet in REFERENCES.md? Initial scan suggests at least Popper (falsification), Shannon (signal vs noise), Polanyi (tacit knowledge boundary for KERNEL_LIMITS), Meadows (leverage / orientation), Alexander (pattern language analogue for kernel structure), Deming (PDSA as ancestor of Frame→Decompose→Execute→Verify→Handoff).",
     "Does each kernel file tell the reader WHERE to find the attribution, or is attribution centralized in REFERENCES.md without inline pointers?",
     "Are there concepts the kernel quietly INVENTS vs borrows? (Claims to borrow-ness are verifiable; claims to originality rarely are.)",
-    "Are there failure modes of the kernel itself that are not named — conditions under which applying cognitive-os makes decisions worse, not better?"
+    "Are there failure modes of the kernel itself that are not named — conditions under which applying episteme makes decisions worse, not better?"
   ],
   "assumptions": [
     {

@@ -1,6 +1,6 @@
 # Customization
 
-Three places you can shape cognitive-os to your own working life: personal memory, skills, and hooks.
+Three places you can shape episteme to your own working life: personal memory, skills, and hooks.
 
 ## Personal memory
 
@@ -39,12 +39,12 @@ Edit scripts in `core/hooks/`. All hooks run under Conda `base` Python — no ex
 ### Conda root override
 
 ```bash
-export COGNITIVE_OS_CONDA_ROOT=/path/to/your/conda   # default: ~/miniconda3
+export EPISTEME_CONDA_ROOT=/path/to/your/conda   # default: ~/miniconda3
 ```
 
 ## Project scaffold
 
-`cognitive-os new-project [path]` creates:
+`episteme new-project [path]` creates:
 
 ```
 AGENTS.md            vendor-neutral operating manual for any agent

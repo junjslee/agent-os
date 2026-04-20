@@ -113,7 +113,7 @@ AI agents are maximally prone to System 1 failure. They are trained on human tex
 fluent answers were rewarded. The architecture that produces good outputs also produces
 confidently wrong ones. System 1 cannot distinguish between 'I know this' and 'this sounds right'.
 
-cognitive-os is a System 2 forcing function. Every element of the protocol exists to block a
+episteme is a System 2 forcing function. Every element of the protocol exists to block a
 specific named System 1 failure mode:
 
 - WYSIATI (What You See Is All There Is): you reason from what is present in context and never
@@ -161,9 +161,9 @@ matters most. Orientation is.
 
 Orient is where mental models, memories, and reasoning protocols filter raw observation into a
 frame that governs all subsequent decisions. You do not decide from reality -- you decide from
-your model of reality. cognitive-os defines that model.
+your model of reality. episteme defines that model.
 
-- cognitive-os IS the Orientation infrastructure. Garbage orientation produces garbage decisions
+- episteme IS the Orientation infrastructure. Garbage orientation produces garbage decisions
   regardless of how carefully execution was handled.
 - Small reversible actions close the loop quickly. A large irreversible bet collapses multiple
   loops into one and eliminates the correction that feedback would have provided.

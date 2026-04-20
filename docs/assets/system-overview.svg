@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1380" viewBox="0 0 1600 1380" role="img" aria-label="cognitive-os — a portable cognitive kernel for AI agents. The kernel is markdown; adapters deliver it; the kernel is what travels.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1380" viewBox="0 0 1600 1380" role="img" aria-label="episteme — a portable cognitive kernel for AI agents. The kernel is markdown; adapters deliver it; the kernel is what travels.">
 
   <defs>
     <style type="text/css"><![CDATA[
@@ -68,7 +68,7 @@
   <!-- =========================================================
        MASTHEAD (y 40 – 120)
        ========================================================= -->
-  <text x="80" y="82" class="nameplate">cognitive-os</text>
+  <text x="80" y="82" class="nameplate">episteme</text>
   <text x="1520" y="62" class="epigraph end">A portable cognitive kernel for AI agents</text>
   <text x="1520" y="86" class="epigraph end">Markdown. Vendor-neutral. The kernel is what travels.</text>
   <line x1="80"  y1="112" x2="1520" y2="112" class="section-hair"/>
@@ -191,7 +191,7 @@
 
   <!-- Sync pill — shifted +52 -->
   <rect x="720" y="1160" width="160" height="34" rx="17" fill="#7A2E2A"/>
-  <text x="800" y="1182" class="sync-label center">cognitive-os sync</text>
+  <text x="800" y="1182" class="sync-label center">episteme sync</text>
   <line x1="800" y1="1198" x2="800" y2="1230" class="accent-thin" marker-end="url(#arrow-accent)"/>
 
   <!-- =========================================================

@@ -7,7 +7,7 @@ method chosen, and the because-chain from signal to decision.
 
 ## Core Question (reprise)
 
-Are the concepts load-bearing the cognitive-os kernel attributed to their
+Are the concepts load-bearing the episteme kernel attributed to their
 primary sources — or is the kernel presenting borrowed ideas as its own?
 
 ---

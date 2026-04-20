@@ -65,6 +65,6 @@ Save as a markdown document. If the user wants HTML or another format, convert a
 ## Provenance
 
 - Source: `phuryn/pm-skills`
-- Adaptation: curated and modified for cognitive-os workflows; wording, constraints, and examples may differ from upstream.
+- Adaptation: curated and modified for episteme workflows; wording, constraints, and examples may differ from upstream.
 - Policy: inspired-by reference retained for attribution; this runtime copy is not presented as an upstream verbatim artifact.
 

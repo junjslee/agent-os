@@ -1,23 +1,23 @@
 # Anthropic Managed Agents Bridge
 
-Purpose: import Managed Agents runtime event logs into `cognitive-os` Memory Contract v1 envelopes as `episodic` records.
+Purpose: import Managed Agents runtime event logs into `episteme` Memory Contract v1 envelopes as `episodic` records.
 
 This bridge is additive and non-breaking:
-- It does not change `cognitive-os sync` behavior.
+- It does not change `episteme sync` behavior.
 - It does not modify existing adapters.
 - It writes bridge output under `core/memory/bridges/anthropic-managed/` unless you override `--output`.
 
 ## Why this exists
 
-Managed runtimes and `cognitive-os` operate at different layers:
+Managed runtimes and `episteme` operate at different layers:
 - Managed runtime: execution substrate — agent loop, sandboxes/tools, runtime event durability.
-- `cognitive-os`: cognitive control plane — identity, governance, cross-runtime authoritative memory.
+- `episteme`: cognitive control plane — identity, governance, cross-runtime authoritative memory.
 
-The bridge connects these layers by transforming runtime events into portable memory envelopes that cognitive-os can promote, audit, and sync.
+The bridge connects these layers by transforming runtime events into portable memory envelopes that episteme can promote, audit, and sync.
 
 ## Input formats
 
-`cognitive-os bridge anthropic-managed` accepts either:
+`episteme bridge anthropic-managed` accepts either:
 
 1) JSON object with an `events` array (preferred)
 ```json
@@ -41,7 +41,7 @@ The bridge connects these layers by transforming runtime events into portable me
 ## Command
 
 ```bash
-cognitive-os bridge anthropic-managed \
+episteme bridge anthropic-managed \
   --input /path/to/managed-events.json \
   --project-id my-project-id
 ```
@@ -50,7 +50,7 @@ Useful options:
 - `--output <path>`: custom output file path
 - `--session-id <id>`: override session id
 - `--source-ref <ref>`: override provenance source reference
-- `--captured-by <actor>`: provenance captured_by (default: `cognitive-os bridge`)
+- `--captured-by <actor>`: provenance captured_by (default: `episteme bridge`)
 - `--confidence low|medium|high` (default: `medium`)
 - `--dry-run`: parse + summarize without writing output
 
@@ -101,6 +101,6 @@ Event type mapping (runtime → memory contract):
 3. Promote durable lessons into authoritative files:
    - global: `core/memory/global/*.md`
    - project: `docs/*`, `AGENTS.md`
-4. Run `cognitive-os sync` to propagate updated contract.
+4. Run `episteme sync` to propagate updated contract.
 
 This preserves source-of-truth discipline while still learning from managed runtime execution.

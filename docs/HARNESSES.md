@@ -5,7 +5,7 @@ A **harness** defines the operating environment for a specific project type — 
 ## Detect and apply
 
 ```bash
-cognitive-os detect .
+episteme detect .
 ```
 
 ```
@@ -20,7 +20,7 @@ ml-research            score 11  ← recommended
 · directory: checkpoints/
 
 Recommended: ml-research
-cognitive-os harness apply ml-research .
+episteme harness apply ml-research .
 ```
 
 Applying a harness writes `HARNESS.md` to the project root and extends `docs/RUN_CONTEXT.md` with profile-specific context — GPU constraints, cost acknowledgment requirements, data safety rules, or dev-server reminders, depending on type.
@@ -39,7 +39,7 @@ Applying a harness writes `HARNESS.md` to the project root and extends `docs/RUN
 
 Drop a JSON file into `core/harnesses/`. Fields:
 
-- `id` — stable identifier used by `cognitive-os harness apply <id>`
+- `id` — stable identifier used by `episteme harness apply <id>`
 - `signals` — detection signals (file globs, dependency names, directory presence), each with a score weight
 - `execution_profile` — constraints (memory, GPU, long-running tolerance, dev server, data classification)
 - `run_context_additions` — blocks appended to `docs/RUN_CONTEXT.md` on apply

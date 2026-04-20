@@ -1,6 +1,6 @@
 """Adapter discovery.
 
-Adapters are python modules under `cognitive_os.bridges.substrate.adapters`.
+Adapters are python modules under `episteme.bridges.substrate.adapters`.
 Each module must expose a top-level `ADAPTER: type[SubstrateAdapter]`.
 """
 
@@ -13,7 +13,7 @@ from typing import Type
 from .base import SubstrateAdapter
 
 
-_ADAPTERS_PACKAGE = "cognitive_os.bridges.substrate.adapters"
+_ADAPTERS_PACKAGE = "episteme.bridges.substrate.adapters"
 
 
 def list_adapters() -> list[str]:

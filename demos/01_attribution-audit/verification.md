@@ -8,7 +8,7 @@ post-execution state.
 
 ## Against the Core Question
 
-*"Are the concepts load-bearing the cognitive-os kernel attributed to
+*"Are the concepts load-bearing the episteme kernel attributed to
 their primary sources?"*
 
 **Yes, within scope.** Every concept identified in

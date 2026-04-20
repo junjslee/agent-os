@@ -1,14 +1,14 @@
-# cognitive-os — Claude Code plugin
+# episteme — Claude Code plugin
 
-Installs the cognitive-os **epistemic posture** — the Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop — into Claude Code as skills, agents, and hooks.
+Installs the episteme **epistemic posture** — the Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop — into Claude Code as skills, agents, and hooks.
 
 Not a fork of the kernel. A distribution wrapper over the same markdown this repo ships.
 
 ## Install (marketplace)
 
 ```
-/plugin marketplace add junjslee/cognitive-os
-/plugin install cognitive-os@cognitive-os
+/plugin marketplace add junjslee/episteme
+/plugin install episteme@episteme
 ```
 
 The marketplace manifest lives at [`./marketplace.json`](./marketplace.json); the plugin manifest at [`./plugin.json`](./plugin.json).
@@ -16,12 +16,12 @@ The marketplace manifest lives at [`./marketplace.json`](./marketplace.json); th
 ## Install (local / development)
 
 ```bash
-claude --plugin-dir /path/to/cognitive-os
+claude --plugin-dir /path/to/episteme
 ```
 
 ## What lands in the session
 
-- **Skills** — everything under [`skills/custom/`](../skills/custom/) and [`skills/vendor/`](../skills/vendor/), namespaced as `/cognitive-os:<skill-name>`.
+- **Skills** — everything under [`skills/custom/`](../skills/custom/) and [`skills/vendor/`](../skills/vendor/), namespaced as `/episteme:<skill-name>`.
 - **Agents** — personas from [`core/agents/`](../core/agents/) (`planner`, `researcher`, `implementer`, `reviewer`, `test-runner`, `docs-handoff`, `domain-architect`, `reasoning-auditor`, `governance-safety`, `orchestrator`, `domain-owner`).
 - **Hooks** — safety + workflow hooks declared in [`../hooks/hooks.json`](../hooks/hooks.json); hook commands use `${CLAUDE_PLUGIN_ROOT}` so they work from any install location.
 
@@ -34,15 +34,15 @@ The plugin is a delivery mechanism, not an authority. Kernel truth lives in `ker
 After install:
 
 ```bash
-cognitive-os doctor
-cognitive-os kernel verify
-cognitive-os bridge substrate verify noop
+episteme doctor
+episteme kernel verify
+episteme bridge substrate verify noop
 ```
 
 ## Uninstall
 
 ```
-/plugin uninstall cognitive-os
+/plugin uninstall episteme
 ```
 
 Uninstall removes plugin-managed surfaces. Your authoritative files (`core/memory/global/*.md`, project `docs/*.md`) are untouched.

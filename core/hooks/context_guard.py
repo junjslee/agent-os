@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PostToolUse context monitor for cognitive-os.
+"""PostToolUse context monitor for episteme.
 
 Uses Claude statusline bridge files (/tmp/claude-ctx-<session>.json) when available
 and emits non-blocking warnings to keep execution bounded near compaction limits.
@@ -25,7 +25,7 @@ def _safe_session_id(raw: str) -> str:
 
 
 def _state_file(session_id: str) -> Path:
-    return Path(tempfile.gettempdir()) / f"cognitive-os-ctx-warn-{session_id}.json"
+    return Path(tempfile.gettempdir()) / f"episteme-ctx-warn-{session_id}.json"
 
 
 def main() -> int:

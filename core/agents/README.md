@@ -1,6 +1,6 @@
 # Agent roles
 
-This directory defines focused role prompts used by cognitive-os delegation workflows.
+This directory defines focused role prompts used by episteme delegation workflows.
 
 Each role is narrow and composable. Composability is the point — you don't want a single god-agent trying to plan, implement, review, and govern simultaneously. You want specialized roles that hand off cleanly.
 

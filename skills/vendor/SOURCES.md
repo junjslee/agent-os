@@ -20,5 +20,5 @@ Curated vendor skills are sourced from:
 
 Adaptation policy:
 - Vendor skills are reference inputs, not verbatim upstream outputs.
-- cognitive-os may rewrite structure, constraints, examples, and tone to fit cognitive-os operating principles.
+- episteme may rewrite structure, constraints, examples, and tone to fit episteme operating principles.
 - If a skill is imported or substantially adapted, preserve attribution and add a brief provenance note in that skill’s `## Provenance` section.

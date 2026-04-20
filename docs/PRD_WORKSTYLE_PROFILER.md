@@ -10,7 +10,7 @@ This system must be:
 - overridable (operator can manually adjust or rerun)
 
 ## 2) Problem Statement
-Current `cognitive-os` setup relies on manually editing global memory files. This is flexible but not systematic.
+Current `episteme` setup relies on manually editing global memory files. This is flexible but not systematic.
 
 Gaps:
 - no structured intake for working style
@@ -19,7 +19,7 @@ Gaps:
 - no unified command to generate profile + policy together
 
 ## 3) Goals
-1. Add `cognitive-os profile` command group with deterministic modes:
+1. Add `episteme profile` command group with deterministic modes:
   - `survey`: explicit questionnaire-driven scoring
   - `infer`: repository signal-driven scoring
   - `hybrid`: survey + infer merge
@@ -47,10 +47,10 @@ Gaps:
 
 ### FR-1: New CLI Surface
 Add:
-- `cognitive-os profile survey [--write] [--overwrite]`
-- `cognitive-os profile infer [path] [--write] [--overwrite]`
-- `cognitive-os profile hybrid [path] [--write] [--overwrite]`
-- `cognitive-os profile show`
+- `episteme profile survey [--write] [--overwrite]`
+- `episteme profile infer [path] [--write] [--overwrite]`
+- `episteme profile hybrid [path] [--write] [--overwrite]`
+- `episteme profile show`
 
 Behavior:
 - default mode writes generated JSON under `.generated/`
@@ -149,7 +149,7 @@ Clamp all scores to 0..3.
 - `profile show` prints current generated scorecard if available.
 
 ## 9) Developer Experience / Maintainability
-- Keep logic in `src/cognitive_os/cli.py` for v1 to minimize architecture churn.
+- Keep logic in `src/episteme/cli.py` for v1 to minimize architecture churn.
 - Use helper functions:
  - `_profile_survey()`
  - `_profile_infer(path)`
@@ -168,8 +168,8 @@ Clamp all scores to 0..3.
 
 ## 11) Rollout / Local Integration
 - After profile generation with `--write`, operator should run:
- 1. `cognitive-os sync` to push updated global memory to adapters
- 2. `cognitive-os doctor` to verify runtime
+ 1. `episteme sync` to push updated global memory to adapters
+ 2. `episteme doctor` to verify runtime
 - This should be printed as post-run guidance.
 
 ## 12) Risks and Mitigations

@@ -93,5 +93,5 @@ Tool-native memory (Claude/Hermes/Codex/Cursor) is acceleration only.
 ## Local Integration
 
 After changing global memory files:
-1. `cognitive-os sync`
-2. `cognitive-os doctor`
+1. `episteme sync`
+2. `episteme doctor`

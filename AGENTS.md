@@ -1,4 +1,4 @@
-# AGENTS.md — cognitive-os
+# AGENTS.md — episteme
 
 > Operational contract for any AI coding agent working inside this repository.
 > Human-facing documentation: [`README.md`](./README.md). Durable
@@ -52,7 +52,7 @@ adapters/hermes/  Hermes (OMO) delivery layer
 skills/           reusable operator skills (custom/vendor/private)
 templates/        project scaffolds, example answer files
 docs/             architecture, contracts, setup guides
-src/cognitive_os/ CLI + core library
+src/episteme/    CLI + core library
 tests/
 ```
 
@@ -65,22 +65,22 @@ tests/
 pip install -e .
 
 # Verify health
-cognitive-os doctor
+episteme doctor
 
 # Verify kernel integrity
-cognitive-os kernel verify   # detects drift in managed files
+episteme kernel verify   # detects drift in managed files
 
 # Push kernel + profile to all adapters
-cognitive-os sync
+episteme sync
 
 # Run tests
 PYTHONPATH=. pytest -q
 
 # Static check
-python3 -m py_compile src/cognitive_os/cli.py
+python3 -m py_compile src/episteme/cli.py
 ```
 
-All local Python work runs in **Conda `base`** (root: `~/miniconda3` or `$COGNITIVE_OS_CONDA_ROOT`). Homebrew Python is not supported.
+All local Python work runs in **Conda `base`** (root: `~/miniconda3` or `$EPISTEME_CONDA_ROOT`). Homebrew Python is not supported.
 
 ---
 
@@ -104,7 +104,7 @@ All consequential edits follow the kernel's own loop:
 4. **Verify.** Validate against success criteria, not effort. Re-check each assumption. Evaluate hypothesis: validated / refined / invalidated.
 5. **Handoff.** Update `docs/PROGRESS.md`, `docs/NEXT_STEPS.md`. Name residuals explicitly.
 
-High-impact decisions must record to `.cognitive-os/reasoning-surface.json` before the action. See `kernel/HOOKS_MAP.md`.
+High-impact decisions must record to `.episteme/reasoning-surface.json` before the action. See `kernel/HOOKS_MAP.md`.
 
 ---
 
@@ -114,7 +114,7 @@ High-impact decisions must record to `.cognitive-os/reasoning-surface.json` befo
 
 - `core/memory/global/*.md` — operator's personal memory; gitignored; writing to it is an identity violation
 - `.claude/settings.local.json` — machine-local overrides; gitignored
-- `kernel/MANIFEST.sha256` directly — regenerate with `cognitive-os kernel update` after intentional kernel edits
+- `kernel/MANIFEST.sha256` directly — regenerate with `episteme kernel update` after intentional kernel edits
 - Any file matching `**/.env*`, `secrets/*`, private keys
 
 ### Handle with care (checkpoint before acting)
@@ -130,7 +130,7 @@ High-impact decisions must record to `.cognitive-os/reasoning-surface.json` befo
 - `skills/custom/*`, `skills/private/*`
 - `templates/*`
 - `tests/*`
-- `src/cognitive_os/*` under usual engineering discipline
+- `src/episteme/*` under usual engineering discipline
 
 ---
 

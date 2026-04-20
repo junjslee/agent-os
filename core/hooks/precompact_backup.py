@@ -2,7 +2,7 @@
 """PreCompact hook — backs up Claude session transcripts before compaction.
 
 Copies .jsonl session files for the current project to
-~/.cache/cognitive-os/backups/sessions/ with a timestamp prefix so compacted
+~/.cache/episteme/backups/sessions/ with a timestamp prefix so compacted
 history can be recovered. Writes outside the repo so transcripts never end
 up tracked by git. Always exits 0.
 """
@@ -20,7 +20,7 @@ def encode_project_path(cwd: Path) -> str:
 def _backup_root() -> Path:
     xdg = os.environ.get("XDG_CACHE_HOME")
     base = Path(xdg).expanduser() if xdg else Path.home() / ".cache"
-    return base / "cognitive-os" / "backups" / "sessions"
+    return base / "episteme" / "backups" / "sessions"
 
 
 def main() -> int:

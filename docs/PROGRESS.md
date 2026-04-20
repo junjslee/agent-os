@@ -7,11 +7,11 @@ Running log of completed work. Most recent first.
 ## 0.7.0 — 2026-04-19
 
 ### Real enforcement pass
-- `core/hooks/reasoning_surface_guard.py` — added `_write_audit()` writing structured entries to `~/.cognitive-os/audit.jsonl` on every check (passed / advisory / blocked)
-- `src/cognitive_os/cli.py` — added `_inject()`, `_surface_log()`, parser registration, and dispatch for `inject` and `log` commands
+- `core/hooks/reasoning_surface_guard.py` — added `_write_audit()` writing structured entries to `~/.episteme/audit.jsonl` on every check (passed / advisory / blocked)
+- `src/episteme/cli.py` — added `_inject()`, `_surface_log()`, parser registration, and dispatch for `inject` and `log` commands
 - `.claude-plugin/plugin.json` — version bumped to 0.6.0
 - `kernel/CHANGELOG.md` — 0.7.0 entry added
-- Verified: `cognitive-os inject /tmp` creates strict-surface + template; hook fires real exit-2 block; `cognitive-os log` shows timestamped audit entries
+- Verified: `episteme inject /tmp` creates strict-surface + template; hook fires real exit-2 block; `episteme log` shows timestamped audit entries
 
 ## 0.6.0 — 2026-04-19
 
@@ -25,7 +25,7 @@ Running log of completed work. Most recent first.
 
 ### Initial pass
 - `.claude-plugin/marketplace.json` — fixed `source: "."` → `"https://github.com/junjslee/cognitive-os"` (schema fix; unverified against live validator)
-- `src/cognitive_os/viewer/index.html` — removed (deprecated UI artifact)
+- `src/episteme/viewer/index.html` — removed (deprecated UI artifact)
 - `.github/ISSUE_TEMPLATE/feature.yml` — added "Epistemic alignment" field; improved acceptance criteria template
 - `README.md` — added governance/control-plane opening paragraph; feedforward + DbC + OPA framing in "Why this architecture"; "Zero-trust execution" section with OWASP counter-mapping table; "Human prompt debugging" section; interoperability statement; ASCII control-plane diagram
 - `kernel/KERNEL_LIMITS.md` — added Cynefin problem-domain classification table

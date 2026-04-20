@@ -1,6 +1,6 @@
 """Draft a reasoning-surface.json skeleton from an unstructured text blob.
 
-The Reasoning Surface is the canonical artifact cognitive-os produces before a
+The Reasoning Surface is the canonical artifact episteme produces before a
 high-impact decision. Hand-authoring one from scratch is the single biggest
 adoption friction. This module takes a Slack thread / PR description / ticket /
 email and emits a draft surface the operator can edit in 5 minutes instead of
@@ -128,12 +128,12 @@ class DraftSurface:
     unknowns: list[str] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
     captured_at: str = ""
-    captured_by: str = "cognitive-os capture"
+    captured_by: str = "episteme capture"
     source_excerpt: str = ""
 
     def to_dict(self) -> dict:
         return {
-            "$schema": "https://cognitive-os.dev/schemas/reasoning-surface-v1.json",
+            "$schema": "https://episteme.dev/schemas/reasoning-surface-v1.json",
             "captured_at": self.captured_at,
             "captured_by": self.captured_by,
             "core_question": self.core_question,
@@ -152,7 +152,7 @@ class DraftSurface:
             "_capture_metadata": {
                 "source_excerpt": self.source_excerpt,
                 "notes": [
-                    "This file was drafted by `cognitive-os capture`. Fields "
+                    "This file was drafted by `episteme capture`. Fields "
                     "marked <TODO: ...> must be filled in by the operator. "
                     "disconfirmation[] and constraints{} are intentionally "
                     "empty — the posture requires the operator to declare "
@@ -224,7 +224,7 @@ def draft_from_text(
         unknowns=unknowns,
         assumptions=assumptions,
         captured_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        captured_by=captured_by or "cognitive-os capture",
+        captured_by=captured_by or "episteme capture",
         source_excerpt=excerpt,
     )
 
@@ -248,7 +248,7 @@ def run_capture(
         text = input_path.read_text(encoding="utf-8")
 
     if not text.strip():
-        sys.stderr.write("cognitive-os capture: empty input\n")
+        sys.stderr.write("episteme capture: empty input\n")
         return 2
 
     draft = draft_from_text(

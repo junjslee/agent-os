@@ -1,6 +1,6 @@
 # Kernel Summary
 
-A 30-line distillation of the entire cognitive-os kernel. Load this first.
+A 30-line distillation of the entire episteme kernel. Load this first.
 
 ---
 

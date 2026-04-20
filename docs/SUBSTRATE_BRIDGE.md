@@ -2,7 +2,7 @@
 
 The kernel speaks exactly one format: `memory-contract-v1` envelopes. Every external memory system — mem0, Memori, MemOS, claude-mem, a vector DB, a filesystem tree, an MCP server, a future substrate we haven't heard of yet — integrates through the same adapter protocol. No substrate becomes authoritative; they are caches with **declared capabilities** and **declared lossy fields**.
 
-This doc defines the contract. Adapter implementations live in `src/cognitive_os/bridges/substrate/adapters/` — drop one file to add a new substrate.
+This doc defines the contract. Adapter implementations live in `src/episteme/bridges/substrate/adapters/` — drop one file to add a new substrate.
 
 ---
 
@@ -26,17 +26,17 @@ Every adapter declares: (1) `name`, (2) `capabilities` (push/pull/delete/search/
 ## CLI surface
 
 ```bash
-cognitive-os bridge substrate list-adapters
-cognitive-os bridge substrate describe <adapter>
-cognitive-os bridge substrate verify <adapter>
+episteme bridge substrate list-adapters
+episteme bridge substrate describe <adapter>
+episteme bridge substrate verify <adapter>
 
-cognitive-os bridge substrate push <adapter> \
+episteme bridge substrate push <adapter> \
   --input <envelope.json> \
   [--user-id … --project-id … --agent-id … --session-id …] \
   [--config <adapter-config.json>] \
   [--output <push-result.json>]
 
-cognitive-os bridge substrate pull <adapter> \
+episteme bridge substrate pull <adapter> \
   [--query "free-text"] [--limit 50] [--since 2026-01-01T00:00:00Z] \
   [--user-id … --project-id …] \
   [--config <adapter-config.json>] \
@@ -110,11 +110,11 @@ An adapter is lossy on a field if the substrate cannot store it losslessly. The 
 
 ## Writing a new adapter
 
-1. Create `src/cognitive_os/bridges/substrate/adapters/<name>.py`.
+1. Create `src/episteme/bridges/substrate/adapters/<name>.py`.
 2. Subclass `SubstrateAdapter`. Implement `describe`, `push`, and (optionally) `pull`/`delete`.
 3. Export `ADAPTER = YourAdapter` at module level.
-4. `cognitive-os bridge substrate list-adapters` should now show `<name>`.
-5. Run `cognitive-os bridge substrate verify <name>` to validate the descriptor.
+4. `episteme bridge substrate list-adapters` should now show `<name>`.
+5. Run `episteme bridge substrate verify <name>` to validate the descriptor.
 
 The `noop` adapter in the same directory is the canonical minimal example.
 

@@ -2,7 +2,7 @@
 name: skill-lab-autoresearch
 description: Private Claude-only lab skill for iteratively improving a copied skill candidate with explicit evaluation goals and manual promotion.
 ---
-Use this skill only for private skill-lab work inside `~/cognitive-os`.
+Use this skill only for private skill-lab work inside `~/episteme`.
 
 This wrapper is inspired by `olelehmann100kMRR/autoresearch-skill`, but it is adapted for a private lab workflow where live skills are never edited directly.
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cognitive-os.dev/schemas/substrate-v1/adapter_descriptor.json",
+  "$id": "https://episteme.dev/schemas/substrate-v1/adapter_descriptor.json",
   "title": "Substrate Adapter Descriptor v1",
-  "description": "Self-description emitted by every substrate adapter. Validated by `cognitive-os bridge substrate verify`. Declaring unsupported capabilities is worse than declaring none; the kernel uses this descriptor to route operations and skip those the substrate cannot honor.",
+  "description": "Self-description emitted by every substrate adapter. Validated by `episteme bridge substrate verify`. Declaring unsupported capabilities is worse than declaring none; the kernel uses this descriptor to route operations and skip those the substrate cannot honor.",
   "type": "object",
   "additionalProperties": false,
   "required": ["name", "version", "contract_version", "capabilities", "scope_keys"],

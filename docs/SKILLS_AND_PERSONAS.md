@@ -1,6 +1,6 @@
 # Skills and Agent Personas
 
-Two extension surfaces shipped with cognitive-os: **skills** (reusable operator capabilities) and **personas** (subagent definitions). Both propagate via `cognitive-os sync`.
+Two extension surfaces shipped with episteme: **skills** (reusable operator capabilities) and **personas** (subagent definitions). Both propagate via `episteme sync`.
 
 ## Skills
 
@@ -20,7 +20,7 @@ Drop a folder under `skills/custom/` with a `SKILL.md`. Experimental skills that
 
 - Required vendor attribution map: `skills/vendor/SOURCES.md`.
 - Every vendor skill should include a `## Provenance` section in its `SKILL.md` when imported or adapted.
-- Run `cognitive-os validate` to surface manifest or provenance warnings before shipping.
+- Run `episteme validate` to surface manifest or provenance warnings before shipping.
 
 ## Agent personas
 

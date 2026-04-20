@@ -1,4 +1,4 @@
-# Install cognitive-os
+# Install episteme
 
 Three paths, cheapest first. All three install *the same* posture — the kernel is a contract, not a fork.
 
@@ -9,8 +9,8 @@ Three paths, cheapest first. All three install *the same* posture — the kernel
 This repo is a self-contained Claude Code **plugin marketplace**. Add it, install the plugin:
 
 ```
-/plugin marketplace add junjslee/cognitive-os
-/plugin install cognitive-os@cognitive-os
+/plugin marketplace add junjslee/episteme
+/plugin install episteme@episteme
 ```
 
 What lands in your Claude Code session:
@@ -24,8 +24,8 @@ Plugin manifest: [`.claude-plugin/plugin.json`](./.claude-plugin/plugin.json). M
 Uninstall:
 
 ```
-/plugin uninstall cognitive-os
-/plugin marketplace remove cognitive-os
+/plugin uninstall episteme
+/plugin marketplace remove episteme
 ```
 
 Your authoritative files (`core/memory/global/*.md`, project `docs/*.md`) are untouched by uninstall.
@@ -35,21 +35,21 @@ Your authoritative files (`core/memory/global/*.md`, project `docs/*.md`) are un
 ## 2. Full clone + CLI install (for operators who want to edit the kernel)
 
 ```bash
-git clone https://github.com/junjslee/cognitive-os ~/cognitive-os
-cd ~/cognitive-os
+git clone https://github.com/junjslee/cognitive-os ~/episteme
+cd ~/episteme
 pip install -e .
 
-cognitive-os init                          # bootstrap memory files from templates
-cognitive-os setup . --interactive         # score working style + cognitive posture
-cognitive-os sync                          # deliver identity to every adapter
-cognitive-os doctor                        # verify wiring
+episteme init                          # bootstrap memory files from templates
+episteme setup . --interactive         # score working style + cognitive posture
+episteme sync                          # deliver identity to every adapter
+episteme doctor                        # verify wiring
 ```
 
 What this gets you beyond path (1):
 
-- The `cognitive-os` CLI (`sync`, `doctor`, `setup`, `capture`, `viewer`, `bridge substrate`, `harness`, `evolve`).
+- The `episteme` CLI (`sync`, `doctor`, `setup`, `capture`, `viewer`, `bridge substrate`, `harness`, `evolve`).
 - Editable kernel (`kernel/*.md`, `core/memory/global/*.md`) — you become the author, not just the consumer.
-- The local viewer (`cognitive-os viewer`) for browsing the posture's produced artifacts.
+- The local viewer (`episteme viewer`) for browsing the posture's produced artifacts.
 
 ---
 
@@ -58,8 +58,8 @@ What this gets you beyond path (1):
 For contributors testing changes to the plugin without publishing:
 
 ```bash
-git clone https://github.com/junjslee/cognitive-os ~/cognitive-os
-claude --plugin-dir ~/cognitive-os
+git clone https://github.com/junjslee/cognitive-os ~/episteme
+claude --plugin-dir ~/episteme
 ```
 
 Equivalent to path (1) but bypasses the marketplace fetch — useful when you are modifying the skills/agents/hooks in place.
@@ -71,16 +71,16 @@ Equivalent to path (1) but bypasses the marketplace fetch — useful when you ar
 After any of the three paths:
 
 ```bash
-cognitive-os doctor                 # runtime wiring
-cognitive-os kernel verify          # manifest integrity
-cognitive-os bridge substrate verify noop  # substrate bridge contract
+episteme doctor                 # runtime wiring
+episteme kernel verify          # manifest integrity
+episteme bridge substrate verify noop  # substrate bridge contract
 ```
 
 All three should exit 0.
 
 ---
 
-## What cognitive-os actually installs
+## What episteme actually installs
 
 Not a tool. A posture. The four artifacts that make the posture enforceable:
 

@@ -4,7 +4,7 @@ Hooks run deterministically — the model cannot override them. Each hook is a n
 
 ## Governance packs
 
-Packs are applied via `cognitive-os sync` or `cognitive-os setup --sync`.
+Packs are applied via `episteme sync` or `episteme setup --sync`.
 
 | Pack       | Contents                                                                                                   |
 |------------|------------------------------------------------------------------------------------------------------------|
@@ -32,9 +32,9 @@ Packs are applied via `cognitive-os sync` or `cognitive-os setup --sync`.
 Hook scripts live in `core/hooks/`. They run with Conda `base` Python. Paths resolve dynamically so the same scripts work on any machine. Override the Conda root via:
 
 ```bash
-export COGNITIVE_OS_CONDA_ROOT=/path/to/your/conda   # default: ~/miniconda3
+export EPISTEME_CONDA_ROOT=/path/to/your/conda   # default: ~/miniconda3
 ```
 
 ## Invariant mapping
 
-See [`kernel/HOOKS_MAP.md`](../kernel/HOOKS_MAP.md) for the mapping from kernel invariants to the hooks that enforce them at runtime, and for the Reasoning Surface state file (`.cognitive-os/reasoning-surface.json`) + integrity manifest commands.
+See [`kernel/HOOKS_MAP.md`](../kernel/HOOKS_MAP.md) for the mapping from kernel invariants to the hooks that enforce them at runtime, and for the Reasoning Surface state file (`.episteme/reasoning-surface.json`) + integrity manifest commands.

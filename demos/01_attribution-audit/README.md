@@ -6,11 +6,11 @@ principles. If that claim is true, every load-bearing borrow should be
 traceable to a primary source, named in `kernel/REFERENCES.md`, and cited
 at the point of use.
 
-This demo applies cognitive-os **to itself**: run the kernel's own workflow
+This demo applies episteme **to itself**: run the kernel's own workflow
 loop on the question *"is the attribution of this kernel complete and
 honest?"* — and ship the resulting artifacts as the demo output.
 
-This is the canonical shape of a cognitive-os deliverable: a
+This is the canonical shape of a episteme deliverable: a
 [reasoning-surface.json](./reasoning-surface.json), a
 [decision-trace.md](./decision-trace.md), a
 [verification.md](./verification.md), and a
@@ -58,7 +58,7 @@ to see which option was chosen and why. Then
 [`verification.md`](./verification.md) to see what held up and what didn't.
 Then [`handoff.md`](./handoff.md) to see what was left for the next cycle.
 
-If you use cognitive-os on a real piece of work, this is the shape of
+If you use episteme on a real piece of work, this is the shape of
 artifact you should end up with. Not longer. Not shorter.
 
 ---

@@ -120,7 +120,7 @@ class Mem0Adapter(SubstrateAdapter):
                 "messages": self._record_to_messages(record),
                 "user_id": scope.user_id,
                 "metadata": {
-                    "cognitive_os_source_id": source_id,
+                    "episteme_source_id": source_id,
                     "memory_class": record.get("memory_class"),
                     "session_id": scope.session_id,
                     "project_id": scope.project_id,
@@ -161,7 +161,7 @@ class Mem0Adapter(SubstrateAdapter):
                     "source_type": "imported",
                     "source_ref": f"mem0:{item.get('id')}",
                     "captured_at": item.get("created_at"),
-                    "captured_by": "cognitive-os bridge substrate pull mem0",
+                    "captured_by": "episteme bridge substrate pull mem0",
                     "confidence": "medium",
                 },
                 "status": "active",

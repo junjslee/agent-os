@@ -6,14 +6,14 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ## Immediate (verify before promoting 0.7.0)
 
-1. **Verify marketplace source fix** — run `/plugin marketplace add junjslee/cognitive-os` in a clean Claude Code session. This is the one unverified assumption carried from 0.6.0.
+1. **Verify marketplace source fix** — run `/plugin marketplace add junjslee/episteme` in a clean Claude Code session. This is the one unverified assumption carried from 0.6.0.
 
 2. **Run push-readiness checklist**
    ```bash
    PYTHONPATH=. pytest -q tests/test_profile_cognition.py
-   python3 -m py_compile src/cognitive_os/cli.py
+   python3 -m py_compile src/episteme/cli.py
    python3 -m py_compile core/hooks/reasoning_surface_guard.py
-   cognitive-os doctor
+   episteme doctor
    ```
 
 3. **Push and tag** — `git push && git tag v0.7.0 && git push --tags`
@@ -24,13 +24,13 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ## Immediate (verify before promoting 0.6.0)
 
-1. **Verify marketplace source fix** — run `/plugin marketplace add junjslee/cognitive-os` in a clean Claude Code session and confirm the schema error is resolved. If it persists, inspect the live validator error and adjust the `source` field format. This is the one unverified assumption in 0.6.0.
+1. **Verify marketplace source fix** — run `/plugin marketplace add junjslee/episteme` in a clean Claude Code session and confirm the schema error is resolved. If it persists, inspect the live validator error and adjust the `source` field format. This is the one unverified assumption in 0.6.0.
 
 2. **Run push-readiness checklist**
    ```bash
    PYTHONPATH=. pytest -q tests/test_profile_cognition.py
-   python3 -m py_compile src/cognitive_os/cli.py
-   cognitive-os doctor
+   python3 -m py_compile src/episteme/cli.py
+   episteme doctor
    git status && git rev-list --left-right --count @{u}...HEAD
    ```
 

@@ -6,7 +6,7 @@ so `verify` can surface the unmet dependency.
 
 Memori owns attribution via (entity_id, process_id). The adapter maps
 scope.user_id → entity_id and scope.agent_id → process_id. Global memory is
-skipped (authoritative truth stays in cognitive-os, never in a substrate).
+skipped (authoritative truth stays in episteme, never in a substrate).
 """
 
 from __future__ import annotations
@@ -84,7 +84,7 @@ class MemoriAdapter(SubstrateAdapter):
 
         result.lossy = list(self.describe().lossy_fields)
         entity_id = scope.user_id or "unknown-entity"
-        process_id = scope.agent_id or "cognitive-os"
+        process_id = scope.agent_id or "episteme"
 
         for record in envelope.get("records") or []:
             source_id = str(record.get("id") or "unknown")
@@ -105,7 +105,7 @@ class MemoriAdapter(SubstrateAdapter):
                     entity_id=entity_id,
                     process_id=process_id,
                     metadata={
-                        "cognitive_os_source_id": source_id,
+                        "episteme_source_id": source_id,
                         "memory_class": record.get("memory_class"),
                         "session_id": scope.session_id,
                         "provenance": record.get("provenance"),

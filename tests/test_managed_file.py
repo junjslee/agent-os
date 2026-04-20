@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from cognitive_os.cli import (
+from episteme.cli import (
     MANAGED_MARKER,
     _compose_managed_file,
     _extract_managed_block,
@@ -72,9 +72,9 @@ class ManagedFileContractTests(unittest.TestCase):
     def test_prior_signature_enables_clean_replace(self):
         # Simulates a file authored by a pre-marker sync: matches signature,
         # so we overwrite cleanly instead of duplicating content.
-        existing = "# cognitive-os Global Memory\n\n@some/path\n"
+        existing = "# episteme Global Memory\n\n@some/path\n"
         result = _compose_managed_file(
-            existing, "NEW", prior_signature="# cognitive-os Global Memory"
+            existing, "NEW", prior_signature="# episteme Global Memory"
         )
         self.assertIn("NEW", result)
         self.assertNotIn("@some/path", result)
@@ -86,7 +86,7 @@ class ManagedFileContractTests(unittest.TestCase):
     def test_prior_signature_mismatch_falls_back_to_preservation(self):
         existing = "# Totally unrelated content\n"
         result = _compose_managed_file(
-            existing, "MANAGED", prior_signature="# cognitive-os Global Memory"
+            existing, "MANAGED", prior_signature="# episteme Global Memory"
         )
         self.assertIn("# Totally unrelated content", result)
         self.assertIn("MANAGED", result)

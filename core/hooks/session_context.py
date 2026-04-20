@@ -20,13 +20,13 @@ def run(args: list[str]) -> str:
 
 
 def _surface_line() -> str | None:
-    path = Path(".cognitive-os/reasoning-surface.json")
+    path = Path(".episteme/reasoning-surface.json")
     if not path.exists():
-        return "surface: none declared — write .cognitive-os/reasoning-surface.json before high-impact ops"
+        return "surface: none declared — write .episteme/reasoning-surface.json before high-impact ops"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return "surface: unreadable .cognitive-os/reasoning-surface.json"
+        return "surface: unreadable .episteme/reasoning-surface.json"
 
     ts = data.get("timestamp")
     age: int | None = None
