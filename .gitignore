@@ -17,6 +17,12 @@ labs/skills/*/tmp/
 # but keep this rule so any legacy backups/ directory stays untracked.
 backups/
 
+# ─── Per-project runtime surface/audit artifacts ─────────────────────────────
+# Written by `episteme inject` and the reasoning_surface_guard hook.
+# Local, regenerable, session-scoped — never commit.
+.episteme/
+.cognitive-os/
+
 # ─── Personal episteme memory files ──────────────────────────────────────
 # These ship with the repo as the author's real profiles (see core/memory/global/).
 # Forks: edit them to make them your own, then run `episteme sync`.

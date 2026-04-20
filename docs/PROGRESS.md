@@ -6,6 +6,13 @@ Running log of completed work. Most recent first.
 
 ## 0.8.0 — 2026-04-19 — Core migration: cognitive-os → episteme
 
+### Version alignment (0.8.0 follow-on)
+- `pyproject.toml` version: `0.2.0` → `0.8.0` (was stale across 0.6.0/0.7.0/0.8.0 cycles)
+- `.claude-plugin/plugin.json` version: `0.6.0` → `0.8.0`
+- `.claude-plugin/marketplace.json` plugin version: `0.6.0` → `0.8.0`
+- `pip install -e .` re-run so the registered `episteme` console script reports 0.8.0
+- `git tag v0.8.0 && git push --tags` — migration tagged and pushed
+
 ### Python package
 - `git mv src/cognitive_os → src/episteme` (history preserved)
 - All internal imports updated: `from cognitive_os` → `from episteme`

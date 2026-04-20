@@ -6,16 +6,7 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ## Immediate
 
-1. **Remove the compatibility symlink** once all open shells/editors have had a chance to restart:
-   ```bash
-   rm /Users/junlee/cognitive-os
-   ```
-   Created to keep the current Claude Code session's Bash cwd valid while the migration completed. After removal, only `/Users/junlee/episteme` exists.
-
-2. **Verify marketplace install path** — `/plugin marketplace add junjslee/episteme`
-   (old `junjslee/cognitive-os` URL still 301-redirects).
-
-3. **Tag the migration** — `git tag v0.8.0 && git push --tags`
+1. **Verify marketplace install path** — `/plugin marketplace add junjslee/episteme` from a clean Claude Code session. Requires user action (cannot be run from shell). Old `junjslee/cognitive-os` URL still 301-redirects.
 
 ---
 
