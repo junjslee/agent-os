@@ -3,12 +3,14 @@
 ## 🏛️ Operating Thesis: The Mind-Vessel Duality
 
 `episteme` runs on a dual-system architecture:
-- **Cognitive System (The Soul)**: Governs *how to think*. Improves decision quality and reasoning integrity through formal protocols.
-- **Execution System (The Vessel)**: Governs *how to act*. Improves delivery reliability and verification discipline through deterministic workflows.
+- **Cognitive System (The Soul)**: Governs *how to think*. Improves decision quality and reasoning integrity through formal protocols — the Reasoning Surface, the facts/inferences/preferences distinction, the hypothesis → test → update cycle, the failure-mode taxonomy applied per decision.
+- **Execution System (The Vessel)**: Governs *how to act*. Improves delivery reliability and verification discipline through deterministic workflows and enforced preconditions.
 
 **Design Rule**:
 > Cognition without Execution is abstract theory.
 > Execution without Cognition is a brittle machine.
+
+**What is product, what is mechanism.** The product is the Cognitive System — the framework that forces an agent to separate facts from inferences, name unknowns it would prefer to hide, declare what would prove it wrong, and audit its own direction against named failure modes. The file-system-level blocker that exits `2` when a high-impact op arrives without a valid Reasoning Surface is **not the product**. It is the uncompromising enforcer that keeps the cognitive framework from being skipped under deadline pressure, fluent confidence, or scope creep. A prompt-only version of this framework degrades to advice the moment pressure rises; the kernel exists so advice becomes precondition. Read every section below with this ordering: cognitive discipline is what is being delivered; enforcement is how it is kept intact.
 
 ## 2) Memory architecture (authority boundaries)
 

@@ -37,7 +37,7 @@ Derived from a read-only audit of the CLI + stateful interceptor (see *Deep Audi
 19. **Ship a reference evaluator for `episteme evolve run`.** Currently `_default_evaluation_report` is a zero-metric stub; an episode is always born with `gate_result.passed: False`. For 1.0: either (a) document this is stub-by-design and the operator wires their own, or (b) ship a minimal reference harness that exercises the demo suite.
 20. **Three-path adoption model** (already scoped to 0.12.0 below — lift into RC if it lands quickly; otherwise 1.0.1).
 
-### Verification for RC gate
+### Verification for RC gate — engineering
 
 Before tagging `v1.0.0-rc1`:
 - `PYTHONPATH=src pytest` → 176/176 passing (or test count updated, zero regressions).
@@ -46,6 +46,21 @@ Before tagging `v1.0.0-rc1`:
 - Manual smoke: `episteme init`, `episteme sync`, declare a Reasoning Surface, run an allowed high-impact op, run a blocked one, verify audit + telemetry + episodic records written and redaction applied (item 3).
 - `episteme evolve friction` against ≥ 7 days of real telemetry — Friction Report renders, no crash, no secrets in output.
 - `episteme kernel verify` clean (item 1 — MANIFEST regen).
+
+### Verification for RC gate — cognitive adoption (the soul of the product)
+
+The engineering gates above verify the *enforcement arm*. They are necessary and insufficient. `episteme` is a framework for how an agent should think; the blocker exists only to keep that framework from being skipped under pressure. A 1.0 that passes every engineering gate but never changes how decisions are actually made is a 1.0 of the wrong product. Add these gates alongside the engineering ones:
+
+21. **Reasoning-quality signal visible in the episodic tier.** Over ≥ 7 days of real use, inspect `~/.episteme/memory/episodic/*.jsonl`. For every high-impact decision, the record carries a *Reasoning-Surface snapshot* with a non-lazy `core_question`, ≥ 1 substantive unknown, and a falsifiable disconfirmation. Gate: sample 20 random records — 0 with lazy placeholders, 0 with disconfirmations that don't name an observable outcome. If this fails, the guard is being satisfied mechanically (operator / agent is producing fluent-looking surfaces to get through the block) rather than internalized. That is a cognitive-product failure regardless of whether the blocker is working.
+22. **Disconfirmation actually fires.** Against the same window: at least one recorded decision where the declared disconfirmation *did* fire (the predicted-wrong condition was observed) AND the downstream action changed in response. Zero fires across 7 days of real work is the signature of disconfirmations written to pass validation rather than to be tested. If this happens, raise the minimum-specificity threshold (via `disconfirmation_specificity_min` in `~/.episteme/derived_knobs.json`) until declarations become honest.
+23. **Facts / inferences / preferences stay separated in session artifacts.** The Reasoning Surface schema declares `knowns`, `unknowns`, `assumptions`, and (implicitly) preferences as distinct fields. Sample 10 recent surfaces — count how often a preference ("we should use X") is filed as a known, or an inference ("this probably works because …") is filed as a fact. Target < 10%. Above that, the separation is formal only and the kernel is not producing the distinction it claims to enforce.
+24. **Hypothesis → test → update cycle is observable.** Pick 5 recent Reasoning Surfaces with a declared hypothesis. Trace forward in the episodic tier: was the hypothesis validated, refined, or invalidated by the outcome? Target ≥ 3 of 5 have an explicit update ("hypothesis invalidated, revised to Y" in the next surface or a reflective-tier entry). If 0 of 5, the framework is producing hypotheses but not closing the loop — the agent is declaring thinking, not doing thinking.
+25. **Profile-audit loop catches reasoning drift (not just outcome drift).** Phase 12 deliverable. The audit loop compares episodic-tier reasoning patterns against the operator's declared cognitive profile (e.g. `dominant_lens: failure-first` should show up as failure-mode inversion in the decision record). Gate: the loop surfaces ≥ 1 real drift detection against the maintainer's own profile over the RC cycle. If it never surfaces anything, the loop is documentation — not a control signal.
+26. **Semantic-tier proposals encode *how we think*, not just *what we do*.** The promotion job should emit patterns like "decisions flagged `domain: complex` but treated as `complicated` → recurring disconfirmation miss," not just "git push failed 3× this week." Sample semantic proposals from the 0.11 promotion job — ≥ 1 must name a *reasoning-shape* regularity, not only an outcome regularity.
+27. **Failure-mode taxonomy is load-bearing in real decisions.** `kernel/FAILURE_MODES.md` names nine. Over the RC window, episodic records should *cite* at least three distinct failure-mode ids as the reason a decision was re-framed (e.g. "WYSIATI fired — unknowns field was blank because context was silent, not because unknowns were absent"). Zero citations means the taxonomy is decorative.
+28. **Kernel doesn't need the kernel.** A narrower cut of #23: when working *on* episteme itself (as in this session), the maintainer's own decisions should show up in the episodic tier with the same discipline demanded of downstream users. If the kernel's author bypasses the kernel while working on the kernel, the product fails the dogfood test.
+
+**Interpretation.** Gates 21–28 fail when the framework is producing artifacts rather than changing cognition. Every failure mode above has the same shape: *mechanically-compliant, epistemically-empty*. The enforcement arm cannot fix this — it can only prevent the *absence* of declarations. Fixing it requires sharper thresholds, clearer schema guidance, and operator review. Ship RC when both engineering gates and at least four of the eight cognitive gates pass against real usage, with the remaining four named as known-gaps in 1.0.1 scope.
 
 ---
 
