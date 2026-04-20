@@ -45,6 +45,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/state_tracker.py",
+            "async": true
+          },
+          {
+            "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/format.py",
             "async": true
           }
@@ -53,6 +58,11 @@
       {
         "matcher": "Bash",
         "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/state_tracker.py",
+            "async": true
+          },
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/calibration_telemetry.py",

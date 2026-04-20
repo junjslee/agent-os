@@ -127,6 +127,17 @@ _SCRIPT_EXEC_PATTERNS = [
 # Cap script reads to keep the hook fast and bounded.
 MAX_SCRIPT_SCAN_BYTES = 64 * 1024
 
+# Variable-indirection execution shapes used with agent-written files. When
+# these appear alongside a recent agent-write in the state store, we block
+# even without a literal file reference — the agent has taken the file-name
+# out of the command text to defeat pattern matching.
+_INDIRECT_EXEC_PATTERNS = [
+    re.compile(r"\b(?:bash|sh|zsh|ksh)\s+\$"),
+    re.compile(r"\bpython\d?\s+\$"),
+    re.compile(r"\bnode\s+\$"),
+    re.compile(r"(?:^|\s)(?:\./|source\s+|\.\s+)\$"),
+]
+
 
 def _normalize_command(cmd: str) -> str:
     """Map shell / language token separators to spaces for robust matching."""
@@ -212,6 +223,79 @@ def _match_script_execution(cwd: Path, cmd: str) -> str | None:
     return None
 
 
+def _state_store_path() -> Path:
+    return Path.home() / ".episteme" / "state" / "session_context.json"
+
+
+def _load_session_state() -> dict:
+    """Load the session state store. Returns empty entries on any error."""
+    try:
+        with open(_state_store_path(), "r", encoding="utf-8") as f:
+            obj = json.load(f)
+        if isinstance(obj, dict) and isinstance(obj.get("entries"), dict):
+            return obj
+    except (OSError, json.JSONDecodeError):
+        pass
+    return {"version": 1, "entries": {}}
+
+
+def _scan_agent_written_file(path: Path) -> str | None:
+    """Open an agent-written file and scan its content for high-impact patterns."""
+    try:
+        with open(path, "rb") as f:
+            raw = f.read(MAX_SCRIPT_SCAN_BYTES + 1)
+    except OSError:
+        return None
+    if len(raw) > MAX_SCRIPT_SCAN_BYTES:
+        raw = raw[:MAX_SCRIPT_SCAN_BYTES]
+    try:
+        content = raw.decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    return _match_against_patterns(_normalize_command(content))
+
+
+def _match_agent_written_files(cmd: str) -> str | None:
+    """Deep-scan recently agent-written files the command references.
+
+    Consults the session state store (populated by `state_tracker.py` on
+    PostToolUse Write/Edit/MultiEdit/Bash). Two match modes:
+
+      1. The command text literally mentions the stored absolute path or
+         the file's basename — scan that file's current content.
+      2. The command uses a variable-indirection execution shape
+         (`bash $X`, `python $X`, etc.) and the state store has ANY
+         recently-written tracked file — scan each one. This closes
+         `F=run.sh; bash $F` bypass style.
+    """
+    state = _load_session_state()
+    entries = state.get("entries", {})
+    if not entries:
+        return None
+
+    uses_indirection = any(p.search(cmd) for p in _INDIRECT_EXEC_PATTERNS)
+
+    for abs_path in entries.keys():
+        try:
+            p = Path(abs_path)
+        except (TypeError, ValueError):
+            continue
+        if not p.exists() or not p.is_file():
+            continue
+
+        basename = p.name
+        mentioned = (abs_path in cmd) or (
+            basename and re.search(rf"(?<![A-Za-z0-9_./-]){re.escape(basename)}\b", cmd)
+        )
+        if not (mentioned or uses_indirection):
+            continue
+
+        inner = _scan_agent_written_file(p)
+        if inner:
+            return f"{inner} via agent-written {basename}"
+    return None
+
+
 def _match_high_impact(tool_name: str, payload: dict) -> str | None:
     if tool_name == "Bash":
         cmd = _bash_command(payload)
@@ -220,7 +304,10 @@ def _match_high_impact(tool_name: str, payload: dict) -> str | None:
         if label:
             return label
         cwd = Path(payload.get("cwd") or os.getcwd())
-        return _match_script_execution(cwd, cmd)
+        label = _match_script_execution(cwd, cmd)
+        if label:
+            return label
+        return _match_agent_written_files(cmd)
     if tool_name in {"Write", "Edit", "MultiEdit"}:
         target = _write_target(payload).replace("\\", "/")
         name = Path(target).name if target else ""
