@@ -1,244 +1,314 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1420" viewBox="0 0 1600 1420" role="img" aria-label="episteme — a portable cognitive kernel for AI agents. The kernel is markdown; adapters deliver it; the kernel is what travels. Current as of v0.10.0 with the stateful interceptor and calibration telemetry in the control plane.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1400" viewBox="0 0 1600 1400" role="img" aria-label="episteme — Figure 1. Structural stratification of the epistemic posture. Three strata — doxa (top), episteme (middle), praxis (bottom) — traversed by the grain (결 · gyeol) of epistemic discipline.">
+  <title>Figure 1 — structural stratification of the epistemic posture</title>
+  <desc>Arxiv-style figure. Three horizontal bands labeled DOXA, EPISTEME, PRAXIS. Doxa band lists nine named failure modes and the kernel artifacts that counter each. Episteme band holds the four principles, the seven kernel markdown files, and the runtime components grouped by role (texture of thought, texture of action, rationale, memory). Praxis band holds the four canonical artifacts and the four delivery adapters. An accent sync pill bridges episteme to praxis.</desc>
 
   <defs>
     <style type="text/css"><![CDATA[
-      /* Editorial Constitution — typographic, no filled panels except the sync pill. */
-      .nameplate    { font: 500 46px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.015em; }
-      .nameplate em { font-style: italic; font-weight: 400; }
-      .epigraph     { font: 400 14px ui-sans-serif, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #5B4F42; letter-spacing: 0.04em; }
-      .epigraph em  { font-style: italic; fill: #1A1612; }
+      .header-title    { font: 600 18px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1A1A; letter-spacing: -0.005em; }
+      .header-sub      { font: 400 italic 12px ui-serif, Georgia, "Times New Roman", serif; fill: #5C5C5C; }
 
-      .rootclaim    { font: 500 40px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
-      .rootclaim em { font-style: italic; font-weight: 500; fill: #7A2E2A; }
-      .attribution  { font: 400 italic 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.02em; }
+      .band-label      { font: 600 10px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; letter-spacing: 0.22em; }
+      .band-sub        { font: 400 10.5px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #7A7A7A; letter-spacing: 0.02em; }
 
-      .section      { font: 600 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.22em; }
-      .section-hair { stroke: #2A231E; stroke-width: 0.75; stroke-opacity: 0.55; fill: none; }
-      .hair         { stroke: #2A231E; stroke-width: 0.5; stroke-opacity: 0.30; fill: none; }
-      .hair-row     { stroke: #2A231E; stroke-width: 0.5; stroke-opacity: 0.22; fill: none; }
+      .section-label   { font: 600 9px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; letter-spacing: 0.18em; }
 
-      .roman        { font: 400 58px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: 0.02em; }
-      .p-title      { font: 600 20px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
-      .p-gloss      { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.005em; }
-      .p-gloss em   { font-style: italic; fill: #1A1612; }
+      .mode-id         { font: 600 11px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #5C5C5C; letter-spacing: 0.06em; }
+      .mode-title      { font: 600 12.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #1A1A1A; }
+      .mode-gloss      { font: 400 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; }
+      .mode-counter    { font: 400 italic 10.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A7A7A; }
 
-      .a-index      { font: 600 10px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.22em; }
-      .a-title      { font: 600 18px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: 0.005em; }
-      .a-gloss      { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.01em; }
-      .a-gloss em   { font-style: italic; fill: #1A1612; }
-      .a-path       { font: 400 11px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #7A6A58; }
+      .p-roman         { font: 400 28px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1A1A; letter-spacing: 0.01em; }
+      .p-title         { font: 600 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #1A1A1A; }
+      .p-gloss         { font: 400 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; }
+      .p-counter       { font: 400 italic 10.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A7A7A; }
 
-      .row-label    { font: 600 10px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A6A58; letter-spacing: 0.22em; }
-      .row-gloss    { font: 400 13px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; }
-      .row-path     { font: 400 11px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #7A6A58; }
+      .art-id          { font: 600 10px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #9A9A9A; letter-spacing: 0.06em; }
+      .art-title       { font: 600 12.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #1A1A1A; }
+      .art-gloss       { font: 400 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; }
+      .art-path        { font: 400 10.5px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #7A7A7A; }
 
-      .sync-label   { font: 600 12.5px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #F5EFE2; letter-spacing: 0.08em; }
+      .col-hdr         { font: 600 9px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; letter-spacing: 0.18em; }
+      .comp-name       { font: 500 12px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #1A1A1A; }
+      .comp-note       { font: 400 10.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #7A7A7A; }
+      .comp-pending    { font: 400 italic 12px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #9A9A9A; }
 
-      .adapter      { font: 500 22px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1612; letter-spacing: -0.005em; }
-      .adapter-line { font: 400 12.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; }
-      .adapter-future .adapter { fill: #7A6A58; }
-      .adapter-future .adapter-line { fill: #7A6A58; }
+      .art4-name       { font: 600 12px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #1A1A1A; letter-spacing: 0.01em; }
+      .art4-gloss      { font: 400 11px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; }
 
-      .pack-heading { font: 400 italic 13px ui-serif, Georgia, "Times New Roman", serif; fill: #5B4F42; letter-spacing: 0.005em; }
-      .pack-chip    { font: 500 12px ui-monospace, "SF Mono", Menlo, Monaco, "Courier New", monospace; fill: #5B4F42; letter-spacing: 0.02em; }
-      .pack-chip em { font-style: italic; fill: #7A2E2A; }
+      .adapter-name    { font: 600 14px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1A1A; letter-spacing: -0.005em; }
+      .adapter-sub     { font: 400 10.5px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5C5C5C; }
+      .adapter-future  { fill: #9A9A9A; }
 
-      .colophon     { font: 400 12px ui-sans-serif, -apple-system, "Segoe UI", sans-serif; fill: #5B4F42; letter-spacing: 0.01em; }
-      .colophon em  { font-style: italic; fill: #1A1612; }
+      .pill-label      { font: 600 11px ui-monospace, "SF Mono", Menlo, Monaco, monospace; fill: #FDFDFC; letter-spacing: 0.06em; }
 
-      .accent-rule  { stroke: #7A2E2A; stroke-width: 2.25; fill: none; stroke-linecap: square; }
-      .accent-thin  { stroke: #7A2E2A; stroke-width: 1.25; fill: none; }
-      .ink-arrow    { stroke: #2A231E; stroke-width: 0.75; stroke-opacity: 0.55; fill: none; }
+      .fig-num         { font: 500 13px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1A1A; }
+      .fig-title       { font: 400 italic 13px ui-serif, Georgia, "Times New Roman", serif; fill: #1A1A1A; }
+      .fig-caption     { font: 400 11.5px ui-serif, Georgia, "Times New Roman", serif; fill: #5C5C5C; }
+      .fig-caption em  { font-style: italic; fill: #1A1A1A; }
 
-      .center { text-anchor: middle; }
-      .end    { text-anchor: end; }
+      .rule-main       { stroke: #1A1A1A; stroke-width: 0.75; fill: none; }
+      .rule-thin       { stroke: #1A1A1A; stroke-width: 0.5; stroke-opacity: 0.25; fill: none; }
+      .rule-accent     { stroke: #7A2E2A; stroke-width: 1.25; fill: none; }
+
+      .pill-fill       { fill: #7A2E2A; }
+
+      .end             { text-anchor: end; }
+      .center          { text-anchor: middle; }
     ]]></style>
 
-    <marker id="arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-      <path d="M0,0 L10,4 L0,8 Z" fill="#7A2E2A"/>
-    </marker>
-    <marker id="arrow-ink" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-      <path d="M0,0 L10,4 L0,8 Z" fill="#2A231E" fill-opacity="0.55"/>
+    <marker id="arr-accent" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L9,3.5 L0,7 Z" fill="#7A2E2A"/>
     </marker>
   </defs>
 
-  <!-- Warm paper ground -->
-  <rect width="1600" height="1380" fill="#F5EFE2"/>
+  <rect width="1600" height="1400" fill="#FDFDFC"/>
 
-  <!-- =========================================================
-       MASTHEAD (y 40 – 120)
-       ========================================================= -->
-  <text x="80" y="82" class="nameplate">episteme</text>
-  <text x="1520" y="62" class="epigraph end">A portable cognitive kernel for AI agents</text>
-  <text x="1520" y="86" class="epigraph end">Markdown. Vendor-neutral. The kernel is what travels.</text>
-  <line x1="80"  y1="112" x2="1520" y2="112" class="section-hair"/>
-  <line x1="80"  y1="118" x2="1520" y2="118" class="hair"/>
+  <!-- ════════════════════ HEADER (y 60 – 150) ════════════════════ -->
+  <text x="60"   y="85"  class="header-title">episteme — structural stratification of the epistemic posture</text>
+  <text x="1540" y="85"  class="header-sub end">v0.11 · an audit against the grain</text>
+  <text x="60"   y="112" class="header-sub">Figure 1 · the doxa / episteme / praxis axis, traversed by the grain (결 · gyeol) · see docs/NARRATIVE.md</text>
+  <line x1="60" y1="140" x2="1540" y2="140" class="rule-main"/>
 
-  <!-- =========================================================
-       ROOT CLAIM (y 160 – 310)
-       ========================================================= -->
-  <text x="800" y="220" class="rootclaim center">The danger is not incompetence.</text>
-  <text x="800" y="270" class="rootclaim center">It is <tspan class="rootclaim" style="font-style:italic;fill:#7A2E2A">confident wrongness.</tspan></text>
-  <line x1="700" y1="294" x2="900" y2="294" class="accent-rule"/>
-  <text x="800" y="324" class="attribution center">— kernel / CONSTITUTION.md · the root claim from which every other artifact derives</text>
+  <!-- ════════════════════ DOXA BAND (y 160 – 430) ════════════════════ -->
+  <text x="60"   y="180" class="band-label">DOXA · WHAT ENTERS</text>
+  <text x="1540" y="180" class="band-sub end">nine named failure modes · kernel/FAILURE_MODES.md</text>
+  <line x1="60" y1="198" x2="1540" y2="198" class="rule-thin"/>
 
-  <!-- =========================================================
-       SECTION — THE FOUR PRINCIPLES (y 370 – 640)
-       ========================================================= -->
-  <text x="80"   y="378" class="section">THE FOUR PRINCIPLES  ·  I – IV  ·  Every design decision in the repository descends from these</text>
-  <text x="1520" y="378" class="section end">PHILOSOPHY FIRST · IMPLEMENTATION FOLLOWS</text>
-  <line x1="80" y1="392" x2="1520" y2="392" class="section-hair"/>
-
-  <!-- Column I -->
-  <text x="110" y="470" class="roman">I</text>
-  <text x="110" y="510" class="p-title">Explicit &gt; implicit</text>
-  <text x="110" y="548" class="p-gloss">Hidden assumptions are objectives</text>
-  <text x="110" y="568" class="p-gloss">in disguise. Expose the model —</text>
-  <text x="110" y="588" class="p-gloss">including the parts that are wrong.</text>
-  <text x="110" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: reasoning only from what is present.</tspan></text>
-
-  <line x1="440" y1="430" x2="440" y2="630" class="hair"/>
-
-  <!-- Column II -->
-  <text x="470" y="470" class="roman">II</text>
-  <text x="470" y="510" class="p-title">Orientation precedes observation</text>
-  <text x="470" y="548" class="p-gloss">You never see reality; you see</text>
-  <text x="470" y="568" class="p-gloss">your model of it. The kernel is</text>
-  <text x="470" y="588" class="p-gloss">Orient infrastructure before Act.</text>
-  <text x="470" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: first-framing persistence.</tspan></text>
-
-  <line x1="800" y1="430" x2="800" y2="630" class="hair"/>
-
-  <!-- Column III -->
-  <text x="830" y="470" class="roman">III</text>
-  <text x="830" y="510" class="p-title">No model is sufficient alone</text>
-  <text x="830" y="548" class="p-gloss">Every lens has a structural blind</text>
-  <text x="830" y="568" class="p-gloss">spot. Convergence confirms;</text>
-  <text x="830" y="588" class="p-gloss">conflict between lenses informs.</text>
-  <text x="830" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: story-fit over evidence.</tspan></text>
-
-  <line x1="1160" y1="430" x2="1160" y2="630" class="hair"/>
-
-  <!-- Column IV -->
-  <text x="1190" y="470" class="roman">IV</text>
-  <text x="1190" y="510" class="p-title">The loop is the unit of progress</text>
-  <text x="1190" y="548" class="p-gloss">Understanding compounds through</text>
-  <text x="1190" y="568" class="p-gloss">cycles with integrity. A skipped</text>
-  <text x="1190" y="588" class="p-gloss">stage defers its cost, not removes it.</text>
-  <text x="1190" y="618" class="p-gloss"><tspan style="font-style:italic">Counters: confidence exceeding accuracy.</tspan></text>
-
-  <line x1="80" y1="660" x2="1520" y2="660" class="hair"/>
-
-  <!-- =========================================================
-       SECTION — KERNEL ARTIFACTS (y 700 – 920)
-       ========================================================= -->
-  <text x="80"   y="702" class="section">KERNEL ARTIFACTS  ·  Each counters a named failure mode · pure markdown · vendor-neutral</text>
-  <text x="1520" y="702" class="section end">kernel /</text>
-  <line x1="80" y1="716" x2="1520" y2="716" class="section-hair"/>
-
-  <!-- Artifact row 01 -->
-  <text x="110"  y="758" class="a-index">01</text>
-  <text x="170"  y="758" class="a-title">Constitution</text>
-  <text x="450"  y="758" class="a-gloss">Four principles. Philosophy before implementation; every other file descends from this one.</text>
-  <text x="1520" y="758" class="a-path end">kernel/CONSTITUTION.md</text>
-  <line x1="80" y1="778" x2="1520" y2="778" class="hair-row"/>
-
-  <!-- Artifact row 02 -->
-  <text x="110"  y="810" class="a-index">02</text>
-  <text x="170"  y="810" class="a-title">Reasoning Surface</text>
-  <text x="450"  y="810" class="a-gloss">Knowns · Unknowns · Assumptions · Disconfirmation — the minimum viable explicitness.</text>
-  <text x="1520" y="810" class="a-path end">kernel/REASONING_SURFACE.md</text>
-  <line x1="80" y1="830" x2="1520" y2="830" class="hair-row"/>
-
-  <!-- Artifact row 03 -->
-  <text x="110"  y="862" class="a-index">03</text>
-  <text x="170"  y="862" class="a-title">Failure Modes</text>
-  <text x="450"  y="862" class="a-gloss">Six named modes, each paired with the artifact that counters it. A named audit trail.</text>
-  <text x="1520" y="862" class="a-path end">kernel/FAILURE_MODES.md</text>
-  <line x1="80" y1="882" x2="1520" y2="882" class="hair-row"/>
-
-  <!-- Artifact row 04 -->
-  <text x="110"  y="914" class="a-index">04</text>
-  <text x="170"  y="914" class="a-title">Operator Schema</text>
-  <text x="450"  y="914" class="a-gloss">Workstyle and cognition, scored 0–3, portable across tools. Identity that travels.</text>
-  <text x="1520" y="914" class="a-path end">kernel/OPERATOR_PROFILE_SCHEMA.md</text>
-  <line x1="80" y1="934" x2="1520" y2="934" class="hair-row"/>
-
-  <!-- Artifact row 05 -->
-  <text x="110"  y="966" class="a-index">05</text>
-  <text x="170"  y="966" class="a-title">Kernel Limits</text>
-  <text x="450"  y="966" class="a-gloss">When this kernel is the wrong tool. A discipline without a declared boundary is a creed.</text>
-  <text x="1520" y="966" class="a-path end">kernel/KERNEL_LIMITS.md</text>
-  <line x1="80" y1="986" x2="1520" y2="986" class="hair-row"/>
-
-  <!-- =========================================================
-       SECTION — INSTANCE & DELIVERY (shifted +52)
-       ========================================================= -->
-  <text x="80"   y="1028" class="section">INSTANCE &amp; DELIVERY  ·  What the kernel attaches to, and how it travels</text>
-  <text x="1520" y="1028" class="section end">authority : project truth › global operator › episodic</text>
-  <line x1="80" y1="1042" x2="1520" y2="1042" class="section-hair"/>
-
-  <!-- Instance row (two typographic columns, no boxes) — shifted +52 -->
-  <text x="110" y="1080" class="row-label">OPERATOR INSTANCE</text>
-  <text x="110" y="1106" class="row-gloss">The operator's cognitive posture, expressed as markdown.</text>
-  <text x="110" y="1128" class="row-path">core/memory/global/ · operator_profile.md · cognitive_profile.md · workflow_policy.md</text>
-
-  <line x1="780" y1="1062" x2="780" y2="1142" class="hair"/>
-
-  <text x="810" y="1080" class="row-label">PROJECT TRUTH</text>
-  <text x="810" y="1106" class="row-gloss">What this repository is building right now, and why.</text>
-  <text x="810" y="1128" class="row-path">docs/ · REQUIREMENTS · PLAN · PROGRESS · NEXT_STEPS · RUN_CONTEXT · DECISION_STORY</text>
-
-  <!-- Sync pill — shifted +52 -->
-  <rect x="720" y="1160" width="160" height="34" rx="17" fill="#7A2E2A"/>
-  <text x="800" y="1182" class="sync-label center">episteme sync</text>
-  <line x1="800" y1="1198" x2="800" y2="1230" class="accent-thin" marker-end="url(#arrow-accent)"/>
-
-  <!-- =========================================================
-       DELIVERY — ADAPTERS (shifted +52)
-       ========================================================= -->
-  <line x1="80" y1="1242" x2="1520" y2="1242" class="hair"/>
-
-  <!-- Claude Code -->
-  <text x="110" y="1276" class="adapter">Claude Code</text>
-  <text x="110" y="1300" class="adapter-line">CLAUDE.md index · deterministic safety hooks · personas &amp; skills</text>
-  <text x="110" y="1320" class="row-path">adapters/claude</text>
-
-  <line x1="430" y1="1252" x2="430" y2="1334" class="hair"/>
-
-  <!-- Hermes -->
-  <text x="460" y="1276" class="adapter">Hermes</text>
-  <text x="460" y="1300" class="adapter-line">OPERATOR.md composite · SOUL.md identity · native skills</text>
-  <text x="460" y="1320" class="row-path">adapters/hermes</text>
-
-  <line x1="780" y1="1252" x2="780" y2="1334" class="hair"/>
-
-  <!-- OMO / OMX -->
-  <text x="810" y="1276" class="adapter">OMO / OMX</text>
-  <text x="810" y="1300" class="adapter-line">agents &amp; skills bundle · shared governance · Claude-format settings</text>
-  <text x="810" y="1320" class="row-path">core/adapters/*.json</text>
-
-  <line x1="1160" y1="1252" x2="1160" y2="1334" class="hair"/>
-
-  <!-- Future runtimes -->
-  <g class="adapter-future">
-    <text x="1190" y="1276" class="adapter"><tspan style="font-style:italic">Future runtimes</tspan></text>
-    <text x="1190" y="1300" class="adapter-line">Codex · Cursor · opencode · MCP — same kernel, ~50-line shim each</text>
-    <text x="1190" y="1320" class="row-path">drop a core/adapters/*.json</text>
+  <!-- Row 1 · modes 01 / 02 / 03 -->
+  <g transform="translate(80,235)">
+    <text class="mode-id">01</text>
+    <text x="32" class="mode-title">WYSIATI</text>
+    <text y="20" class="mode-gloss">reason from what is present; never flag what is absent</text>
+    <text y="40" class="mode-counter">→ Unknowns field of the Reasoning Surface</text>
+  </g>
+  <g transform="translate(600,235)">
+    <text class="mode-id">02</text>
+    <text x="32" class="mode-title">Question substitution</text>
+    <text y="20" class="mode-gloss">hard question silently replaced with easier one, answered fluently</text>
+    <text y="40" class="mode-counter">→ Core Question requirement</text>
+  </g>
+  <g transform="translate(1120,235)">
+    <text class="mode-id">03</text>
+    <text x="32" class="mode-title">Anchoring</text>
+    <text y="20" class="mode-gloss">first framing persists; later evidence fails to adjust enough</text>
+    <text y="40" class="mode-counter">→ Disconfirmation before execution</text>
   </g>
 
-  <!-- =========================================================
-       DOMAIN PACKS & DEMOS (shifted +52) — the positioning stratum
-       ========================================================= -->
-  <line x1="80" y1="1342" x2="1520" y2="1342" class="hair"/>
-  <text x="80"  y="1362" class="pack-heading">Domain packs ride atop delivery · demos/ ship reference deliverables of the loop itself.</text>
-  <text x="1520" y="1362" class="pack-chip end"><tspan style="font-style:italic">medsci-skills</tspan>  ·  ml-research  ·  web-app  ·  data-pipeline  ·  python-library  ·  <tspan style="font-style:italic">demos/</tspan></text>
+  <!-- Row 2 · modes 04 / 05 / 06 -->
+  <g transform="translate(80,305)">
+    <text class="mode-id">04</text>
+    <text x="32" class="mode-title">Narrative fallacy</text>
+    <text y="20" class="mode-gloss">sparse data assembled into coherent causal story; felt as discovered</text>
+    <text y="40" class="mode-counter">→ facts / inferences / preferences separation</text>
+  </g>
+  <g transform="translate(600,305)">
+    <text class="mode-id">05</text>
+    <text x="32" class="mode-title">Planning fallacy</text>
+    <text y="20" class="mode-gloss">effort underestimated; benefits overestimated; reliably</text>
+    <text y="40" class="mode-counter">→ inversion + margin of safety</text>
+  </g>
+  <g transform="translate(1120,305)">
+    <text class="mode-id">06</text>
+    <text x="32" class="mode-title">Overconfidence</text>
+    <text y="20" class="mode-gloss">expressed confidence exceeds actual accuracy</text>
+    <text y="40" class="mode-counter">→ believability-weighting · calibrated unknowns</text>
+  </g>
 
-  <!-- =========================================================
-       CONTROL PLANE — v0.10.0 addendum (non-disruptive colophon band)
-       ========================================================= -->
-  <line x1="80" y1="1386" x2="1520" y2="1386" class="hair"/>
-  <text x="80"  y="1406" class="colophon">Control plane · <em>Reasoning-Surface Guard</em>  ·  <em>Stateful Interceptor</em>  ·  <em>Calibration Telemetry</em>  —  see <tspan class="a-path">docs/assets/architecture_v2.svg</tspan> for the runtime schematic.</text>
-  <text x="1520" y="1406" class="colophon end">v0.10.0 · The Sovereign Kernel</text>
+  <!-- Row 3 · modes 07 / 08 / 09 (governance) -->
+  <g transform="translate(80,375)">
+    <text class="mode-id">07</text>
+    <text x="32" class="mode-title">Fence-Check</text>
+    <text y="20" class="mode-gloss">constraint removed without reconstructing its reason</text>
+    <text y="40" class="mode-counter">→ fence-hook (pending, per NEXT_STEPS)</text>
+  </g>
+  <g transform="translate(600,375)">
+    <text class="mode-id">08</text>
+    <text x="32" class="mode-title">Goodhart · measure-as-target</text>
+    <text y="20" class="mode-gloss">scorecard claim drifts from underlying reality over time</text>
+    <text y="40" class="mode-counter">→ profile-audit loop (phase 12 · pending)</text>
+  </g>
+  <g transform="translate(1120,375)">
+    <text class="mode-id">09</text>
+    <text x="32" class="mode-title">Ashby · controller variety</text>
+    <text y="20" class="mode-gloss">allow/deny sets &lt; action space; uncovered actions default-allowed</text>
+    <text y="40" class="mode-counter">→ escalate-on-uncovered (pending)</text>
+  </g>
+
+  <!-- ════════════════════ EPISTEME BAND (y 460 – 1050) ════════════════════ -->
+  <text x="60"   y="480" class="band-label">EPISTEME · WHAT THE KERNEL DEMANDS</text>
+  <text x="1540" y="480" class="band-sub end">constitution · reasoning surface · memory architecture · four hooks</text>
+  <line x1="60" y1="498" x2="1540" y2="498" class="rule-main"/>
+
+  <!-- ── Sub-section A · FOUR PRINCIPLES (y 520 – 660) ── -->
+  <text x="60" y="530" class="section-label">FOUR PRINCIPLES · I – IV · every design decision descends from these</text>
+  <line x1="60" y1="544" x2="1540" y2="544" class="rule-thin"/>
+
+  <g transform="translate(80,580)">
+    <text class="p-roman">I</text>
+    <text x="42" y="-6" class="p-title">Explicit &gt; implicit</text>
+    <text x="42" y="14" class="p-gloss">hidden assumptions are objectives</text>
+    <text x="42" y="32" class="p-gloss">in disguise — expose the model</text>
+    <text x="42" y="54" class="p-counter">counters 01 WYSIATI</text>
+  </g>
+  <g transform="translate(445,580)">
+    <text class="p-roman">II</text>
+    <text x="42" y="-6" class="p-title">Orientation precedes observation</text>
+    <text x="42" y="14" class="p-gloss">you never see reality — you see</text>
+    <text x="42" y="32" class="p-gloss">your model of it</text>
+    <text x="42" y="54" class="p-counter">counters 03 anchoring</text>
+  </g>
+  <g transform="translate(810,580)">
+    <text class="p-roman">III</text>
+    <text x="42" y="-6" class="p-title">No model is sufficient alone</text>
+    <text x="42" y="14" class="p-gloss">every lens has a structural blind</text>
+    <text x="42" y="32" class="p-gloss">spot; conflict between lenses informs</text>
+    <text x="42" y="54" class="p-counter">counters 04 narrative fallacy</text>
+  </g>
+  <g transform="translate(1175,580)">
+    <text class="p-roman">IV</text>
+    <text x="42" y="-6" class="p-title">The loop is the unit of progress</text>
+    <text x="42" y="14" class="p-gloss">skipped stages defer cost, not</text>
+    <text x="42" y="32" class="p-gloss">remove it; integrity compounds</text>
+    <text x="42" y="54" class="p-counter">counters 06 overconfidence</text>
+  </g>
+
+  <!-- ── Sub-section B · KERNEL ARTIFACTS (y 680 – 870) ── -->
+  <text x="60" y="690" class="section-label">KERNEL ARTIFACTS · 01 – 07 · pure markdown · vendor-neutral</text>
+  <line x1="60" y1="704" x2="1540" y2="704" class="rule-thin"/>
+
+  <g>
+    <!-- Each row y-step = 22 -->
+    <text x="80"   y="732" class="art-id">01</text>
+    <text x="130"  y="732" class="art-title">Constitution</text>
+    <text x="320"  y="732" class="art-gloss">root claim + four principles · the axis every other file descends from</text>
+    <text x="1540" y="732" class="art-path end">kernel/CONSTITUTION.md</text>
+    <line x1="60" y1="744" x2="1540" y2="744" class="rule-thin"/>
+
+    <text x="80"   y="762" class="art-id">02</text>
+    <text x="130"  y="762" class="art-title">Reasoning Surface</text>
+    <text x="320"  y="762" class="art-gloss">Core Question + Knowns / Unknowns / Assumptions / Disconfirmation · the grain of discipline</text>
+    <text x="1540" y="762" class="art-path end">kernel/REASONING_SURFACE.md</text>
+    <line x1="60" y1="774" x2="1540" y2="774" class="rule-thin"/>
+
+    <text x="80"   y="792" class="art-id">03</text>
+    <text x="130"  y="792" class="art-title">Failure Modes</text>
+    <text x="320"  y="792" class="art-gloss">nine doxa-patterns · each paired with the artifact that counters it</text>
+    <text x="1540" y="792" class="art-path end">kernel/FAILURE_MODES.md</text>
+    <line x1="60" y1="804" x2="1540" y2="804" class="rule-thin"/>
+
+    <text x="80"   y="822" class="art-id">04</text>
+    <text x="130"  y="822" class="art-title">Operator Schema</text>
+    <text x="320"  y="822" class="art-gloss">process + cognitive-style axes · per-axis metadata · control signal for adapters</text>
+    <text x="1540" y="822" class="art-path end">kernel/OPERATOR_PROFILE_SCHEMA.md</text>
+    <line x1="60" y1="834" x2="1540" y2="834" class="rule-thin"/>
+
+    <text x="80"   y="852" class="art-id">05</text>
+    <text x="130"  y="852" class="art-title">Memory Architecture</text>
+    <text x="320"  y="852" class="art-gloss">five tiers — working / episodic / semantic / procedural / reflective · promotion gated</text>
+    <text x="1540" y="852" class="art-path end">kernel/MEMORY_ARCHITECTURE.md</text>
+    <line x1="60" y1="864" x2="1540" y2="864" class="rule-thin"/>
+
+    <text x="80"   y="882" class="art-id">06</text>
+    <text x="130"  y="882" class="art-title">Kernel Limits</text>
+    <text x="320"  y="882" class="art-gloss">declared gaps · when this kernel is the wrong tool</text>
+    <text x="1540" y="882" class="art-path end">kernel/KERNEL_LIMITS.md</text>
+    <line x1="60" y1="894" x2="1540" y2="894" class="rule-thin"/>
+
+    <text x="80"   y="912" class="art-id">07</text>
+    <text x="130"  y="912" class="art-title">References</text>
+    <text x="320"  y="912" class="art-gloss">primary-source attribution for every borrowed concept · no buzzword leak in body</text>
+    <text x="1540" y="912" class="art-path end">kernel/REFERENCES.md</text>
+  </g>
+
+  <!-- ── Sub-section C · COMPONENTS BY ROLE (y 940 – 1040) ── -->
+  <text x="60" y="946" class="section-label">COMPONENTS · TEXTURE OF THOUGHT · TEXTURE OF ACTION · RATIONALE · MEMORY</text>
+  <line x1="60" y1="960" x2="1540" y2="960" class="rule-thin"/>
+
+  <g transform="translate(80,978)">
+    <text class="col-hdr">TEXTURE OF THOUGHT</text>
+    <text y="20" class="comp-name">Reasoning Surface</text>
+    <text y="38" class="comp-note">validated structurally before action</text>
+    <text y="60" class="comp-name">Derived Knobs</text>
+    <text y="78" class="comp-note">profile axes → hook thresholds (phase 9)</text>
+  </g>
+  <g transform="translate(445,978)">
+    <text class="col-hdr">TEXTURE OF ACTION</text>
+    <text y="20" class="comp-name">Reasoning-Surface Guard</text>
+    <text y="38" class="comp-note">strict-mode default · exit 2 on invalid</text>
+    <text y="60" class="comp-name">Stateful Interceptor</text>
+    <text y="78" class="comp-note">sha256 + ts · deep-scan on execute</text>
+  </g>
+  <g transform="translate(810,978)">
+    <text class="col-hdr">RATIONALE</text>
+    <text y="20" class="comp-name">Decision Trace</text>
+    <text y="38" class="comp-note">options · because-chain · rejections</text>
+    <text y="60" class="comp-name">Calibration Telemetry</text>
+    <text y="78" class="comp-note">prediction ⇄ outcome · JSONL · local-only</text>
+  </g>
+  <g transform="translate(1175,978)">
+    <text class="col-hdr">MEMORY</text>
+    <text y="20" class="comp-name">Episodic Writer</text>
+    <text y="38" class="comp-note">per-action records (phase 10)</text>
+    <text y="60" class="comp-name">Semantic Promoter</text>
+    <text y="78" class="comp-note">episodic → reflective proposals (phase 11)</text>
+    <text y="100" class="comp-pending">Profile-Audit Loop · phase 12 · pending</text>
+  </g>
+
+  <!-- ════════════════════ SYNC BRIDGE (y 1055 – 1085) ════════════════════ -->
+  <rect x="720" y="1055" width="160" height="24" rx="2" class="pill-fill"/>
+  <text x="800" y="1071" class="pill-label center">episteme sync</text>
+  <line x1="800" y1="1080" x2="800" y2="1120" class="rule-accent" marker-end="url(#arr-accent)"/>
+
+  <!-- ════════════════════ PRAXIS BAND (y 1130 – 1300) ════════════════════ -->
+  <text x="60"   y="1150" class="band-label">PRAXIS · WHAT LANDS</text>
+  <text x="1540" y="1150" class="band-sub end">four canonical artifacts · four delivery adapters</text>
+  <line x1="60" y1="1168" x2="1540" y2="1168" class="rule-main"/>
+
+  <!-- ── Sub-section A · ADAPTERS (y 1180 – 1235) ── -->
+  <text x="60" y="1188" class="section-label">ADAPTERS · delivery surfaces · same kernel, ~50-line shim each</text>
+  <line x1="60" y1="1202" x2="1540" y2="1202" class="rule-thin"/>
+
+  <g transform="translate(80,1226)">
+    <text class="adapter-name">Claude Code</text>
+    <text y="16" class="adapter-sub">CLAUDE.md · safety hooks · personas</text>
+  </g>
+  <g transform="translate(445,1226)">
+    <text class="adapter-name">Hermes</text>
+    <text y="16" class="adapter-sub">OPERATOR.md · SOUL.md · native skills</text>
+  </g>
+  <g transform="translate(810,1226)">
+    <text class="adapter-name">OMO · OMX</text>
+    <text y="16" class="adapter-sub">shared governance · Claude-format settings</text>
+  </g>
+  <g transform="translate(1175,1226)" class="adapter-future">
+    <text class="adapter-name adapter-future" style="font-style:italic">Future runtimes</text>
+    <text y="16" class="adapter-sub adapter-future">Codex · Cursor · opencode · MCP</text>
+  </g>
+
+  <!-- ── Sub-section B · FOUR CANONICAL ARTIFACTS (y 1260 – 1310) ── -->
+  <text x="60" y="1270" class="section-label">FOUR CANONICAL ARTIFACTS · the visible form of the posture</text>
+  <line x1="60" y1="1284" x2="1540" y2="1284" class="rule-thin"/>
+
+  <g transform="translate(80,1306)">
+    <text class="art4-name">reasoning-surface.json</text>
+    <text y="16" class="art4-gloss">the posture entering the action</text>
+  </g>
+  <g transform="translate(445,1306)">
+    <text class="art4-name">decision-trace.md</text>
+    <text y="16" class="art4-gloss">options · because-chain · rejections</text>
+  </g>
+  <g transform="translate(810,1306)">
+    <text class="art4-name">verification.md</text>
+    <text y="16" class="art4-gloss">assumptions graded · disconfirmation checked</text>
+  </g>
+  <g transform="translate(1175,1306)">
+    <text class="art4-name">handoff.md</text>
+    <text y="16" class="art4-gloss">shipped · pre-rejected · do-not-relitigate</text>
+  </g>
+
+  <!-- ════════════════════ FIGURE CAPTION (y 1350 – 1400) ════════════════════ -->
+  <line x1="60" y1="1340" x2="1540" y2="1340" class="rule-main"/>
+  <text x="60" y="1362" class="fig-num">Figure 1.<tspan class="fig-title" dx="6">Structural stratification of the epistemic posture.</tspan></text>
+  <text x="60" y="1384" class="fig-caption">The three strata (<tspan class="fig-caption" style="font-style:italic;fill:#1A1A1A">doxa</tspan>, <tspan class="fig-caption" style="font-style:italic;fill:#1A1A1A">episteme</tspan>, <tspan class="fig-caption" style="font-style:italic;fill:#1A1A1A">praxis</tspan>) are traversed by the grain (<tspan class="fig-caption" style="font-style:italic;fill:#1A1A1A">결 · gyeol</tspan>) of epistemic discipline — settled → open → provisional → falsification-condition. Prose counterpart: <tspan class="art-path">docs/NARRATIVE.md</tspan>.</text>
 
 </svg>
