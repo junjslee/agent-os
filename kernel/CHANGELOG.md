@@ -11,6 +11,149 @@ Format: `[version] — date — change`. Versions follow semantic intent:
 
 ---
 
+## [0.11.0] — 2026-04-21 — The Calibration Loop: profile becomes control signal, episodic tier writes, semantic promotion, profile-audit closes the circuit
+
+This release closes the loop the kernel has been building toward since
+0.8.0: an operator's declared cognitive profile is no longer
+documentation — it is a *control signal* that modulates hook behavior
+(phase 9), is checked against the *lived record* of high-impact
+decisions (phase 10), is *clustered into proposals* for promotion
+(phase 11), and is *audited for drift* against praxis (phase 12). The
+profile-audit loop counters measure-as-target drift (failure mode 8)
+by surfacing where the operator's claim and the operator's behavior
+have diverged — not as a verdict, but as a re-elicitation prompt.
+
+- **Phase 9 — profile becomes control signal.** New `core/hooks/_derived_knobs.py`
+  derives 7 behavior knobs from the operator profile axes and writes
+  them to `~/.episteme/derived_knobs.json`. `reasoning_surface_guard.py`
+  replaces module-level `MIN_DISCONFIRMATION_LEN` /
+  `MIN_UNKNOWN_LEN` constants with lookups against the derived knob,
+  fallback 15. For the maintainer's v2 profile the minimum raises 15
+  → 27. First end-to-end proof the v2 profile modulates hook
+  behavior. 17 new tests.
+- **Phase 10 — episodic-tier writer.** New PostToolUse hook
+  `core/hooks/episodic_writer.py` fires on high-impact Bash pattern
+  match; assembles a record per the `memory-contract-v1` schema;
+  appends to `~/.episteme/memory/episodic/YYYY-MM-DD.jsonl`.
+  Reasoning-Surface snapshot attached when present (snapshot now
+  includes `knowns` per phase-12 requirement; previously omitted);
+  secrets redacted before write; provenance confidence reflects
+  available signal. Wired into `hooks/hooks.json` PostToolUse/Bash
+  alongside `state_tracker` and `calibration_telemetry`, all async.
+  19 new tests.
+- **Phase 11 — semantic-tier promotion job.** New `src/episteme/_memory_promote.py`
+  + CLI subcommand `episteme memory promote`. Reads episodic tier,
+  clusters by `(domain_marker, primary high-impact pattern)`,
+  computes per-cluster success rate + disconfirmation fire rate,
+  emits deterministic proposals to
+  `~/.episteme/memory/reflective/semantic_proposals.jsonl`. Proposal
+  ids are stable hashes of the signature + sorted evidence refs, so
+  re-running on identical input produces byte-identical output.
+  Never touches the semantic tier; promotion is explicit. 19 new tests.
+- **Phase 11.5 — coherence pass (docs-only).** Specced in
+  `docs/DESIGN_V0_11_COHERENCE_PASS.md`. Both arxiv-style figures
+  rasterized to PNG; native Mermaid `graph TD` flowchart added in
+  `docs/ARCHITECTURE.md` mapping doxa / episteme / praxis / 결 to
+  exact file-level implementations. README leads thinking-first.
+- **Phase 12 — profile-audit loop (4 worked axes).** New
+  `src/episteme/_profile_audit.py` library + `episteme profile audit`
+  CLI surface. On-demand comparison of each declared cognitive
+  axis against the episodic record, emitted to
+  `~/.episteme/memory/reflective/profile_audit.jsonl`. SessionStart
+  surfaces unacknowledged drift via `core/hooks/session_context.py`.
+  Four axes operationalized in 0.11.0; 11 axes ship as explicit
+  per-axis stubs pointing to the spec sketch table for 0.11.1:
+    - **Axis C · `fence_discipline` (CP2).** Constraint-removal
+      records must carry reconstruction (S1) and review-trace (S2).
+      Single-signature catastrophic exception per spec §Axis C —
+      either signature failing flags drift, because constraint
+      removal is high-consequence. Drift thresholds are
+      claim-relative: `_FENCE_BANDS_BY_CLAIM` maps 0-5 to
+      `[drift_floor, ideal_ceiling]` per signature. Claim 4
+      reproduces the spec's 0.70 / 0.50 thresholds; claim 0 has
+      floor 0.0 and cannot drift by under-performing.
+    - **Axis A · `dominant_lens: failure-first` (CP3).** Two
+      signatures: failure-frame ratio over unknowns +
+      disconfirmation (S1, against `failure_frame` /
+      `success_frame` lexicons in `kernel/PHASE_12_LEXICON.md`),
+      and fire-condition rate from a per-record syntactic
+      classifier on disconfirmation (S2). D1 strict — both must
+      miss to flag drift. CP3 implements only `failure-first` at
+      position 0; other lens values follow Template A.
+    - **Axis D · `asymmetry_posture: loss-averse` (CP4).** Two
+      signatures: stop-condition rate from a syntactic classifier
+      on disconfirmation (S1), and rollback-mention rate against
+      the `rollback_adjacent` lexicon over knowns + assumptions
+      (S2). D1 strict. Success-verb vocabulary is deliberately
+      tight — words like `deploy`, `promote`, `ship`, `merge`
+      are excluded because they're routinely the noun-objects
+      of stop verbs.
+    - **Axis B · `noise_signature: status-pressure` (CP5).** Two
+      signatures: buzzword density per record (S1, against the
+      `buzzword` lexicon) and specificity-collapse under inferred
+      cadence (S2). DRIFT DIRECTION INVERTED for S1 — high
+      buzzword density against a counter-screen claim is what
+      drift looks like. Catastrophic single-signature exception
+      at S1 > 0.30 (decorative-language density at that level is
+      itself the signal). Highest evidence floor (N ≥ 40) of all
+      four axes.
+- **Schema additions.** New `core/schemas/profile-audit/profile_audit_v1.json`
+  governs the audit record shape. New `kernel/PHASE_12_LEXICON.md`
+  ships five default lexicons (`failure_frame`, `success_frame`,
+  `buzzword`, `causal_connective`, `rollback_adjacent`); operator
+  override path at `core/memory/global/phase_12_lexicon.md`. Each
+  audit record carries a `lexicon_fingerprint` so lexicon drift is
+  visible in the record stream, never silent.
+- **Operator profile v2 filled.** `core/memory/global/operator_profile.md`
+  migrated from 0-3 to 0-5 process axes; all 9 cognitive-style
+  axes populated. 5 axes remain `inferred` pending phase-12 audit
+  signal — that the audit currently returns insufficient_evidence
+  on the maintainer's small tier is correct cold-start behavior
+  per spec §Cold-start, not a phase-12 bug.
+- **D-countermeasures intact across CP2-CP5.** D1 multi-signature
+  convergence (with the two named single-signature exceptions for
+  Axis C and Axis B's catastrophic threshold), D2 retrospective-
+  only, D3 re-elicitation never auto-correction, D4 named limits
+  cited in every axis reason string.
+- **Demo + README narrative re-centered.** `scripts/demo_posture.sh`
+  gains a 2.2-second Beat 0 title card naming the Reasoning
+  Surface fields, the Beat 3 BLOCK rendered in dim red (matching
+  the script narration that calls it "the shallowest thing the
+  kernel does"), and the falsifiable PASS in bright green as the
+  actual climax. README posture-demo bullet re-captioned to put
+  the Reasoning Surface itself at the climax — the specificity
+  ladder is now framed as the *test* of the surface, not the
+  point of it. New `docs/DEMOS.md` houses the second demo
+  (renamed "posture as enforcement of the surface") so the
+  homepage no longer puts cognition and enforcement at parity.
+- **Versions reconciled:** `pyproject.toml`,
+  `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`
+  all 0.10.0 → 0.11.0.
+- **Tests:** 121 → 304 passing (+183 across phases 9, 10, 11, 12).
+  Zero regressions.
+
+**What 0.11.0 is honestly NOT:**
+1. **Coverage on 11 of 15 axes.** The spec-sketch table lays out
+   templates for them; CP2-CP5 ship the four worked axes that prove
+   the patterns. Remaining 11 are explicit per-axis stubs deferred
+   to 0.11.1 — chosen over a generic fallback so the audit log is
+   readable rather than 11 identical "not yet implemented" lines.
+2. **Cross-axis consistency checks.** Per spec open question 5,
+   v0.11 does per-axis only. `fence_discipline` high +
+   `risk_tolerance` low expected; `fence_discipline` low +
+   `risk_tolerance` low internally inconsistent — both pass in
+   v0.11. Cross-axis lands in a follow-on.
+3. **A schema field for cadence.** Per spec open question 2,
+   v0.11 infers cadence from timestamp clustering; the
+   `cadence_marker` field is 0.11.1 work.
+4. **Goodhart-resistance beyond layer 1.** Reasoning Surface Guard
+   still does syntactic + length checks. A sufficiently-aware
+   agent can still defeat the gate with fluent-vacuous content
+   that passes both. Phase 12 catches this OVER TIME via the
+   audit loop, but the hot-path validator remains syntactic.
+   v1.0 RC scope work — see `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`
+   for the proposed defense-in-depth upgrade.
+
 ## [0.10.0] — 2026-04-20 — The Sovereign Kernel: stateful interception + heuristic friction analyzer + profile freshness gate
 
 - **Added** `core/hooks/state_tracker.py` — PostToolUse recorder that persists every agent-written file path, sha256, and timestamp to `~/.episteme/state/session_context.json` (24 h TTL, atomic temp+rename, `fcntl.flock` serialization). Tracks `Write`/`Edit`/`MultiEdit` targets across a curated extension set (`.sh`, `.bash`, `.zsh`, `.ksh`, `.py`, `.pyw`, `.js`, `.mjs`, `.cjs`, `.ts`, `.rb`, `.pl`, `.php`, plus extension-less files) and `Bash` redirect targets (`>`, `>>`, `| tee [-a]`).

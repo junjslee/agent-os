@@ -111,7 +111,7 @@ Authority hierarchy: **project docs > operator profile > kernel defaults > runti
 
 ---
 
-## Architecture · doxa → episteme → praxis → 결
+## Architecture · doxa → episteme → praxis → Gyeol
 
 > Full diagram with node annotations and cross-references: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 
