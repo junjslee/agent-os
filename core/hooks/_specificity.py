@@ -85,6 +85,81 @@ _OBSERVABLE_PATTERNS: tuple[re.Pattern, ...] = (
 DisconfirmationClass = Literal["fire", "absence", "tautological", "unknown"]
 
 
+# ---------------------------------------------------------------------------
+# CP5: origin_evidence classifier for Fence Reconstruction.
+#
+# `origin_evidence` is a WHY statement, not a fire-shape prediction. The
+# trigger+observable classifier above would produce category-error
+# rejections on honest surfaces. This is a separate rule set:
+#
+#   evidence    — presence of at least one concrete pointer shape:
+#                 commit SHA, @path:line, URL, issue/ticket ID, dated
+#                 event, or "git blame" / "incident" reference
+#   legacy      — explicit lazy-evidence markers: "unclear",
+#                 "probably legacy", "historical reasons", "no record",
+#                 "don't remember", "forgotten"
+#   unknown     — empty / very-short (< 10 chars); decline to classify
+#
+# Priority: legacy > evidence > unknown. A surface that both cites a
+# SHA AND says "probably legacy" routes to `legacy` because the hedge
+# indicates the evidence is thin.
+# ---------------------------------------------------------------------------
+
+OriginEvidenceClass = Literal["evidence", "legacy", "unknown"]
+
+_LAZY_EVIDENCE_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"\bunclear\b", re.I),
+    re.compile(r"\bprobably\s+(?:legacy|historical|old)\b", re.I),
+    re.compile(r"\bhistorical\s+(?:reasons?|artifact|cruft)\b", re.I),
+    re.compile(r"\bno\s+(?:record|memory|history|trace|evidence)\b", re.I),
+    re.compile(r"\b(?:don't|do\s+not|dont)\s+(?:remember|recall|know)\b", re.I),
+    re.compile(r"\bforgotten\b", re.I),
+    re.compile(r"\bnobody\s+(?:remembers?|knows)\b", re.I),
+    re.compile(r"\bcargo[- ]cult(?:ed)?\b", re.I),
+    re.compile(r"\bjust\s+there\b", re.I),
+    re.compile(r"\blegacy\s+(?:code|cruft|artifact)\b", re.I),
+)
+
+_EVIDENCE_MARKER_PATTERNS: tuple[re.Pattern, ...] = (
+    # Commit SHA (mixed digit+letter, 7-40 chars). Same discipline as
+    # _grounding.py's hex_sha extractor.
+    re.compile(r"\b(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b"),
+    # @path:line anchor (e.g. "see core/hooks/foo.py:42").
+    re.compile(r"[A-Za-z0-9_\-/]+\.[a-z]{1,5}:\d+"),
+    # Ticket / issue / incident ID shapes.
+    re.compile(r"\b(?:#\d+|[A-Z][A-Z0-9]+-\d+|INC\d+|PAGE\d+)\b"),
+    # URL.
+    re.compile(r"https?://\S+"),
+    # Dated event (ISO-8601 or YYYY-MM-DD).
+    re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
+    # "git blame" / "git log" / "commit" / "blame" / "incident" / "RFC"
+    # / "ADR" / "postmortem" / "post-mortem".
+    re.compile(r"\bgit\s+(?:blame|log)\b", re.I),
+    re.compile(r"\b(?:incident|postmortem|post-mortem|RFC|ADR)\b"),
+    # "commit <sha>" pattern — catches humans who cite commits without
+    # a bare SHA in isolation.
+    re.compile(r"\bcommit(?:ted)?\s+[0-9a-f]{6,}", re.I),
+)
+
+
+def _classify_origin_evidence(text: Any) -> OriginEvidenceClass:
+    """Classify a Fence Reconstruction `origin_evidence` field.
+
+    Priority: legacy > evidence > unknown. See the module docstring
+    § CP5 for the rule set rationale.
+    """
+    if not isinstance(text, str):
+        return "unknown"
+    stripped = text.strip()
+    if len(stripped) < 10:
+        return "unknown"
+    if any(pat.search(stripped) for pat in _LAZY_EVIDENCE_PATTERNS):
+        return "legacy"
+    if any(pat.search(stripped) for pat in _EVIDENCE_MARKER_PATTERNS):
+        return "evidence"
+    return "unknown"
+
+
 def _classify_disconfirmation(text: Any) -> DisconfirmationClass:
     """Syntactic classifier for a Reasoning Surface's `disconfirmation`
     field. Priority: absence > fire > tautological > unknown.

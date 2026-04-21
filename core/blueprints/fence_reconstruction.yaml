@@ -1,0 +1,43 @@
+# v1.0 RC CP5 · Blueprint B — Fence Reconstruction
+#
+# Scenario: removal or relaxation of an unexplained constraint.
+# Maps to fence_discipline axis (kernel/OPERATOR_PROFILE_SCHEMA.md §4b).
+#
+# First Pillar 3 synthesis producer: on successful constraint removal
+# (exit 0 at PostToolUse; rollback_path not triggered within the CP5
+# window — the window itself is retrospective-proper at CP7), a
+# context-specific constraint-safety protocol is written to
+# ~/.episteme/framework/protocols.jsonl with format_version
+# "cp5-pre-chain". CP7 retroactively hash-chains these entries per
+# Pillar 2.
+#
+# Selector discipline: compound AND — a removal-verb lexicon hit
+# AND a constraint-bearing-path match must BOTH be present in the
+# same Bash command. Either alone FP's on routine operations.
+#
+# Spec: docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Blueprint B.
+
+name: fence_reconstruction
+description: >
+  Constraint-removal reconstruction protocol. Fires on Bash commands
+  that combine a removal verb with a constraint-bearing path. Forces
+  the agent to name why the constraint existed (origin_evidence),
+  predict what breaks (removal_consequence_prediction), classify
+  reversibility, and declare a rollback_path before the op is admitted.
+  Reversible firings emit a constraint-safety protocol to the framework
+  on PostToolUse success; irreversible firings advisory-escalate to
+  Axiomatic Judgment and do NOT emit synthesis.
+version: 1
+required_fields:
+  - constraint_identified
+  - origin_evidence
+  - removal_consequence_prediction
+  - reversibility_classification
+  - rollback_path
+optional_fields: []
+synthesis_arm: true
+selector_triggers:
+  - removal_lexicon_pattern: '^\s*(?:sudo\s+)?(?:rm|rmdir|unlink|git\s+rm|chmod\s+-x|chmod\s+0)\b'
+    constraint_path_pattern: '(?:\.episteme/|\bkernel/[A-Z][A-Z_0-9]*\.md|\.github/workflows/|\bpre-commit\b|\bpyproject\.toml\b|\bpolicy[/_-]|\bsecurity[/_-])'
+    applies_to: "Bash"
+    reason: "Compound AND gate: removal-verb at command-head AND constraint-bearing path both present. Anchored to command-head (^) so prose containing removal words in commit messages / echo / cat does NOT fire — FP-averse per CP5 dogfood (commit `feat(v1.0-rc): CP5 ...` itself tripped a loose lexicon version)."

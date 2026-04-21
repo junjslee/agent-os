@@ -43,6 +43,9 @@ Blueprints § Selection logic.
 """
 from __future__ import annotations
 
+import re
+import sys
+from pathlib import Path
 from typing import Any
 
 
@@ -50,6 +53,113 @@ from typing import Any
 # Defined as a module-level constant so CP3-CP10 callers can reference
 # the exact literal without stringly-typed coupling.
 GENERIC_FALLBACK = "generic"
+FENCE_RECONSTRUCTION = "fence_reconstruction"
+
+
+# ---------------------------------------------------------------------------
+# CP5: Fence Reconstruction selector
+#
+# Compound AND gate — a removal-verb lexicon hit AND a constraint-
+# bearing-path match must BOTH be present in the same Bash command.
+# Patterns are loaded once per process from the blueprint YAML's
+# `selector_triggers` (so the YAML stays the source of truth) and
+# compiled lazily on first use.
+# ---------------------------------------------------------------------------
+
+_HOOKS_DIR = Path(__file__).resolve().parent
+if str(_HOOKS_DIR) not in sys.path:
+    sys.path.insert(0, str(_HOOKS_DIR))
+
+
+_TRIGGER_CACHE: list[dict[str, Any]] | None = None
+
+
+def _load_fence_triggers() -> list[dict[str, Any]]:
+    """Load + compile Fence Reconstruction selector triggers from the
+    blueprint YAML. Cached per-process. Graceful degrade on any parse
+    error — returns empty list so Fence never fires, and the op falls
+    back to generic validation rather than crashing the hot path."""
+    global _TRIGGER_CACHE
+    if _TRIGGER_CACHE is not None:
+        return _TRIGGER_CACHE
+    try:
+        from _blueprint_registry import load_registry  # type: ignore  # pyright: ignore[reportMissingImports]
+    except ImportError:
+        _TRIGGER_CACHE = []
+        return _TRIGGER_CACHE
+    try:
+        registry = load_registry()
+        fence = registry.get(FENCE_RECONSTRUCTION)
+    except Exception:
+        _TRIGGER_CACHE = []
+        return _TRIGGER_CACHE
+    compiled: list[dict[str, Any]] = []
+    for trig in fence.selector_triggers:
+        if not isinstance(trig, dict):
+            continue
+        try:
+            lex = re.compile(trig["removal_lexicon_pattern"])
+            path = re.compile(trig["constraint_path_pattern"])
+        except (re.error, KeyError, TypeError):
+            continue
+        applies_to = str(trig.get("applies_to", "Bash"))
+        compiled.append({
+            "lexicon": lex,
+            "path": path,
+            "applies_to": applies_to,
+        })
+    _TRIGGER_CACHE = compiled
+    return compiled
+
+
+def _reset_trigger_cache_for_tests() -> None:
+    """Test-only: force reload of compiled triggers after fixture edits."""
+    global _TRIGGER_CACHE
+    _TRIGGER_CACHE = None
+
+
+def _extract_bash_command(pending_op: dict[str, Any]) -> str:
+    """Pull the Bash command text from a normalized payload. Returns ""
+    when the payload isn't Bash or no command is present."""
+    tool_name = str(
+        pending_op.get("tool_name") or pending_op.get("toolName") or ""
+    ).strip()
+    if tool_name != "Bash":
+        return ""
+    raw = pending_op.get("tool_input") or pending_op.get("toolInput") or {}
+    if not isinstance(raw, dict):
+        return ""
+    return str(
+        raw.get("command")
+        or raw.get("cmd")
+        or raw.get("bash_command")
+        or ""
+    )
+
+
+def _fence_fires(pending_op: dict[str, Any]) -> bool:
+    """Return True iff some compiled trigger's lexicon AND path both
+    match the Bash command and the trigger applies to this tool.
+
+    Compound AND gate — either condition alone does not fire. This is
+    the FP-averse discipline per spec § Blueprint B selector triggers
+    and the user-approved CP5 plan decision.
+    """
+    cmd = _extract_bash_command(pending_op)
+    if not cmd:
+        return False
+    triggers = _load_fence_triggers()
+    if not triggers:
+        return False
+    tool_name = str(
+        pending_op.get("tool_name") or pending_op.get("toolName") or ""
+    ).strip()
+    for trig in triggers:
+        if trig["applies_to"] != tool_name:
+            continue
+        if trig["lexicon"].search(cmd) and trig["path"].search(cmd):
+            return True
+    return False
 
 
 def detect_scenario(
@@ -70,23 +180,21 @@ def detect_scenario(
     surface_text
         The Reasoning Surface text (if present in cwd). Used by CP10's
         self-escalation selector to detect an explicit
-        `flaw_classification` declaration from the agent.
+        `flaw_classification` declaration from the agent. Unused at CP5.
     project_context
-        Project-level signals: cwd, git state, recent diff, etc. Used
-        by CP5 (constraint-removal patterns against policy-file paths)
-        and CP10 (cross-surface-reference checks).
+        Project-level signals: cwd, git state, recent diff, etc. Unused
+        at CP5 (Fence fires on Bash command text alone; CP10 will add
+        diff-based triggers for Blueprint D).
 
     Returns
     -------
     str
-        The name of the blueprint whose field contract applies to this
-        op. At CP2 this is always `"generic"` (the four-field fallback
-        in `core/blueprints/generic_fallback.yaml`). CP5+ extend with
-        named-scenario returns; the generic name remains the default
-        when no named scenario fires.
+        Blueprint name. At CP5: `"fence_reconstruction"` when the
+        compound trigger matches (removal-verb lexicon AND
+        constraint-bearing path both present in the same Bash command);
+        `"generic"` otherwise.
     """
-    # CP2 stub — pending_op / surface_text / project_context are read by
-    # the real selectors at CP5 / CP10. Marking them as unused keeps
-    # Pyright honest about the current behavior.
-    del pending_op, surface_text, project_context
+    del surface_text, project_context  # reserved for CP10
+    if _fence_fires(pending_op):
+        return FENCE_RECONSTRUCTION
     return GENERIC_FALLBACK

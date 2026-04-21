@@ -216,6 +216,15 @@ def _is_grounded(entity: str, filenames: frozenset[str], content: bytes) -> bool
 # Reconstruction) adds a `constraint_identified` grounding entry.
 _GROUNDED_FIELDS_BY_BLUEPRINT: dict[str, tuple[str, ...]] = {
     "generic": ("disconfirmation", "unknowns"),
+    # CP5: Fence grounds `constraint_identified` to a real project
+    # file (spec § Blueprint B: "line-level precision"). Disconfirmation
+    # + unknowns carry through from generic so the compose-across-layers
+    # discipline applies equally on Fence surfaces.
+    "fence_reconstruction": (
+        "disconfirmation",
+        "unknowns",
+        "constraint_identified",
+    ),
 }
 
 

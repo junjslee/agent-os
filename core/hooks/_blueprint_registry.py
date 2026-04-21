@@ -108,6 +108,16 @@ class Blueprint:
 
 _TOP_LEVEL_KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*?)\s*$")
 _LIST_ITEM_RE = re.compile(r"^\s+-\s+(.+?)\s*$")
+# CP5 extension: list-of-dicts support. A dict-shaped list item opens
+# with `- key: value` where `key` is a bare identifier. Subsequent inner
+# dict keys are at the next indentation level with `key: value` form.
+# Scalar list items remain supported unchanged.
+_LIST_DICT_HEAD_RE = re.compile(
+    r"^(?P<indent>\s+)-\s+(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?P<rest>.*?)\s*$"
+)
+_INNER_DICT_KEY_RE = re.compile(
+    r"^(?P<indent>\s+)(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?P<rest>.*?)\s*$"
+)
 
 
 def _parse_scalar(value: str) -> Any:
@@ -139,7 +149,21 @@ def _parse_block_list(
     lines: list[str], start: int, *, source: Path
 ) -> tuple[list, int]:
     """Consume an indented block list starting at `start`. Returns the
-    list contents and the index of the first line BEYOND the block."""
+    list contents and the index of the first line BEYOND the block.
+
+    Supports two item shapes:
+
+    - **Scalar item** — `- value` (CP2). `value` is parsed via
+      `_parse_scalar` (string / bool / null / int / float).
+    - **Dict item** — `- key: value` with optional subsequent
+      `<same-indent>key: value` lines at the next indentation level
+      (CP5+). Nested block lists and nested dicts inside a dict item
+      are NOT supported — each inner value is a scalar or a `>`/`|`
+      block scalar.
+
+    A block ends at a dedent to column 0 (new top-level key) or at
+    end-of-file.
+    """
     items: list = []
     j = start
     while j < len(lines):
@@ -148,6 +172,17 @@ def _parse_block_list(
         if not stripped or stripped.startswith("#"):
             j += 1
             continue
+
+        # Dict-shaped list item: `- key: value` where `key` is a bare
+        # identifier. Disambiguates against `- "scalar with: colon"` by
+        # requiring the key to match `[A-Za-z_][A-Za-z0-9_]*` and
+        # precede the colon directly.
+        dict_head = _LIST_DICT_HEAD_RE.match(raw)
+        if dict_head:
+            item, j = _parse_dict_list_item(lines, j, source=source)
+            items.append(item)
+            continue
+
         list_match = _LIST_ITEM_RE.match(raw)
         if list_match:
             items.append(_parse_scalar(list_match.group(1)))
@@ -158,9 +193,109 @@ def _parse_block_list(
             return items, j
         raise BlueprintParseError(
             f"{source}:{j + 1}: unsupported shape inside block list: {raw!r}. "
-            f"CP2 parser handles scalar list items only; lists of dicts land at CP5+."
+            f"Parser handles scalar items and `- key: value` dict items."
         )
     return items, j
+
+
+def _parse_dict_list_item(
+    lines: list[str], start: int, *, source: Path
+) -> tuple[dict, int]:
+    """Consume a dict-shaped list item starting at `start`. The opening
+    line is `<outer_indent>- <key>: <value>` and inner keys continue at
+    `<outer_indent> + 2` (or deeper, for the YAML convention where the
+    inner indent aligns under the key).
+
+    Returns the dict and the index of the first line BEYOND this item.
+    """
+    head = _LIST_DICT_HEAD_RE.match(lines[start])
+    if head is None:
+        raise BlueprintParseError(
+            f"{source}:{start + 1}: expected `- key: value` dict-list head"
+        )
+    outer_indent_len = len(head.group("indent"))
+    first_key = head.group("key")
+    first_rest = head.group("rest")
+    item: dict = {}
+    item[first_key] = _parse_dict_value(
+        first_rest, lines, start + 1, source=source
+    )[0]
+    # The first inline value may have been a `>` or `|` block scalar —
+    # in that case `_parse_dict_value` consumed further lines; resume
+    # after it.
+    _, j = _parse_dict_value(first_rest, lines, start + 1, source=source)
+
+    # Inner keys: any line strictly indented beyond the `-` marker.
+    while j < len(lines):
+        raw = lines[j]
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            j += 1
+            continue
+        # New list item at the SAME indent → this item ends.
+        if _LIST_DICT_HEAD_RE.match(raw) or _LIST_ITEM_RE.match(raw):
+            # Only break if the new list item is at outer_indent (same
+            # level) or less-indented. Deeper-indented list items
+            # would be a nested list — unsupported at CP5.
+            new_list = re.match(r"^(?P<indent>\s+)-\s+", raw)
+            if new_list:
+                new_indent_len = len(new_list.group("indent"))
+                if new_indent_len <= outer_indent_len:
+                    return item, j
+                raise BlueprintParseError(
+                    f"{source}:{j + 1}: nested list inside dict item not "
+                    f"supported at CP5."
+                )
+        # Dedent to column 0 → block ends.
+        if re.match(r"^\S", raw):
+            return item, j
+        inner = _INNER_DICT_KEY_RE.match(raw)
+        if inner is None:
+            raise BlueprintParseError(
+                f"{source}:{j + 1}: expected inner `key: value` inside dict "
+                f"list item, got {raw!r}."
+            )
+        inner_indent_len = len(inner.group("indent"))
+        if inner_indent_len <= outer_indent_len:
+            # Sibling-or-shallower — block ends.
+            return item, j
+        key = inner.group("key")
+        rest = inner.group("rest")
+        if key in item:
+            raise BlueprintParseError(
+                f"{source}:{j + 1}: duplicate key `{key}` inside dict list item."
+            )
+        value, j = _parse_dict_value(rest, lines, j + 1, source=source)
+        item[key] = value
+    return item, j
+
+
+def _parse_dict_value(
+    rest: str,
+    lines: list[str],
+    next_index: int,
+    *,
+    source: Path,
+) -> tuple[Any, int]:
+    """Parse the value portion of a `key: <rest>` line inside a dict
+    list item. Handles bare scalars, `>` / `|` block scalars, and the
+    inline empty list / dict shortcuts. Nested block lists and dicts
+    inside a dict-list item are NOT supported at CP5."""
+    if rest in (">", "|"):
+        value, next_i = _parse_block_scalar(
+            lines, next_index, folded=(rest == ">")
+        )
+        return value, next_i
+    if rest == "[]":
+        return [], next_index
+    if rest == "{}":
+        return {}, next_index
+    if rest.startswith("[") or rest.startswith("{"):
+        raise BlueprintParseError(
+            f"{source}:{next_index}: inline flow style inside dict list item "
+            f"not supported."
+        )
+    return _parse_scalar(rest), next_index
 
 
 def _parse_block_scalar(

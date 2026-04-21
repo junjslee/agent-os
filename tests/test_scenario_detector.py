@@ -118,11 +118,17 @@ class RegistryErrorCases(unittest.TestCase):
     def test_unknown_blueprint_raises_keyerror_with_known_list(self):
         reg = load_registry()
         with self.assertRaises(KeyError) as ctx:
-            reg.get("fence_reconstruction")  # not realized until CP5
+            # At CP5 fence_reconstruction is realized. axiomatic_judgment
+            # lands at CP6 as schema-only; use it as the "not yet
+            # realized" probe. When CP6 ships, migrate to another
+            # not-yet-realized name (consequence_chain or
+            # architectural_cascade).
+            reg.get("axiomatic_judgment")
         message = str(ctx.exception)
-        self.assertIn("fence_reconstruction", message)
+        self.assertIn("axiomatic_judgment", message)
         # The error lists what IS known — so the operator can see the gap.
         self.assertIn("generic", message)
+        self.assertIn("fence_reconstruction", message)  # CP5 now realized
 
     def test_malformed_yaml_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

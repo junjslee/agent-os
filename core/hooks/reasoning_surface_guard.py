@@ -66,10 +66,12 @@ from _scenario_detector import (  # noqa: E402  # pyright: ignore[reportMissingI
 )
 from _specificity import (  # noqa: E402  # pyright: ignore[reportMissingImports]
     _classify_disconfirmation as _classify_for_layer2,
+    _classify_origin_evidence as _classify_origin,
 )
 from _grounding import (  # noqa: E402  # pyright: ignore[reportMissingImports]
     ground_blueprint_fields as _layer3_ground_blueprint_fields,
 )
+import _fence_synthesis  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 
 SURFACE_TTL_SECONDS = 30 * 60  # 30 minutes
@@ -84,6 +86,16 @@ SURFACE_TTL_SECONDS = 30 * 60  # 30 minutes
 # as Fence Reconstruction / Architectural Cascade land.
 _CLASSIFIED_FIELDS_BY_BLUEPRINT: dict[str, tuple[str, ...]] = {
     "generic": ("disconfirmation", "unknowns"),
+    # CP5: Fence adds `removal_consequence_prediction` — a fire-shape
+    # field (trigger + observable) describing what breaks if the
+    # constraint is removed. `origin_evidence` has a different
+    # specificity rule (evidence markers, not trigger+observable) and
+    # is validated separately by `_layer_fence_validate` below.
+    "fence_reconstruction": (
+        "disconfirmation",
+        "unknowns",
+        "removal_consequence_prediction",
+    ),
 }
 
 # Minimum character thresholds — lazy one-word answers are rejected.
@@ -559,6 +571,116 @@ def _layer2_classify_blueprint_fields(
     return ("pass", "")
 
 
+_FENCE_REQUIRED_FIELDS: tuple[str, ...] = (
+    "constraint_identified",
+    "origin_evidence",
+    "removal_consequence_prediction",
+    "reversibility_classification",
+    "rollback_path",
+)
+
+_FENCE_REVERSIBILITY_VALUES: frozenset[str] = frozenset({
+    "reversible", "irreversible"
+})
+
+
+def _layer_fence_validate(surface: dict) -> tuple[str, str]:
+    """Fence Reconstruction-specific validation — v1.0 RC CP5.
+
+    Runs AFTER Layer 1 / 2 / 3 pass on a surface whose blueprint was
+    selected as `fence_reconstruction`. Checks:
+
+    1. All 5 Fence-required fields are present, non-empty, non-lazy,
+       and ≥ 15 chars. Absence of any field → reject.
+    2. `origin_evidence` classifies as `"evidence"` via
+       `_classify_origin_evidence`. `"legacy"` / `"unknown"` → reject
+       with message pointing at the evidence-marker set.
+    3. `reversibility_classification` is exactly `"reversible"` or
+       `"irreversible"` (case-insensitive). Anything else → reject.
+    4. When `reversibility == "irreversible"` → verdict
+       ``"advisory-irreversible"`` so the caller emits a stderr
+       escalation to Axiomatic Judgment and does NOT write a synthesis
+       marker. The op is not blocked by Fence on this axis (Axiomatic
+       Judgment blueprint lands at CP6 as structure-only).
+    5. When all checks pass and reversibility is `"reversible"` →
+       verdict ``"pass"``; caller proceeds to synthesis marker write.
+
+    Returns ``(verdict, detail)`` where verdict ∈ {``"pass"``,
+    ``"advisory-irreversible"``, ``"reject"``}.
+    """
+    missing: list[str] = []
+    min_len = _min_disconfirmation_len()
+    for field in _FENCE_REQUIRED_FIELDS:
+        value = surface.get(field)
+        if not isinstance(value, str):
+            missing.append(field)
+            continue
+        stripped = value.strip()
+        if not stripped or _is_lazy(stripped):
+            missing.append(field)
+            continue
+        # reversibility is a short enum — don't apply min-length to it.
+        if field == "reversibility_classification":
+            continue
+        if len(stripped) < min_len:
+            missing.append(f"{field} (< {min_len} chars)")
+
+    if missing:
+        detail = (
+            f"Fence Reconstruction blueprint selected but required fields are "
+            f"missing, lazy, or too short: {', '.join(missing)}. Add "
+            f"`constraint_identified` (file:line), `origin_evidence` "
+            f"(git blame / commit SHA / issue ID / dated reference), "
+            f"`removal_consequence_prediction` (observable), "
+            f"`reversibility_classification` (`reversible` or `irreversible`), "
+            f"and `rollback_path` (concrete revert procedure) to the "
+            f".episteme/reasoning-surface.json."
+        )
+        return ("reject", detail)
+
+    # Reversibility enum check.
+    reversibility = str(
+        surface.get("reversibility_classification") or ""
+    ).strip().lower()
+    if reversibility not in _FENCE_REVERSIBILITY_VALUES:
+        detail = (
+            f"Fence Reconstruction: `reversibility_classification` must be "
+            f"`reversible` or `irreversible` (got {reversibility!r}). See "
+            f"spec § Blueprint B."
+        )
+        return ("reject", detail)
+
+    # origin_evidence — evidence markers vs legacy hedge.
+    origin = surface.get("origin_evidence", "")
+    evidence_verdict = _classify_origin(origin)
+    if evidence_verdict != "evidence":
+        detail = (
+            f"Fence Reconstruction: `origin_evidence` classified as "
+            f"`{evidence_verdict}` — the constraint's origin must cite a "
+            f"concrete evidence marker (commit SHA, @file:line reference, "
+            f"issue/incident ID, URL, dated event, or explicit "
+            f"`git blame` / `post-mortem` citation). Soft hedges like "
+            f"'unclear — probably legacy' do not reconstruct the fence; "
+            f"they restate its absence."
+        )
+        return ("reject", detail)
+
+    if reversibility == "irreversible":
+        detail = (
+            "Fence Reconstruction: `reversibility_classification = "
+            "irreversible` — this op exceeds Blueprint B's scope. "
+            "Escalate to Blueprint A (Axiomatic Judgment) which decomposes "
+            "per-source conflicts on irreversible decisions. "
+            "Axiomatic Judgment structural validation lands at CP6; until "
+            "then this is an advisory-only escalation (not a block). "
+            "No constraint-safety protocol will be synthesized for an "
+            "irreversible op."
+        )
+        return ("advisory-irreversible", detail)
+
+    return ("pass", "")
+
+
 def _surface_status(cwd: Path) -> tuple[str, str]:
     # Disambiguate "file absent" from "file present but malformed". The
     # two cases surface the same `_read_surface` return (None) but ask
@@ -734,6 +856,21 @@ def main() -> int:
 
     tool_name = _tool_name(payload)
     label = _match_high_impact(tool_name, payload)
+    # CP5: the Fence Reconstruction selector admits constraint-removal
+    # ops as high-impact even when the command word itself (`rm`,
+    # `disable`, `delete`) is not in the generic HIGH_IMPACT_BASH
+    # pattern set. This is how `rm .episteme/advisory-surface` and
+    # `git rm kernel/FAILURE_MODES.md` reach the surface-validation
+    # gate — Fence's compound AND (removal-verb ∧ constraint-path) is
+    # the specificity gate that makes admitting the op FP-averse.
+    if not label:
+        try:
+            if _detect_scenario(
+                payload, surface_text=None, project_context={}
+            ) == "fence_reconstruction":
+                label = "fence:constraint-removal"
+        except Exception:
+            pass  # graceful degrade — non-Fence ops fall through
     if not label:
         return 0
 
@@ -767,6 +904,7 @@ def main() -> int:
                 sys.stderr.write(f"[episteme advisory] {l2_detail}\n")
 
             if status == "ok":
+                blueprint_name = "generic"
                 try:
                     blueprint_name = _detect_scenario(
                         payload, surface_text=None, project_context={}
@@ -785,6 +923,62 @@ def main() -> int:
                     detail = l3_detail
                 elif l3_verdict == "advisory":
                     sys.stderr.write(f"[episteme advisory] {l3_detail}\n")
+
+                # Layer · Fence (CP5) — blueprint-specific validation
+                # plus Pillar 3 pending-marker write on reversible
+                # success. Runs only when the scenario detector chose
+                # fence_reconstruction AND Layers 1-3 left status at
+                # "ok". Graceful degrade: any unexpected exception in
+                # fence machinery downgrades to a stderr fallback and
+                # leaves Layers 1-3 as the ultimate enforcer.
+                if status == "ok" and blueprint_name == "fence_reconstruction":
+                    try:
+                        fence_verdict, fence_detail = _layer_fence_validate(
+                            layer2_surface
+                        )
+                    except Exception as exc:  # graceful degrade
+                        sys.stderr.write(
+                            f"[episteme] Fence fallback: "
+                            f"{exc.__class__.__name__}; Layers 1-3 still "
+                            f"enforced.\n"
+                        )
+                        fence_verdict, fence_detail = ("pass", "")
+                    if fence_verdict == "reject":
+                        status = "incomplete"
+                        detail = fence_detail
+                    elif fence_verdict == "advisory-irreversible":
+                        sys.stderr.write(
+                            f"[episteme advisory] {fence_detail}\n"
+                        )
+                        # Do NOT write synthesis marker on irreversible.
+                    elif fence_verdict == "pass":
+                        # Reversible Fence admitted — write Pillar 3
+                        # pending-synthesis marker for the PostToolUse
+                        # finalizer to act on (exit_code == 0 →
+                        # constraint-safety protocol written to
+                        # ~/.episteme/framework/protocols.jsonl).
+                        try:
+                            cmd_for_marker = (
+                                _bash_command(payload)
+                                if tool_name == "Bash" else ""
+                            )
+                            correlation = _fence_synthesis.correlation_id(
+                                payload,
+                                cmd_for_marker,
+                                datetime.now(timezone.utc).isoformat(),
+                            )
+                            _fence_synthesis.write_pending_marker(
+                                layer2_surface,
+                                correlation,
+                                cwd,
+                                cmd_for_marker,
+                            )
+                        except Exception:
+                            # Synthesis bookkeeping failure must never
+                            # block the admitted op. Layers 1-3 +
+                            # Fence have already validated; synthesis
+                            # is advisory-in-aggregate.
+                            pass
 
     if status == "ok":
         _write_audit(tool_name, label, cwd, status, "passed", mode)

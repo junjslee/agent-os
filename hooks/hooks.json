@@ -72,6 +72,11 @@
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/episodic_writer.py",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/fence_synthesis.py",
+            "async": true
           }
         ]
       }
