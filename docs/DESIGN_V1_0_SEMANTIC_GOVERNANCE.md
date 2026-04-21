@@ -1,8 +1,19 @@
 # Design — v1.0 · Semantic Governance for the Reasoning Surface Guard
 
-Status: **draft** · Drafted 2026-04-21 · Scope: the v1.0 RC upgrade of the Reasoning Surface Guard from syntactic enforcement to semantic + contextual validation, designed around the Goodhart threat surfaced during Phase 12.
+Status: **approved** · Drafted 2026-04-21 · Approved 2026-04-21 · Scope: the v1.0 RC upgrade of the Reasoning Surface Guard from syntactic enforcement to semantic + contextual validation, designed around the Goodhart threat surfaced during Phase 12.
 
-**Approval status.** This is a draft. The maintainer reviews, then implementation begins against whatever this spec becomes after review. Per the Phase 12 spec discipline: any later change to the design that relaxes a load-bearing countermeasure is a governance change, not an implementation tweak.
+**Approval record.** Maintainer reviewed 2026-04-21 and signed off on the eight-layer architecture, the three orthogonal pairs (L2+L3, L4+L6, L5+L7), the v1.0 RC scope (Layers 1-4, 6, 8 ship; Layers 5, 7 defer), and the six open questions:
+
+1. **Layer 3 entity extraction → REGEX accepted.** No LLM in the hot path. Regex is FP-averse and predictable; an LLM extractor introduces its own Goodhart surface and breaks the < 100 ms hot-path budget (decision #5).
+2. **Layer 4 required-for-highest-impact list → ACCEPTED as proposed.** `terraform apply`, `kubectl apply` against any context matching `prod`/`production`, `alembic upgrade`, `prisma migrate deploy`, `gh release create`. These cross from advisory to required at v1.0.1.
+3. **Layer 6 storage and TTL → ACCEPTED.** `~/.episteme/state/pending_contracts.jsonl` with TTL = max declared window across open contracts. Cleanup at SessionStart.
+4. **Layer 8 sample rate → MODIFIED.** Default **10% for the first 30 days** to build calibration data faster, then decay to 5%. Per-project override remains via `.episteme/spot_check_rate`. Implementation owns the decay logic and its trigger (calendar days from first spot-check or first kernel install — pick one at CP6 implementation; calendar-from-install is the lean for predictability).
+5. **Hot-path latency → ACCEPTED as a HARD ceiling.** Layers 2-4 combined must add < 100 ms p95. If any layer exceeds 50 ms p95 in profiling, gate behind a `derived_knobs.json` toggle so the operator can opt out per-project. Repeated breach is a governance event — name it, do not silently tune.
+6. **Phase 12 + hot-path coexistence → ACCEPTED.** Both layers ship and run together. Different temporal purposes: Phase 12 audits over time and surfaces drift across distributions; hot-path Layers 2-4 enforce per-surface at write time. The retrospective signal is structurally different from the hot-path signal — a fact the design depends on, not an accident.
+
+Implementation proceeds against this approved spec. Any deviation surfaces as a spec-amendment request before code lands, not silently. Per the Phase 12 spec discipline: any later change to the design that relaxes a load-bearing countermeasure (the eight layers, the three orthogonal pairs, the < 100 ms ceiling, the 10%→5% sample-rate schedule) is a governance change, not an implementation tweak.
+
+**Implementation timing.** v1.0 RC code work begins in a future session — NOT today. Today closes 0.11.0 (CHANGELOG, version reconcile, MANIFEST — all already landed in commit `a78c73e`); v0.11.0 then soaks before the v1.0 RC cycle opens.
 
 ## Why this exists
 
@@ -186,7 +197,7 @@ By v1.0 RC + 1 minor (v1.0.1), `verification_trace` becomes required for the hig
 
 ### Layer 8 · operator spot-check sampling (NEW)
 
-**What it checks.** A configurable percentage (default 5%) of high-impact surfaces are flagged for explicit operator review even when they pass Layers 1-4. The flagged surfaces queue to `~/.episteme/state/spot_check_queue.jsonl`; SessionStart presents them to the operator at the start of the next session ("3 surfaces flagged for review since last session — `episteme review`"). The operator's verdict (real / vapor) trains a per-operator vapor classifier over time.
+**What it checks.** A configurable percentage of high-impact surfaces is flagged for explicit operator review even when they pass Layers 1-4. **Default rate is 10% for the first 30 days from kernel install (calendar-from-install for predictability), then decays to 5%** — front-loaded sampling builds calibration data faster while the per-operator vapor classifier is still learning. Per-project override remains available via `.episteme/spot_check_rate`. The flagged surfaces queue to `~/.episteme/state/spot_check_queue.jsonl`; SessionStart presents them to the operator at the start of the next session ("3 surfaces flagged for review since last session — `episteme review`"). The operator's verdict (real / vapor) trains a per-operator vapor classifier over time.
 
 **How an agent evades it.** Cannot. The operator is the ground truth. Sampling is random, so the agent can't predict which surfaces get reviewed.
 
@@ -282,7 +293,7 @@ This section is load-bearing. Any later change to v1.0 RC scope that claims to c
 
 3. **Layer 6 pending-contract storage.** Proposal: `~/.episteme/state/pending_contracts.jsonl` with TTL = max declared window across all open contracts. Cleanup at SessionStart.
 
-4. **Layer 8 sample rate default.** Proposal: 5% (one in twenty). Configurable per-project via `.episteme/spot_check_rate`. Maintainer call on whether to start higher (10%) for the first month and decay as the corpus grows.
+4. **Layer 8 sample rate default.** **DECIDED:** start at 10% for the first 30 days from install (front-loaded calibration), then decay to 5%. Per-project override remains via `.episteme/spot_check_rate`.
 
 5. **Cost ceiling for hot path.** Layers 2-4 should add < 100 ms total in the worst case. Proposal: profile each layer in isolation; if any exceeds 50 ms p95, gate behind a `derived_knobs.json` toggle so the operator can opt out.
 
