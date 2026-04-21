@@ -36,13 +36,22 @@ if [[ ! -f "$GUARD" ]]; then
 fi
 
 # Colors degrade gracefully if output isn't a tty.
+#
+# DIM_RED is the visual demote on Beat 3's BLOCK rung — the script's
+# narration calls BLOCK "the shallowest thing the kernel does", so the
+# color must match the philosophical hierarchy. Bright red on an exit-2
+# was the visual climax of the GIF, which inverted the intended
+# climax (the Reasoning Surface itself). BRIGHT_GREEN is the climax
+# color for the falsifiable PASS rung — the actual posture.
 if [[ -t 1 ]]; then
   BOLD=$'\033[1m'; DIM=$'\033[2m'
   RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'
   BLUE=$'\033[34m'; MAGENTA=$'\033[35m'; CYAN=$'\033[36m'
   GREY=$'\033[90m'; RESET=$'\033[0m'
+  DIM_RED=$'\033[2;31m'; BRIGHT_GREEN=$'\033[1;92m'
 else
   BOLD=""; DIM=""; RED=""; GREEN=""; YELLOW=""; BLUE=""; MAGENTA=""; CYAN=""; GREY=""; RESET=""
+  DIM_RED=""; BRIGHT_GREEN=""
 fi
 
 pause()   { sleep "${DEMO_PAUSE:-0.8}"; }
@@ -59,9 +68,29 @@ mkdir -p "$PROJECT/.episteme"
 NOW_ISO="$(python3 -c 'from datetime import datetime, timezone; print(datetime.now(timezone.utc).isoformat())')"
 
 # -----------------------------------------------------------------------------
+# BEAT 0 — TITLE CARD  (the cognitive thesis, frozen for the GIF thumbnail)
+# -----------------------------------------------------------------------------
+#
+# Anchors the GIF's first-frame impression on the Reasoning Surface
+# formulation. The auto-playing thumbnail used to land on Beat 3's
+# bright-red BLOCK; now it lands here. The card holds for ~2.2 seconds —
+# long enough to read, short enough not to feel like marketing.
+printf '\n'
+printf '%s┌──────────────────────────────────────────────────────────────────────────────┐%s\n' "$BOLD$CYAN" "$RESET"
+printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s    %sepisteme%s — the rigorous formulation of a Reasoning Surface              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s    %sCore Question%s · what is this work actually trying to answer            %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s    %sUnknowns%s      · classifiable failure modes, named before the work       %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s    %sDisconfirmation%s · the falsifiable pivot, pre-committed                 %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
+printf '%s└──────────────────────────────────────────────────────────────────────────────┘%s\n\n' "$BOLD$CYAN" "$RESET"
+sleep "${DEMO_TITLE_HOLD:-2.2}"
+
+# -----------------------------------------------------------------------------
 # OPEN
 # -----------------------------------------------------------------------------
-printf '\n%s════════  episteme  —  posture as thinking  ════════%s\n' "$BOLD$CYAN" "$RESET"
+printf '%s════════  episteme  —  posture as thinking  ════════%s\n' "$BOLD$CYAN" "$RESET"
 printf '%sFour beats: the prompt · doxa vs episteme · the specificity ladder · the memory loop.%s\n\n' "$DIM" "$RESET"
 sleep 1
 
@@ -181,9 +210,18 @@ PY
   printf '  %s┌─ %s%s%s\n' "$GREY" "$BOLD" "$label" "$RESET"
   printf '  %s│%s  disconfirmation: %s"%s"%s\n' "$GREY" "$RESET" "$color" "$disco" "$RESET"
   if [[ $rc -eq 0 ]]; then
-    printf '  %s│%s  result:          %sPASS%s (exit 0)   %s%s%s\n' "$GREY" "$RESET" "$GREEN$BOLD" "$RESET" "$DIM" "$note" "$RESET"
+    # Visual hierarchy matches the philosophical hierarchy: a falsifiable
+    # PASS is the climax (BRIGHT_GREEN); the fluent-vacuous PASS is the
+    # honest kernel limit (yellow note, no special pass color); a BLOCK
+    # is the shallowest thing the kernel does (DIM_RED, demoted from
+    # the previous bright-red exit-code climax).
+    if [[ "$color" == "$GREEN" ]]; then
+      printf '  %s│%s  result:          %sPASS%s (exit 0)   %s%s%s\n' "$GREY" "$RESET" "$BRIGHT_GREEN" "$RESET" "$DIM" "$note" "$RESET"
+    else
+      printf '  %s│%s  result:          %sPASS%s (exit 0)   %s%s%s\n' "$GREY" "$RESET" "$GREEN" "$RESET" "$DIM" "$note" "$RESET"
+    fi
   else
-    printf '  %s│%s  result:          %sBLOCK%s (exit %d)   %s%s%s\n' "$GREY" "$RESET" "$RED$BOLD" "$RESET" "$rc" "$DIM" "$note" "$RESET"
+    printf '  %s│%s  result:          %sBLOCK%s (exit %d)   %s%s%s\n' "$GREY" "$RESET" "$DIM_RED" "$RESET" "$rc" "$DIM" "$note" "$RESET"
     if [[ -n "$response" ]]; then
       printf '  %s│%s  %s%s%s\n' "$GREY" "$RESET" "$DIM" "$(printf '%s' "$response" | head -n 1)" "$RESET"
     fi
@@ -254,5 +292,5 @@ hold
 # =============================================================================
 printf '%s════════  end of demo  ════════%s\n' "$BOLD$CYAN" "$RESET"
 printf '%sProse counterpart: docs/NARRATIVE.md%s\n' "$DIM" "$RESET"
-printf '%sBlocking-story demo: scripts/demo_strict_mode.sh%s\n' "$DIM" "$RESET"
+printf '%sEnforcement-of-the-surface demo: scripts/demo_strict_mode.sh  (see docs/DEMOS.md)%s\n' "$DIM" "$RESET"
 printf '%sFull differential artifacts: demos/03_differential/%s\n\n' "$DIM" "$RESET"
