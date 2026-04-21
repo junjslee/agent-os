@@ -4,34 +4,41 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ---
 
-## Resume here — Phase 12 Checkpoint 2 (2026-04-20 session end)
+## Resume here — v1.0.0 RC · Causal-Consequence Scaffolding & Protocol Synthesis (2026-04-21)
 
-**Next action (fresh session):** implement Phase 12 Checkpoint 2 — Axis C · `fence_discipline: 4` — per the approved spec at `docs/DESIGN_V0_11_PHASE_12.md` § Axis C.
+**State.** v0.11.0 has been tagged and shipped. The v1.0 RC cycle is open. The approved spec is `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` — titled *Design — Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC*, status `approved (reframed, second pass)`. Two successive reframes on 2026-04-21 re-anchored the spec from "semantic governance / anti-vapor defense" to "structural forcing function for causal-consequence modeling, protocol synthesis, and active guidance — grafted onto an engine that cannot perform any of the three natively." The spec absorbed the BYOS / skill-agnostic stance into the preamble.
 
-**Everything you need is already in place:**
+**Next action (fresh session):** implement **CP1 — extract `_specificity.py`** per the 9-CP plan in `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` § Implementation sequencing.
 
-- Approved spec: `docs/DESIGN_V0_11_PHASE_12.md` (commit `9c26201`).
-- Foundation scaffolding shipped at commit `38374c0`:
-  - `src/episteme/_profile_audit.py` — library with empty `_AXIS_HANDLERS = {}` dispatch; CP2 populates `"fence_discipline": _axis_fence_discipline`.
-  - `kernel/PHASE_12_LEXICON.md` — includes `rollback_adjacent` (used by Axis D, not C — C is structural, not lexical).
-  - `core/schemas/profile-audit/profile_audit_v1.json` — schema any new handler must satisfy.
-  - `tests/test_profile_audit.py` — baseline 22 tests; CP2 extends with axis-C-specific tests.
-- Dogfood path: `PYTHONPATH=src python -m episteme.cli profile audit --since 30d` against the maintainer's real tier.
+**The nine v1.0 RC checkpoints:**
 
-**Axis C (fence_discipline) summary — from the spec:**
-- Signature S1 — constraint-removal records carry reconstruction ("this constraint exists because X" in `knowns`).
-- Signature S2 — constraint-removals paired with review-trace (counterfactual assumption about what breaks on removal).
-- Catastrophic exception to D1: this axis allows **single-signature flagging** because constraint removal is high-consequence and the false-negative cost of waiting for convergence exceeds the false-positive cost of one premature flag.
-- Evidence minimum: 5 constraint-removal records (low because constraint-removals are rare).
-- Drift threshold: S1 < 70% OR S2 < 50%, across ≥ 5 removals in 90d.
+1. **CP1 — extract `_specificity.py`.** Move `_classify_disconfirmation` from `src/episteme/_profile_audit.py` to `core/hooks/_specificity.py`. Phase 12 imports from the new module; behavior unchanged. Tests stay green.
+2. **CP2 — scenario detector + blueprint registry.** New `core/hooks/_scenario_detector.py`; new `core/blueprints/` directory with generic-fallback blueprint + registry loader. No behavior change until CP5 wires Fence Reconstruction.
+3. **CP3 — Layer 2 in the hot path, blueprint-aware.** `reasoning_surface_guard.py` calls `_classify_disconfirmation` against the selected blueprint's fields (generic for now). Rejects on `tautological`/`unknown`; advisory on `absence`.
+4. **CP4 — Layer 3 contextual grounding, blueprint-aware.** New `core/hooks/_grounding.py`. Blueprint-aware entity extraction + project grep. FP-averse gating.
+5. **CP5 — Blueprint B (Fence Reconstruction), realized end-to-end + first synthesis output.** `core/blueprints/fence_reconstruction.yaml` populated; scenario detector wired to fire on constraint-removal patterns; Layer 2/3 validation against blueprint fields. On successful removal (rollback-path not triggered within window), emits a constraint-safety protocol entry to the framework — the first real Pillar 3 synthesis producer.
+6. **CP6 — Layer 4 `verification_trace` schema.** Schema update with blueprint-shaped variants for Fence Reconstruction. Advisory for highest-impact ops in RC; required in v1.0.1. Axiomatic Judgment (decision + synthesis arms) and Consequence Chain ship as structure with advisory-only validation.
+7. **CP7 — Pillar 2 hash chain + Pillar 3 substrate.** New `core/hooks/_chain.py` (shared SHA-256 chain), `core/hooks/_pending_contracts.py` (Layer 6 write), `core/hooks/_framework.py` (Pillar 3 framework read/write), `core/hooks/_context_signature.py` (canonicalization for framework query). Phase 12 audit gains chain-verification precondition.
+8. **CP8 — Layer 8 spot-check sampling.** 10%→5% schedule (30-day decay from install); blueprint-fired surfaces at 2× base; synthesized protocols at 2× base with a "protocol quality" verdict dimension; queue hash-chained; new `episteme review` CLI.
+9. **CP9 — Pillar 3 active guidance surface.** Framework query after scenario detection, before blueprint enforcement. One stderr advisory per op (highest-believability match). SessionStart digest ("N protocols synthesized since last session"). New `episteme guide [--context <keyword>] [--since <date>]` CLI — minimal version; rich interactive mode in v1.0.1.
 
-**Sequencing after CP2:** CP3 Axis A (dominant_lens), CP4 Axis D (asymmetry_posture), CP5 Axis B (noise_signature) + final dogfood + CHANGELOG 0.11.0 entry + version reconcile. See the approved spec for the full plan and the Reasoning-Surface-documented 5-commit sequence.
+**Engineering session state at v0.11.0 tag:**
 
-**Engineering session state at pause:**
-- Tests: 202/202 passing. Bare `pytest` works from fresh clone.
-- HEAD: `38374c0` (or the auto-checkpoint that follows it).
-- RC checklist closed during this session: items 2, 3, 4, 7, 8, 11.
-- Promoted to Class B alongside Phase 12: items 9, 10 (both need maintainer design calls, not code).
+- Tests: 202/202 passing (baseline for RC work; each CP adds ~15–25 tests).
+- Release: `v0.11.0` tagged and pushed, CHANGELOG entry landed, `MANIFEST.sha256` regenerated (commit `a78c73e`).
+- RC engineering checklist closed during the 0.11.0 cycle: items 2, 3, 4, 7, 8, 11 (see § "Road to v1.0.0 RC" below). Items 9, 10 remain as Class B (maintainer design calls). Items 12–15 remain as RC-cycle fixes.
+- Cognitive-adoption RC gates (21–28) remain as soak-window criteria; their measurement begins once CP1–CP9 land and the RC soak opens.
+
+**Load-bearing spec constraints (any change is a governance event, not an implementation tweak):**
+
+- The three pillars — Cognitive Blueprints, Append-Only Hash Chain, Framework Synthesis & Active Guidance.
+- The four blueprints — Axiomatic Judgment, Fence Reconstruction, Consequence Chain, Unclassified High-Impact catchall.
+- The three orthogonal pairs — L2+L3, L4+L6, L5+L7 — plus the new pair introduced by Pillar 1 (blueprint-selector × L8 selection sample).
+- Hot-path ceiling: Layers 2–4 + scenario detector + framework query combined < 100 ms p95.
+- Spot-check schedule: 10% for first 30 days (calendar-from-install), then 5%.
+- Hash-chain scope in RC: episodic tier + pending contracts + framework protocols only (NOT `derived_knobs.json`, NOT profile-axis changes).
+- BYOS stance: kernel intercepts state mutation regardless of tool/MCP/agent source; no tool-specific validation paths; no prescriptive tool-usage in blueprints.
+- Pillar 3 guidance is advisory-only, never blocking.
 
 ---
 
@@ -41,7 +48,15 @@ Derived from a read-only audit of the CLI + stateful interceptor (see *Deep Audi
 
 ### Blocking for v1.0.0-rc1 tag
 
-1. **Close 0.11.0 first.** Phase 12 (profile-audit loop) + `kernel/CHANGELOG.md` 0.11.0 entry + version reconcile across `pyproject.toml`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` + `kernel/MANIFEST.sha256` regeneration. Carried forward from the 0.11.0 track below — no RC tag while 0.11.0 is mid-flight.
+1. **Close 0.11.0 first.** ✅ **DONE** — v0.11.0 tagged and shipped 2026-04-21. CHANGELOG entry landed, version reconcile complete across `pyproject.toml` / `.claude-plugin/plugin.json` / `.claude-plugin/marketplace.json`, `kernel/MANIFEST.sha256` regenerated (commit `a78c73e`). The RC cycle is now open against the reframed spec at `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` (status `approved (reframed, second pass)`).
+
+**NEW — Spec-level blocking items for v1.0.0-rc1:**
+
+1a. **Implement the 9-CP plan** per `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` § Implementation sequencing. CP1 is the next executable unit; see the "Resume here" block above for the full checkpoint list. Each CP pauses for review; tests stay green at every commit.
+
+1b. **End-to-end dogfood gate — Pillar 3 works, not just runs.** After 30 days of real use on the maintainer's tier, the framework must hold ≥ 3 non-trivial synthesized protocols AND ≥ 1 must fire as guidance on a subsequent op AND the operator must have a spot-check verdict recorded on that firing (useful / vague / overfit). Empty framework or never-fires guidance is a cognitive-level failure of Pillar 3 regardless of whether the code runs green. Criterion lives in the spec § Verification.
+
+1c. **Chain integrity gate — all three streams.** Chain verification succeeds across the RC soak window for episodic tier, pending contracts, AND framework protocols. Any chain-broken event during soak is investigated and root-caused before GA.
 2. **Fix `pytest` out-of-box.** `pyproject.toml` has no `[tool.pytest.ini_options]`. A fresh clone + `pip install pytest` + `pytest` produces 6 collection errors (`ModuleNotFoundError: episteme`). Only works with `PYTHONPATH=src pytest` or editable install. NEXT_STEPS already claims "176 passed, zero regressions" — true only under a non-obvious env. One-line fix: add `[tool.pytest.ini_options]` with `pythonpath = ["src"]` + `testpaths = ["tests"]`. Audit verified 176 pass under that config.
 3. **Redact secrets in telemetry before write.** `core/hooks/reasoning_surface_guard.py::_write_prediction` and `core/hooks/calibration_telemetry.py::_write_telemetry` log `command_executed` verbatim to `~/.episteme/telemetry/*-audit.jsonl`. Inline secrets (e.g. `curl -H "Authorization: Bearer …"`, `AWS_SECRET_ACCESS_KEY=… terraform apply`) land in plaintext indefinitely. `episodic_writer.py` already redacts; lift that helper out and reuse it in both telemetry writers. Zero-cost, high-leverage confidentiality fix.
 4. **Cross-platform support for `state_tracker.py`.** `import fcntl` at module top-level fails on Windows. Hook ships as part of a cross-platform repo; `pyproject.toml` classifiers don't exclude Windows. Wrap the import in `try/except ImportError` and fall back to no-lock (docstring already says "degrade to last-write-wins on exotic filesystems" — extend that path to "no fcntl available"). Small change; unblocks the Windows install story.
@@ -95,13 +110,13 @@ The engineering gates above verify the *enforcement arm*. They are necessary and
 
 ---
 
-## Immediate (0.11.0 — phases 9–11 landed, coherence pass landed, phase 12 + release-packaging to go)
+## Immediate (v1.0 RC — drives from `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`)
 
-Phases 1–11 of the 0.11.0 plan are complete, plus the **11.5 coherence pass** (docs-only, specced in `docs/DESIGN_V0_11_COHERENCE_PASS.md`, logged in `docs/PROGRESS.md`), the **11.5-raster follow-up** (both arxiv-style figures rasterized to PNG), and the **Mermaid architecture replacement** (`docs/ARCHITECTURE.md` created; `README.md` Figures 1 and 2 replaced with a native Mermaid `graph TD` flowchart mapping doxa / episteme / praxis / 결 to exact file-level implementations — no external image assets required for the architecture story). The v2 profile modulates a hook (`disconfirmation_specificity_min`), the episodic tier has an active writer, the semantic promotion job emits proposals to the reflective tier, and the repo's visual + narrative story now matches what the code ships — two arxiv-style figures (structural stratification · runtime interposition) grounded on the doxa / episteme / praxis spine with 결 (gyeol) as the grain through it; a cinematic 75 s posture demo (`scripts/demo_posture.sh`) live-validated against the real guard; README leads thinking-first. Phase 12 closes the calibration loop; phases 13–14 package the release.
+**v0.11.0 shipped 2026-04-21.** All fourteen phases of the 0.11.0 plan closed (phases 1–11 + coherence pass + raster follow-up + Mermaid replacement + phase 12 profile-audit loop + phase 13 changelog/version reconcile + phase 14 MANIFEST regeneration). Tag `v0.11.0` pushed; `kernel/CHANGELOG.md` current; `MANIFEST.sha256` fresh. Full historical detail in the *Closed in 0.11.0* section below.
 
-1. **Profile-audit loop (phase 12).** On-demand comparison of each claimed scored axis against the episodic record and the semantic proposals from phase 11. Flags drift to the reflective tier; surfaces as a re-elicitation prompt at SessionStart. Operationalizes the *Audit Discipline* section of OPERATOR_PROFILE_SCHEMA.md. Without this loop, measure-as-target drift (failure mode 8) is named in docs but unchecked in running code. This is the loop that gives the 5 axes currently marked `inferred` in the maintainer's profile actual meaning — drift surfaces them for elicitation, rather than them silently decaying into defaults. Reads: episodic tier + reflective/semantic_proposals.jsonl. Writes: reflective/profile_audit.jsonl + SessionStart prompt surface.
-2. **`kernel/CHANGELOG.md` 0.11.0 entry** + version reconcile (`pyproject.toml`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`). Deferred until phase 12 lands so the changelog describes a delivered, not aspirational, version.
-3. **`kernel/MANIFEST.sha256` regeneration** via `episteme kernel update`. Currently stale — `episteme doctor` emits drift warnings until regenerated. Run last so a single regen covers all 0.11 kernel edits.
+The v1.0 RC cycle is now open. The entry point, 9-CP plan, and load-bearing constraints are in the *Resume here* block at the top of this file. The approved spec is `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` — *Design — Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC* — status `approved (reframed, second pass)` as of 2026-04-21.
+
+**Why the v1.0 RC scope is not just "ship the blocker at more contexts."** The spec reframes the whole kernel around three axes the substrate cannot perform natively: (1) causal-consequence modeling per action, (2) protocol synthesis from conflicting sources into a tamper-evident framework, (3) active guidance using accumulated protocols at future decision points. The 9 CPs build these three pillars in layered commits; CP5 (Fence Reconstruction end-to-end including synthesis output) and CP9 (active-guidance surface) are the operator-visible payoffs — the rest are substrate.
 
 ## Follow-on wiring (can land alongside phases 11–14 or in 0.11.1)
 

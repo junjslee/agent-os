@@ -2,16 +2,66 @@
 
 Current active plan for episteme development.
 
-**Core Question (this cycle):** Now that v0.10.0 ships stateful interception + a deterministic friction analyzer + a profile freshness gate, what is the smallest remaining gap that prevents episteme from being the reference governance layer any agent platform can adopt?
+**Core Question (this cycle):** Now that v0.11.0 has shipped the retrospective profile-audit loop, what structural protocol — enforced at the point of state mutation — forces an LLM to (a) generate an auditable causal-consequence model, (b) synthesize context-dependent protocols from conflicting sources into a tamper-evident framework, and (c) proactively surface those protocols as operator guidance at the point of future decisions? The v1.0 RC answer is the three-pillar architecture specified in `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`.
 
 **Constraint regime:**
-- Allowed: augmenting kernel docs, README, issue templates, ops docs, schema additions that extend (not reframe) existing invariants
-- Forbidden: modifying `templates/` or `labs/` scaffolds; breaking kernel invariants without Evolution Contract
+- Allowed: augmenting kernel docs, README, issue templates, ops docs, schema additions that extend (not reframe) existing invariants; implementing the approved 9-CP v1.0 RC plan with paused-review-before-commit discipline
+- Forbidden: modifying `templates/` or `labs/` scaffolds; breaking kernel invariants without Evolution Contract; relaxing load-bearing spec countermeasures (three pillars, three orthogonal pairs, <100 ms hot-path ceiling, sample-rate schedule, hash-chain scope, BYOS stance) outside a governance event
 - Kernel changes require `kernel/CHANGELOG.md` entry first
 
 ---
 
-## Active milestone: 0.11.0 — Kernel depth + personalization + memory architecture (in flight)
+## Active milestone: v1.0.0 RC — Causal-Consequence Scaffolding & Protocol Synthesis
+
+### Goal
+
+Upgrade the Reasoning Surface from syntactic enforcement to a three-pillar architecture that grafts onto the LLM substrate what it cannot perform natively: (1) **causal-consequence modeling** per action (Pillar 1 · Cognitive Blueprints, Pillar 2 · Append-Only Hash Chain), (2) **context-indexed protocol synthesis** from conflicting sources (Pillar 3 extraction arm), and (3) **active operator guidance** using accumulated protocols (Pillar 3 guidance arm). The kernel is skill-agnostic (BYOS): it intercepts state mutation regardless of which tool / MCP server / agent framework generated the command. See `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` — *Design — Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC* (status `approved (reframed, second pass)` 2026-04-21) for the full spec, threat model, and verification criteria.
+
+### Phases (9 CPs)
+
+| CP | Scope | Status |
+|---|---|---|
+| 1 | Extract `_classify_disconfirmation` from `src/episteme/_profile_audit.py` to `core/hooks/_specificity.py`. Phase 12 imports from new module; behavior unchanged. | not started |
+| 2 | Scenario detector (`core/hooks/_scenario_detector.py`) + blueprint registry (`core/blueprints/`) with generic-fallback blueprint. No behavior change until CP5. | not started |
+| 3 | Layer 2 in hot path, blueprint-aware. `reasoning_surface_guard.py` classifies against selected blueprint's fields. | not started |
+| 4 | Layer 3 contextual grounding, blueprint-aware. New `core/hooks/_grounding.py`. FP-averse gating. | not started |
+| 5 | Blueprint B (Fence Reconstruction), realized end-to-end + **first Pillar 3 synthesis output** — constraint-safety protocol emitted on successful removal. | not started |
+| 6 | Layer 4 `verification_trace` schema. Blueprint-shaped variants; advisory-only for Axiomatic Judgment (both arms) + Consequence Chain in RC. | not started |
+| 7 | Pillar 2 hash chain + Pillar 3 substrate. `_chain.py` (shared) + `_pending_contracts.py` + `_framework.py` + `_context_signature.py`. Phase 12 audit gains chain-verification precondition. | not started |
+| 8 | Layer 8 spot-check sampling. 10% → 5% schedule; blueprint + protocol-quality verdicts; hash-chained queue; `episteme review` CLI. | not started |
+| 9 | Pillar 3 active guidance surface. PreToolUse framework query (one advisory per op); SessionStart digest; minimal `episteme guide` CLI. | not started |
+
+### Load-bearing spec constraints
+
+Any reduction in these is a governance event, not an implementation tweak:
+
+- Three pillars: Cognitive Blueprints, Append-Only Hash Chain, Framework Synthesis & Active Guidance.
+- Four blueprints: Axiomatic Judgment, Fence Reconstruction, Consequence Chain, Unclassified High-Impact catchall.
+- Four orthogonal pairs: L2+L3, L4+L6, L5+L7, blueprint-selector × L8 selection sample.
+- Hot-path ceiling: < 100 ms p95 (Layers 2-4 + scenario detector + framework query combined).
+- Sample-rate schedule: 10% for first 30 days (calendar-from-install) → 5%.
+- Hash-chain scope in RC: episodic tier + pending contracts + framework protocols only.
+- BYOS: no tool-specific validation paths; no prescriptive tool-usage in blueprints.
+- Pillar 3 guidance is advisory-only (never blocking).
+
+### Verification gates
+
+- All 9 CPs land with paused-review-before-commit; test suite green at every commit (baseline 202; each CP adds ~15-25 tests).
+- Hot-path p95 < 100 ms for full hot-path stack.
+- Five fluent-vacuous evasion examples from the spec § "Why this exists" blocked at write time.
+- End-to-end dogfood on a real constraint-removal op: Fence Reconstruction fires, blueprint-populated surface produced, hash-chained Layer 6 record written, framework protocol emitted, protocol subsequently surfaces as guidance on a matching future op.
+- After 30-day RC soak: `disconfirmation_unverified` rate < 10% on maintainer's tier; framework holds ≥ 3 non-trivial protocols with ≥ 1 fired-as-guidance; chain verification succeeds across all three streams; Layer 8 delivers ≥ 1 actionable verdict per week.
+
+### Open assumptions
+
+- Fence Reconstruction is the strongest end-to-end demonstration because it binds to an existing audit axis (`fence_discipline`). If a later reading of the spec identifies a stronger first-realized blueprint, CP5 is open to change before implementation.
+- Pillar 3's context-signature algorithm (regex + entity hashing) is FP-averse enough for a useful framework query rate in the first 30 days. Unverified until real synthesis traffic accumulates.
+- Advisory-only guidance is the right posture — collapsing into blocking would feedback-loop the kernel's own synthesis against the operator. If operator spot-check verdicts over the soak consistently flag "missed the obvious guidance," revisit at v1.0.1.
+- Axiomatic Judgment's synthesis-arm fields (structure only in RC) accumulate enough operator-visible value during soak to justify full realization in v1.0.1. If synthesis-arm fields are empty or useless across 30 days, the design needs revision before v1.0.1.
+
+---
+
+## Closed milestone: 0.11.0 — Kernel depth + personalization + memory architecture — complete 2026-04-21
 
 ### Goal
 Close the two structural weak legs identified in the v0.10 retrospective: the personalization layer (operator profile was 6 thin axes, mostly process-shaped) and the memory architecture (schemas existed but tiering/retrieval/promotion contract did not). Also expand the kernel's attribution surface to cover frameworks now load-bearing but previously uncited — requisite variety, Gall's law, Tetlock calibration, Laplace/Jaynes probabilistic update, Goodhart's law, Klein's RPD, Chesterton's fence, Feynman's self-deception, Festinger's dissonance. Body docs stay jargon-free; attribution lives only in `REFERENCES.md`.
@@ -32,9 +82,9 @@ Close the two structural weak legs identified in the v0.10 retrospective: the pe
 | 10 | Implementation: episodic-tier writer — new PostToolUse hook `core/hooks/episodic_writer.py` fires on high-impact Bash pattern match, assembles a record conforming to `memory-contract-v1` (common + episodic_record schemas), appends to `~/.episteme/memory/episodic/YYYY-MM-DD.jsonl`. Reasoning-Surface snapshot attached when present in cwd; secrets redacted before write; confidence-on-provenance reflects available signal. Wired into `hooks/hooks.json` under PostToolUse/Bash, async. 19 new tests; end-to-end smoke-test record appeared at `~/.episteme/memory/episodic/2026-04-20.jsonl` with the expected shape. | **complete** |
 | 11 | Implementation: semantic-tier promotion job. New `src/episteme/_memory_promote.py` + `episteme memory promote` CLI subcommand. Reads episodic tier, clusters by (domain marker, primary high-impact pattern), computes outcome distribution + disconfirmation-fire-rate per cluster, emits deterministic proposals (stable hashed ids, stable ordering by sample_size desc) into `~/.episteme/memory/reflective/semantic_proposals.jsonl`. Renders an operator-facing Markdown report. Never writes to semantic tier; promotion is gated at a future acceptance step. 19 new tests. | **complete** |
 | 11.5 | Docs-only coherence pass. Specced in `docs/DESIGN_V0_11_COHERENCE_PASS.md`. Lands `docs/NARRATIVE.md` (triad spine + 결 grain), rewrites `docs/assets/system-overview.svg` (Figure 1) and `docs/assets/architecture_v2.svg` (Figure 2) in arxiv style with phase-12 drawn dashed / pending, adds `scripts/demo_posture.sh` (cinematic 75s differential · live-validated against the real guard), stitches `README.md` as thinking-first. No code changes. Makes phase 12 narratively legible before implementation. | **complete** |
-| 12 | Implementation: profile-audit loop — compares claimed axis values against episodic evidence; flags drift for operator re-elicitation. Counters measure-as-target drift operationally, not just by doc. Unblocks meaningful interpretation of the 5 axes currently marked `inferred` in the maintainer's profile. Narrative home and SVG slot pre-drawn by phase 11.5. | not started |
-| 13 | `kernel/CHANGELOG.md` 0.11.0 entry. Version reconcile across `pyproject.toml`, `plugin.json`, `marketplace.json`. | not started |
-| 14 | `kernel/MANIFEST.sha256` regenerated (`episteme kernel update`) after all kernel edits land. | not started |
+| 12 | Implementation: profile-audit loop — compares claimed axis values against episodic evidence; flags drift for operator re-elicitation. Counters measure-as-target drift operationally, not just by doc. Unblocks meaningful interpretation of the 5 axes currently marked `inferred` in the maintainer's profile. Narrative home and SVG slot pre-drawn by phase 11.5. Shipped across 5 checkpoints (CP1 scaffolding, CP2 Axis C `fence_discipline`, CP3 Axis A `dominant_lens`, CP4 Axis D `asymmetry_posture`, CP5 Axis B `noise_signature` + dogfood). | **complete** |
+| 13 | `kernel/CHANGELOG.md` 0.11.0 entry. Version reconcile across `pyproject.toml`, `plugin.json`, `marketplace.json`. | **complete** |
+| 14 | `kernel/MANIFEST.sha256` regenerated (`episteme kernel update`) after all kernel edits land. Shipped at commit `a78c73e`. | **complete** |
 
 ### Open assumptions
 - No-buzzword-in-body discipline survives contact with the new memory architecture doc. If a reader has to import `Tulving` or `Snowden` as prior knowledge to read the body text, the attribution-only rule failed and the body text needs another pass.

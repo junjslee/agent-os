@@ -1,8 +1,13 @@
-# Design — v1.0 · Causal-Consequence Scaffolding for the Reasoning Surface
+# Design — Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC
 
-Status: **approved (reframed)** · Drafted 2026-04-21 · Approved 2026-04-21 · Reframed 2026-04-21 · Scope: v1.0 RC upgrade of the Reasoning Surface from syntactic enforcement to causal-consequence scaffolding — grafting a causal world-model interface onto an auto-regressive engine that cannot perform one natively.
+Status: **approved (reframed, second pass)** · Drafted 2026-04-21 · Approved 2026-04-21 · Reframed 2026-04-21 · Second-pass reframe 2026-04-21 · Scope: v1.0 RC upgrade of the Reasoning Surface from syntactic enforcement to causal-consequence scaffolding **and protocol synthesis** — grafting three things onto an auto-regressive engine that cannot perform any of them natively: a causal world-model interface, a context-indexed thinking framework that synthesizes context-dependent protocols from conflicting sources, and an active-guidance loop that uses those protocols to proactively steer the operator.
 
-**Approval record.** Maintainer approved the eight-layer architecture on 2026-04-21 and, later the same day, approved a philosophical reframe that re-anchors the spec from "semantic governance / anti-vapor defense" to "structural forcing function for causal-consequence modeling." The reframe does not retract prior approvals — the eight layers, the three orthogonal pairs (L2+L3, L4+L6, L5+L7), the < 100 ms hot-path ceiling, and the 10% → 5% sample-rate schedule all stand. It adds two architectural pillars (Cognitive Blueprints, Append-Only Hash Chain), renames the subject of the architecture, absorbs the BYOS / skill-agnostic stance into the preamble, and expands the CP plan from 6 to 8 to absorb the new work without breaking the one-commit-per-CP discipline.
+**Approval record.** Maintainer approved the eight-layer architecture on 2026-04-21 and, later the same day, approved two successive reframes:
+
+- **First pass (2026-04-21, morning):** re-anchored the spec from "semantic governance / anti-vapor defense" to "structural forcing function for causal-consequence modeling." Added Pillar 1 (Cognitive Blueprints), Pillar 2 (Append-Only Hash Chain), absorbed the BYOS / skill-agnostic stance into the preamble, and expanded the CP plan from 6 to 8.
+- **Second pass (2026-04-21, later):** added the protocol-synthesis axis. The honest operator problem is not only "agent can't predict consequences" but also "operator can't distinguish context-fit know-how from statistical Doxa in a sea of conflicting sources." Added Pillar 3 (Framework Synthesis & Active Guidance), extended Axiomatic Judgment with synthesis fields, renamed the subtitle to *Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC*, and expanded the CP plan from 8 to 9.
+
+Neither reframe retracts prior approvals — the eight layers, the three orthogonal pairs (L2+L3, L4+L6, L5+L7), the < 100 ms hot-path ceiling, and the 10% → 5% sample-rate schedule all stand. The reframes add pillars and realignments; they do not subtract countermeasures.
 
 The six prior decisions carry forward unchanged:
 
@@ -13,9 +18,9 @@ The six prior decisions carry forward unchanged:
 5. **Hot-path latency.** Layers 2–4 combined < 100 ms p95 (HARD ceiling). Per-layer 50 ms p95 breach gates behind a `derived_knobs.json` toggle. Repeated breach is a governance event — name it, do not silently tune.
 6. **Phase 12 + hot-path coexistence.** Both layers ship and run together. Retrospective distribution signal is structurally different from per-surface write-time signal.
 
-Implementation proceeds against this reframed spec. Any deviation surfaces as a spec-amendment request before code lands. Per the Phase 12 discipline: any later change that relaxes a load-bearing countermeasure — the eight layers, the three orthogonal pairs, the < 100 ms ceiling, the sample-rate schedule, **the Cognitive Blueprint registry, the hash-chain scope**, the BYOS stance — is a governance change, not an implementation tweak.
+Implementation proceeds against this reframed spec. Any deviation surfaces as a spec-amendment request before code lands. Per the Phase 12 discipline: any later change that relaxes a load-bearing countermeasure — the eight layers, the three orthogonal pairs, the < 100 ms ceiling, the sample-rate schedule, **the Cognitive Blueprint registry, the hash-chain scope, the Framework Synthesis substrate, the active-guidance loop**, the BYOS stance — is a governance change, not an implementation tweak.
 
-**Implementation timing.** v1.0 RC code work begins in a future session — NOT today. Today closes 0.11.0 (CHANGELOG, version reconcile, MANIFEST — all already landed in commit `a78c73e`); v0.11.0 then soaks before the v1.0 RC cycle opens.
+**Implementation timing.** v0.11.0 has been tagged and shipped (2026-04-21). The v1.0 RC cycle is open. CP1 is the next executable unit once this second-pass reframe is registered in the authoritative docs (`docs/PLAN.md`, `docs/PROGRESS.md`, `docs/NEXT_STEPS.md`).
 
 ## Why this exists
 
@@ -33,7 +38,9 @@ A sufficiently-aware agent defeats v0.11.0's gate with fluent-vacuous content th
 
 Each is over 60 characters, contains no banned tokens, has an `if`/`should`-clause, and looks like reasoning. None names an observable. None commits to a threshold. None could be falsified by a specific event. The kernel passes them. The operator's praxis fails them — but the diagnostic misnames the disease. The fluency is not the problem. The absence of a causal-consequence model behind the fluency is the problem.
 
-**What this spec is.** The Reasoning Surface is not a guardrail against bad output. It is the structural interface through which the kernel forces the agent to construct an auditable causal model of a specific action — decomposed along the known failure structure of that action's class — *before* the action is permitted. The eight-layer architecture is the mechanical scaffold of causal reasoning, grafted onto an engine that cannot perform it natively.
+**The second face of the same failure — source-chaos and context-fit.** An operator searching the internet or reading docs faces a second expression of the same root cause. Source A says "do it this way"; Source B says "do it that way." The agent, being an auto-regressive engine, cannot tell which source fits THIS operator's context — THIS project's tooling, THIS team's constraints, THIS op-class's history — because *fit* is a causal-world-model judgment, not a pattern-match over token frequency. So the agent defaults to the statistically-central synthesis of both sources — a plausible-sounding Doxa that fits no specific context and actively misleads the operator about what to do. Multiple cases contain a hidden protocol — "in context X, you must do Y" — but extracting that protocol requires modeling WHY the sources conflict (what feature of the context tips the answer) rather than averaging them. The kernel's job is to force the extraction.
+
+**What this spec is.** The Reasoning Surface is not a guardrail against bad output. It is the structural interface through which the kernel forces the agent to do three things the substrate cannot do natively: (1) **construct an auditable causal model** of a specific action before the action is permitted; (2) **synthesize context-dependent protocols** from conflicting sources — distill WHY they conflict, extract the "in context X, do Y" rule that fits this operator's context, and commit it to a tamper-evident framework that accumulates over time; (3) **actively guide the operator** using the accumulated framework, proactively surfacing context-match protocols at the point of future decisions rather than waiting to be asked. The eight-layer architecture plus three pillars is the mechanical scaffold for all three, grafted onto an engine that cannot perform any of them natively.
 
 **The honest epistemic claim.** The scaffold does not make an LLM capable of causal reasoning. It makes it cheaper for the agent to perform genuine decomposition than to fake decomposition at the granularity the scaffold requires. Every layer is evaluated against that claim — not against a cheating-impossible claim. There is no uncheatable protocol. There is a protocol whose cheat-cost exceeds its honesty-cost by a factor that widens the more scaffolding is in place.
 
@@ -54,13 +61,14 @@ The kernel provides the episteme. The ecosystem provides the skills.
 
 ## Core question
 
-*What structural protocol, when enforced at the point of state mutation, forces an LLM to generate an auditable causal-consequence model — one specific enough to be retrospectively falsified and tamper-evident after the fact — before it is allowed to proceed?*
+*What structural protocol, when enforced at the point of state mutation, forces an LLM to (a) generate an auditable causal-consequence model specific enough to be retrospectively falsified and tamper-evident after the fact, (b) synthesize context-dependent protocols from conflicting sources into a tamper-evident framework that accumulates over time, and (c) proactively surface those protocols as operator guidance at the point of future decisions?*
 
-Three sub-questions:
+Four sub-questions:
 
 1. **Protocol specificity.** Is a single generic surface schema sufficient, or does the protocol need to mutate its required fields based on the causal structure of the scenario?
-2. **Memory integrity.** How does the kernel know its own retrospective record is honest, given that the agent has filesystem access to the state directory?
-3. **Cost discipline.** What ships in v1.0 RC at acceptable hot-path latency / compute / false-positive cost, and what defers to v1.0.x or v1.1?
+2. **Memory integrity.** How does the kernel know its own retrospective record — and its accumulating protocol framework — is honest, given that the agent has filesystem access to the state directory?
+3. **Synthesis and guidance.** How does a resolved conflict at one decision point become a durable, context-indexed protocol that shapes the next decision, without silently collapsing into the same Doxa the scaffold was built to resist?
+4. **Cost discipline.** What ships in v1.0 RC at acceptable hot-path latency / compute / false-positive cost, and what defers to v1.0.x or v1.1?
 
 ## The Goodhart threat, applied to the scaffold itself
 
@@ -87,12 +95,13 @@ Eight scaffolding layers, designed so evasion strategies in adjacent layers conf
   Layer 8  operator spot-check sampling           [SHIPS v1.0 RC — blueprint-prioritized]
 ```
 
-Two cross-cutting pillars sit above the layer stack and change what the layers validate:
+Three cross-cutting pillars sit above the layer stack and change what the layers validate (and what the kernel produces as output):
 
-- **Cognitive Blueprints** — scenario-polymorphic surface schemas. Selected at the hot-path entry; shape the required fields in Layers 2 / 3 / 4 / 6 / 8.
-- **Append-Only Hash Chain** — tamper-evident episodic record. Binds Layer 4's write-time prediction to Layer 6's retrospective audit.
+- **Pillar 1 · Cognitive Blueprints** — scenario-polymorphic surface schemas. Selected at the hot-path entry; shape the required fields in Layers 2 / 3 / 4 / 6 / 8.
+- **Pillar 2 · Append-Only Hash Chain** — tamper-evident episodic record. Binds Layer 4's write-time prediction to Layer 6's retrospective audit, and binds every synthesized protocol to its write-time context.
+- **Pillar 3 · Framework Synthesis & Active Guidance** — context-indexed protocol substrate written by synthesis-capable blueprints and queried at future PreToolUse events. Turns resolved conflicts into durable operator-specific know-how; surfaces matching protocols proactively as guidance at the next relevant decision.
 
-The layers composed alone defend against evasion. The pillars composed with the layers shift what "the layers are validating" from *surface shape* to *causal decomposition along a known failure structure, preserved against retroactive mutation*.
+The layers composed alone defend against evasion. Pillars 1 and 2 composed with the layers shift what "the layers are validating" from *surface shape* to *causal decomposition preserved against retroactive mutation*. Pillar 3 composed with the first two shifts what the kernel DOES — from "refuses bad actions" to "refuses bad actions AND extracts tacit know-how AND guides the operator with what it has extracted."
 
 ## Pillar 1 · Cognitive Blueprints — scenario-polymorphic protocols
 
@@ -104,9 +113,9 @@ A surface with correctly-populated fields is not equivalent to a surface that ca
 
 ### Blueprint A · Axiomatic Judgment
 
-*Scenario: conflicting-source resolution. Source A says X, Source B says Y; the agent must pick.*
+*Scenario: conflicting-source resolution. Source A says X, Source B says Y; the agent must pick. Axiomatic Judgment is not only a decision protocol — it is the primary **Protocol Synthesis & User-Guidance engine** of the kernel (Pillar 3). Every firing must (a) distill why the sources conflict, (b) extract a context-dependent protocol that fits this operator's situation, (c) commit that protocol to the hash-chained framework so the system's understanding of "what fits this project" evolves, and (d) register a guidance-trigger so the protocol surfaces proactively on future matching contexts.*
 
-Required fields:
+Required fields (decision arm):
 
 - `sources[]` with per-source `believability_weight` and rationale (demonstrated track record, not authority or fluency — the rationale must name an observable from the source's history)
 - `conflict_axis` — what specifically disagrees (not "they conflict" but, e.g., "A claims the migration is reversible; B claims it is not")
@@ -114,7 +123,15 @@ Required fields:
 - `fail_condition_per_source` — the observable that would retroactively invalidate each source
 - `fallback_if_both_wrong` — the irreversibility-bounded path if the decision rule produces a wrong answer
 
-Hooks to Phase 12 Axis A (disconfirmation specificity) and the believability-weighting rule named in `COGNITIVE_SYSTEM_PLAYBOOK.md` §3 (Dalio, Radical Transparency).
+Required fields (synthesis arm — the "protocol synthesis" escalation):
+
+- `conflict_cause` — the underlying axis on which the sources disagree, stated as a context feature (not "they conflict" but, e.g., *"A assumes a single-writer database; B assumes multi-writer. The conflict is not a matter of correctness but of context."*). Distilling the chaos.
+- `context_signature` — the features of the current situation that fix which source applies here (project framework + operator profile axes + op-class + environment + team constraint). This is the "X" in "in context X, do Y." Stated concretely enough that a future context-match can be computed, not a vague description.
+- `synthesized_protocol` — the extracted rule, stated generally enough to fire again on the next context-match: *"In context `<signature>`, apply `<decision_rule>` because the dominant axis of `<conflict_cause>` is resolved by `<feature>`."* This is the durable know-how the kernel extracts from the conflict; it is what transforms a one-off decision into accumulated framework.
+- `framework_entry_ref` — pointer to the hash-chained framework record (`~/.episteme/framework/protocols.jsonl`) where the `synthesized_protocol` is committed. Written at PreToolUse success; hash-chained per Pillar 2.
+- `guidance_trigger` — the context-match predicate that should cause this protocol to surface as proactive operator guidance on future ops. Typically a canonicalization of `context_signature`; keeps the matching predicate honest and auditable.
+
+Hooks to Phase 12 Axis A (disconfirmation specificity), the believability-weighting rule named in `COGNITIVE_SYSTEM_PLAYBOOK.md` §3 (Dalio, Radical Transparency), and Pillar 3 (Framework Synthesis & Active Guidance). Full realization of the synthesis-arm fields is the v1.0.1 deliverable that ships alongside the first operator-visible `episteme guide` queries; the *structure* lands in v1.0 RC so CP5's Fence Reconstruction has a companion synthesis slot and can begin contributing protocols (constraint-safety know-how) even before Axiomatic Judgment's full realization.
 
 ### Blueprint B · Fence Reconstruction
 
@@ -198,6 +215,46 @@ Layer 6's current design records pending contracts to `~/.episteme/state/pending
 **Hash choice.** SHA-256. The kernel is not defending against computational adversaries; it is defending against trivial tampering. Schema is versioned so a later upgrade to SHA-3 is a format bump, not a rewrite.
 
 **Cost.** ~0.1 ms per hash. Writes happen async to the state dir (same as L6 today). Zero hot-path impact.
+
+## Pillar 3 · Framework Synthesis & Active Guidance
+
+The first two pillars govern per-action cognition: decompose causally, record tamper-evidently, audit retrospectively. They are necessary and insufficient. The honest operator problem has a second shape that a per-action scaffold cannot touch: **which source, which protocol, which "accepted wisdom" actually fits THIS project, THIS operator, THIS op-class?** A sea of internet docs, vendor guides, Stack Overflow posts, prior-team-lead folklore, and LLM-synthesized "best practice" produces a Doxa that is fluent everywhere and correct nowhere specific. Each conflicting pair of sources contains a hidden context-dependent protocol ("in context X, do Y"), but extracting it requires a causal model of what makes one source apply and another not — and the substrate cannot do that on its own.
+
+Pillar 3 is the extraction and guidance loop. When a synthesis-capable blueprint fires and resolves — primarily Axiomatic Judgment, secondarily Fence Reconstruction — its output is not only the decision for the current op; it is a **context-indexed protocol entry** that lands in the framework and becomes queryable at future PreToolUse events. Over time, the framework accumulates the operator's lived tacit know-how, made explicit and auditable.
+
+**Three outputs per synthesis firing:**
+
+1. **Distillation.** The blueprint forces the agent to name *why* sources conflict (`conflict_cause`) and what features of the current situation select between them (`context_signature`). This is the decomposition the kernel exists to force; without it, the "decision" degrades back into averaged Doxa.
+2. **Framework update.** The `synthesized_protocol` is committed to `~/.episteme/framework/protocols.jsonl` — append-only, hash-chained per Pillar 2, indexed by `context_signature` and `guidance_trigger`. The framework is not a cache; it is the durable artifact of synthesis across the operator's working history.
+3. **Active guidance.** On future PreToolUse events, the kernel canonicalizes the incoming op's context signature and queries the framework. Matching protocols are surfaced to the operator (and the agent) as stderr advisory *before* blueprint enforcement runs — informing the decision without blocking it. At SessionStart, protocols synthesized since the last session are presented in a digest.
+
+**Substrate — what ships in v1.0 RC.**
+
+- `core/hooks/_framework.py` — read/write access to `~/.episteme/framework/protocols.jsonl`. Hash-chained using the same mechanism as Pillar 2 (shared implementation; single code path for SHA-256 `prev_hash` / `entry_hash` / chain-head verification).
+- `core/hooks/_context_signature.py` — canonicalization of `(project_fingerprint, operator_profile_axes, op_class, environment)` into a signature string suitable for exact-or-substring query. Regex + entity hashing, same FP-averse discipline as Layer 3.
+- **Query at PreToolUse** — after scenario detection, before blueprint enforcement, query the framework by the incoming op's context signature. Matches emit one stderr advisory line per match: *"Framework · context-match protocol: `<synthesized_protocol>` (synthesized <date> from `<source-conflict-summary>`)"*. Advisory only — never blocking. Cost budget: absorbed into the scenario detector's 5 ms slot.
+- **SessionStart digest** — *"N protocols synthesized since last session. Review with `episteme guide --since last`."* Zero hot-path cost.
+- **`episteme guide` CLI** — v1.0 RC ships a minimal version: query by context keyword, list matching protocols, show synthesis provenance. Rich interactive query and protocol revision are v1.0.1 deliverables.
+
+**Scope — what synthesis-capable blueprints actually write in v1.0 RC.**
+
+- **Axiomatic Judgment — structure only.** Full synthesis-field enforcement is v1.0.1 alongside the blueprint's full realization. In RC the framework receives skeleton protocol entries from Axiomatic Judgment firings; rich `conflict_cause` / `context_signature` / `synthesized_protocol` content lands when the blueprint's full field-validation ships.
+- **Fence Reconstruction — first real protocol producer.** On every successful constraint-removal (rollback not triggered within the window), the blueprint synthesizes a context-specific constraint-safety protocol: *"In context `<operator + project + tooling>`, constraints of shape `<origin_evidence_class>` were safe to remove with rollback-path `<path>` because predicted consequence `<X>` did not fire."* Accumulates operator-specific tacit know-how about constraint removal. This is the working end-to-end example of synthesis in v1.0 RC — modest in ambition, honest about what the kernel can extract from one blueprint class without the full Axiomatic Judgment engine.
+
+**How Pillar 3 composes with the other pillars:**
+
+- Pillar 1 (Blueprints) produces the structured synthesis outputs. Without blueprint-shaped fields, there is nothing to synthesize — the generic four-field surface does not carry `context_signature` or `synthesized_protocol`.
+- Pillar 2 (Hash Chain) makes the framework tamper-evident. A framework that could be silently rewritten is worse than no framework — it would proactively guide the operator with whatever protocol the agent last invented to look good. The chain closes that attack surface.
+- Pillar 3 feeds Phase 12 audit. Framework bind-rate (how often protocols are retrieved and matched) and synthesis quality (operator verdicts on surfaced protocols via Layer 8 spot-check) become audit signals. Low bind-rate plus high synthesis-rate means the framework is hoarding know-how no future decision uses — a pattern-match-for-show symptom that the audit surfaces.
+
+**Risks named honestly.**
+
+- **Framework-as-Doxa.** If synthesized protocols are too vague or too eager to generalize, the framework becomes the very Doxa the scaffold was built to resist — except now it is the operator's OWN Doxa, served back with tamper-evident authority. Mitigation: `context_signature` is validated by Layer 3 (must ground to real project entities); synthesis is Layer 8 spot-checked at a high sample rate in the first 30 days; Phase 12 audits the synthesis distribution for drift toward generic-advice shape.
+- **Guidance-loop gaming.** An agent that writes overly-specific protocols (ones that will never match a future context) or overly-broad ones (that match everything) games the guidance loop in opposite directions. Mitigation: Layer 8 operator verdicts include a "protocol quality: useful / vague / overfit" dimension; the framework entries carry their verdict in the next audit.
+- **Stale protocols.** Projects evolve; a protocol synthesized six months ago may now be wrong. Mitigation: every framework query also reports the protocol's age and last-verified-verdict from Layer 8. Stale-unverified protocols are surfaced with that caveat inline. Retirement of stale protocols is a Phase 12 audit recommendation, never automatic.
+- **Guidance overload.** A framework that fires three advisory lines on every PreToolUse becomes noise the operator learns to ignore. Mitigation: stderr budget of one advisory per op unless operator explicitly runs `episteme guide` for a full listing; the advisory selects the highest-believability single match.
+
+**Cost.** ~0.1 ms per hash write (Pillar 2 mechanism). ~5 ms per query (absorbed into scenario-detector budget). Zero hot-path latency addition when the framework is empty (the common case in the first weeks of use).
 
 ## Per-layer proposal
 
@@ -379,12 +436,15 @@ By the time an agent does all of this, it has approximately performed the causal
 - Layer 2 — structural specificity classifier, blueprint-aware (extracted from Phase 12 to `core/hooks/_specificity.py`).
 - Layer 3 — contextual grounding, blueprint-aware entity set.
 - Layer 4 — `verification_trace` schema field, blueprint-shaped (optional in v1.0; required for highest-impact ops in v1.0.1).
-- Blueprint B — **Fence Reconstruction**, fully realized end-to-end (selector → blueprint → Layer 2/3/4 validation → hash-chained Layer 6 record → Phase 12 audit input).
+- Blueprint B — **Fence Reconstruction**, fully realized end-to-end (selector → blueprint → Layer 2/3/4 validation → hash-chained Layer 6 record → framework protocol entry → Phase 12 audit input).
+- **Pillar 3 active-guidance query** — framework query after scenario detection, before blueprint enforcement. One stderr advisory per op.
 
 **Async additions (retrospective):**
 
 - Layer 6 — time-bound contract checker with append-only hash chain, plumbed into Phase 12's audit pipeline.
-- Layer 8 — spot-check sampling + operator review CLI (`episteme review`), blueprint-prioritized.
+- Layer 8 — spot-check sampling + operator review CLI (`episteme review`), blueprint-prioritized and protocol-quality-aware.
+- **Pillar 3 SessionStart digest** — "N protocols synthesized since last session."
+- **`episteme guide` CLI (minimal)** — list matching protocols + synthesis provenance.
 
 **Stays as-is:**
 
@@ -392,8 +452,10 @@ By the time an agent does all of this, it has approximately performed the causal
 
 **Ships as structure only, full realization in v1.0.1:**
 
-- Blueprints A (Axiomatic Judgment) and C (Consequence Chain) — schemas land in `core/blueprints/` and the selector can fire them, but field-level validation for these two blueprints is a stub returning advisory until v1.0.1 audit data justifies the final shapes.
+- Blueprint A (Axiomatic Judgment) — schema lands in `core/blueprints/` (decision arm + synthesis arm); selector can fire it; field-level validation is advisory-only in RC. Skeleton protocol entries flow to the framework from any firing; rich `conflict_cause` / `context_signature` / `synthesized_protocol` enforcement lands in v1.0.1.
+- Blueprint C (Consequence Chain) — schema lands; field-level validation advisory-only in RC.
 - Blueprint D (Unclassified High-Impact catchall) — structure ships; fires for any high-impact op that doesn't match A/B/C.
+- **`episteme guide` rich-query mode** — interactive query, protocol revision, retirement proposals. RC ships the read path; v1.0.1 ships the authoring path.
 
 **Deferred to v1.1:**
 
@@ -402,16 +464,17 @@ By the time an agent does all of this, it has approximately performed the causal
 
 ## Implementation sequencing
 
-Eight commits, mirroring the Phase 12 checkpoint discipline. Each checkpoint pauses for review. Tests stay green at every commit.
+Nine commits, mirroring the Phase 12 checkpoint discipline. Each checkpoint pauses for review. Tests stay green at every commit.
 
 1. **CP1 — extract `_specificity.py`.** Move `_classify_disconfirmation` from `src/episteme/_profile_audit.py` to `core/hooks/_specificity.py`. Phase 12 imports from the new module; behavior unchanged.
 2. **CP2 — scenario detector + blueprint registry.** New `core/hooks/_scenario_detector.py`. New `core/blueprints/` directory with generic-fallback blueprint plus registry loader. No behavior change — detector always returns "generic" until CP5 wires Fence Reconstruction. Tests cover registry load + generic fallback.
 3. **CP3 — Layer 2 in the hot path.** `reasoning_surface_guard.py` calls `_classify_disconfirmation` against the selected blueprint's fields (generic for now). Rejects on `tautological` / `unknown`; advisory on `absence`. New test class.
 4. **CP4 — Layer 3 contextual grounding.** New `core/hooks/_grounding.py`. Blueprint-aware entity extraction + project grep. FP-averse gating. New test class.
-5. **CP5 — Blueprint B (Fence Reconstruction), realized end-to-end.** Populate `core/blueprints/fence_reconstruction.yaml`; wire scenario detector to fire it on constraint-removal patterns (git-diff signature + lexicon hits); Layer 2 / 3 validation against its fields. This is the working end-to-end example the reframe demands. New test class covering scenario firing, blueprint selection, field validation, and fallback behavior.
-6. **CP6 — Layer 4 verification_trace schema.** Update `core/schemas/reasoning-surface/...`; optional field; structural validation; blueprint-shaped variants for Fence Reconstruction. Advisory for highest-impact ops; required lands in v1.0.1. Schemas for Axiomatic Judgment and Consequence Chain land as stubs; their blueprint validation is advisory-only at RC.
-7. **CP7 — Layer 6 time-bound contract + hash chain.** New `core/hooks/_pending_contracts.py` with chain implementation. Write at PreToolUse when `verification_trace` declared; check at SessionStart; tag `disconfirmation_unverified`. Phase 12 audit input gains chain-verification precondition. New test class covering chain integrity, chain-absent genesis, chain-broken governance event, and chain-reset protocol.
-8. **CP8 — Layer 8 spot-check sampling.** Configurable rate (default 10% → 5%) at PreToolUse; blueprint-fired surfaces sampled at 2× base; queue to `spot_check_queue.jsonl` (hash-chained); new `episteme review` CLI; SessionStart surface. Operator verdicts training into per-operator tuning is scoped out of CP8 — lands in v1.0.1.
+5. **CP5 — Blueprint B (Fence Reconstruction), realized end-to-end + first synthesis output.** Populate `core/blueprints/fence_reconstruction.yaml`; wire scenario detector to fire it on constraint-removal patterns (git-diff signature + lexicon hits); Layer 2 / 3 validation against its fields. On successful removal (rollback-path not triggered within the window), write a constraint-safety protocol entry to the framework — the first real Pillar 3 synthesis producer. New test class covering scenario firing, blueprint selection, field validation, fallback behavior, and protocol emission.
+6. **CP6 — Layer 4 verification_trace schema.** Update `core/schemas/reasoning-surface/...`; optional field; structural validation; blueprint-shaped variants for Fence Reconstruction. Advisory for highest-impact ops; required lands in v1.0.1. Schemas for Axiomatic Judgment (including synthesis-arm fields as stubs) and Consequence Chain land as structure; their blueprint validation is advisory-only at RC.
+7. **CP7 — Pillar 2 hash chain + Pillar 3 substrate.** New `core/hooks/_chain.py` (shared SHA-256 chain implementation) and `core/hooks/_pending_contracts.py` (Layer 6 write). Same commit lands `core/hooks/_framework.py` (Pillar 3 framework read/write, sharing the chain implementation) and `core/hooks/_context_signature.py` (canonicalization for framework query). Write at PreToolUse when `verification_trace` declared; check at SessionStart; tag `disconfirmation_unverified`. Phase 12 audit input gains chain-verification precondition. New test class covering chain integrity, chain-absent genesis, chain-broken governance event, chain-reset protocol, and framework write from CP5's Fence Reconstruction path.
+8. **CP8 — Layer 8 spot-check sampling.** Configurable rate (default 10% → 5%) at PreToolUse; blueprint-fired surfaces sampled at 2× base; synthesized protocols sampled at 2× base with a "protocol quality" verdict dimension; queue to `spot_check_queue.jsonl` (hash-chained); new `episteme review` CLI; SessionStart surface. Operator verdicts training into per-operator tuning is scoped out of CP8 — lands in v1.0.1.
+9. **CP9 — Pillar 3 active guidance surface.** Wire framework query into the hot path after scenario detection, before blueprint enforcement. One stderr advisory per op (highest-believability match). SessionStart digest of protocols synthesized since last session. New `episteme guide [--context <keyword>] [--since <date>]` CLI — minimal version: lists matching protocols + synthesis provenance. Tests cover query determinism, stale-protocol caveat rendering, empty-framework no-op, overload budget (≤ 1 advisory per op).
 
 ## Honest threat model — what STILL evades after v1.0
 
@@ -446,19 +509,22 @@ This section is load-bearing. Any later change to v1.0 RC scope that claims to c
 - **Cross-operator validation.** Multi-operator coordination is on the deferred multi-operator roadmap; v1.0 RC stays single-operator like v0.11.0.
 - **Providing tools, skills, or agent capabilities.** *[BYOS constraint.]* The kernel intercepts state mutation regardless of source. It does not ship tools, skill libraries, MCP servers, or agent frameworks. Skill provision is the ecosystem's concern; cognitive and execution governance is the kernel's.
 - **Tool-specific validation code paths.** Layers 2–8 operate on the surface + pending op, never on the tool that produced them. A new skill provider integrates transparently.
-- **Expanding the hash chain to `derived_knobs.json` or profile-axis changes.** Explicitly out of scope for v1.0 RC. Chain scope is episodic tier + pending contracts only; expansion is a later governance decision after the core mechanism is proven.
+- **Expanding the hash chain to `derived_knobs.json` or profile-axis changes.** Explicitly out of scope for v1.0 RC. Chain scope in RC is episodic tier + pending contracts + **framework protocols** only; expansion is a later governance decision after the core mechanism is proven.
+- **Auto-retiring stale protocols from the framework.** Phase 12 audit recommends retirement; the operator approves. Kernel never silently forgets a synthesized protocol — that would be the framework's version of measure-as-target drift.
+- **Blocking execution on framework-guidance alone.** Pillar 3 is advisory, never blocking. Guidance informs; blueprints (Pillar 1) enforce. Collapsing the two would produce a feedback loop where the kernel enforces its own synthesis against the operator.
 
 ## Verification — v1.0 RC is "done" when
 
-- All eight checkpoints land with paused-review-before-commit discipline.
-- Test suite stays green at every commit (304 today; CP1 holds; CP2–CP8 each add ~15–25 tests).
-- Hot-path latency profile shows p95 < 100 ms added by Layers 2–4 + scenario detector combined.
+- All nine checkpoints land with paused-review-before-commit discipline.
+- Test suite stays green at every commit (304 today; CP1 holds; CP2–CP9 each add ~15–25 tests).
+- Hot-path latency profile shows p95 < 100 ms added by Layers 2–4 + scenario detector + framework query combined.
 - Five fluent-vacuous evasion examples from "Why this exists" are now blocked at write time by some combination of Layers 2–4 + Fence Reconstruction blueprint where applicable.
-- End-to-end dogfood on a real constraint-removal op fires Fence Reconstruction, produces a blueprint-populated surface, writes a hash-chained record, and is available to Phase 12 audit input. If this end-to-end example does not work, CP5 failed regardless of what the tests show.
+- End-to-end dogfood on a real constraint-removal op fires Fence Reconstruction, produces a blueprint-populated surface, writes a hash-chained Layer 6 record, **and emits a synthesized constraint-safety protocol to the framework**. If this end-to-end example does not produce a framework entry that subsequently surfaces as guidance on a matching future op, CP5+CP9 failed regardless of what the tests show. The framework is not "done" when it exists; it is done when its output changes an operator decision.
 - Phase 12 audit dogfood shows `disconfirmation_unverified` rate < 10% on the maintainer's tier after 30 days of Layer 6 active. Above 10% means the kernel is enforcing contracts the operator isn't honoring — either tighten the operator's discipline or relax the contract; the audit surfaces the gap.
-- Chain verification succeeds across the full RC soak window. Any chain-broken event during the soak is investigated and root-caused before GA.
+- **Pillar 3 dogfood** — after 30 days of real use on the maintainer's tier, the framework holds ≥ 3 non-trivial protocols AND ≥ 1 has fired as guidance on a subsequent op AND the operator has a spot-check verdict recorded on that firing (useful / vague / overfit). If the framework is empty or guidance never fires, Pillar 3 failed at the cognitive level regardless of whether the code runs.
+- Chain verification succeeds across the full RC soak window for all three chained streams (episodic tier, pending contracts, framework protocols). Any chain-broken event during the soak is investigated and root-caused before GA.
 - Layer 8 spot-check delivers ≥ 1 actionable operator verdict per week of normal use over the RC soak. Below this, sample rate is too low; above 5/week, sample rate is too high (operator burden).
-- This document remains `approved (reframed)` through RC; any further philosophical shift is a new spec amendment.
+- This document remains `approved (reframed, second pass)` through RC; any further philosophical shift is a new spec amendment.
 
 ## What this spec does NOT cover
 
@@ -476,13 +542,14 @@ This section is load-bearing. Any later change to v1.0 RC scope that claims to c
 
 Before considering this spec fully settled:
 
-1. The reframed thesis — "structural forcing function for causal-consequence modeling, grafted onto an engine that cannot perform one natively" — is the correct level of claim. If "grafting a causal world model" overclaims, name the weaker version you'd prefer before implementation.
+1. The reframed thesis — "structural forcing function for causal-consequence modeling, protocol synthesis, and active guidance, grafted onto an engine that cannot perform any of them natively" — is the correct level of claim. If "grafting a causal world model + thinking framework" overclaims on either axis, name the weaker version you'd prefer before implementation.
 2. The BYOS stance is absorbed correctly in the preamble — episteme intercepts, does not provide. If a future skill-adjacent feature is proposed, it's a governance event.
 3. The four blueprints (A Axiomatic Judgment, B Fence Reconstruction, C Consequence Chain, D Unclassified catchall) are the right starting set. Additions are governance-gated.
-4. Fence Reconstruction is the right end-to-end example for RC because it binds to an existing audit axis. If another blueprint would give a stronger end-to-end demonstration, name it before CP5.
-5. The hash-chain scope (episodic tier + pending contracts only) is correctly bounded. Expansion to `derived_knobs.json` or profile-axis changes is a later governance decision, not a scope creep.
-6. The eight v1.0 RC checkpoints are sized at one logical commit each. If any feels too large, it gets split before implementation.
-7. The honest threat model names every evasion class you can think of after reading. New ones join the list rather than being silently countered.
-8. The "make cheating cost more than honesty, and make retroactive cheat-covering detectable" framing is correct. If you believe an uncheatable protocol is achievable within v1.0 RC scope, this spec needs to be rebuilt around that claim.
+4. Fence Reconstruction is the right end-to-end example for RC because it binds to an existing audit axis AND becomes the first real Pillar 3 synthesis producer. If another blueprint would give a stronger end-to-end demonstration of both arms, name it before CP5.
+5. The hash-chain scope (episodic tier + pending contracts + framework protocols) is correctly bounded. Expansion to `derived_knobs.json` or profile-axis changes is a later governance decision, not a scope creep.
+6. Pillar 3's guidance surface is advisory-only in RC. Making it blocking would create a feedback loop where the kernel enforces its own synthesis against the operator. Confirm the advisory posture is correct before CP9.
+7. The nine v1.0 RC checkpoints are sized at one logical commit each. If any feels too large (CP7 in particular bundles chain + framework substrate), it gets split before implementation.
+8. The honest threat model names every evasion class you can think of after reading. New ones join the list rather than being silently countered.
+9. The "make cheating cost more than honesty, make retroactive cheat-covering detectable, and turn resolved conflicts into durable context-indexed know-how" framing is correct. If you believe an uncheatable protocol is achievable within v1.0 RC scope, this spec needs to be rebuilt around that claim.
 
-Once these are settled, implementation begins as v1.0.0-rc1 work after 0.11.0 soak + tag.
+Once these are settled, implementation begins as v1.0.0-rc1 work. Per the *Implementation timing* record above, v0.11.0 has been tagged and shipped (2026-04-21); RC cycle is open.

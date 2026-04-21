@@ -4,6 +4,50 @@ Running log of completed work. Most recent first.
 
 ---
 
+## v1.0 RC cycle opens — 2026-04-21 — Spec drafted, reframed twice, authoritative docs aligned
+
+Docs-only session following the v0.11.0 tag. No code yet. Three events, in order:
+
+### Event 1 — v0.11.0 tagged and shipped
+
+All fourteen phases of 0.11.0 closed (phases 1-11 + 11.5 coherence pass + raster follow-up + Mermaid architecture replacement + phase 12 profile-audit loop in 5 checkpoints + phase 13 CHANGELOG / version reconcile + phase 14 MANIFEST regen). Tag `v0.11.0` pushed. Commit `a78c73e` is the MANIFEST/CHANGELOG close. Test suite 202/202 passing at tag. Full detail in the 0.11.0-rc-track entry below.
+
+### Event 2 — v1.0 RC spec drafted and approved
+
+`docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` drafted as *v1.0 · Semantic Governance for the Reasoning Surface Guard*. Eight-layer architecture with three orthogonal pairs (L2+L3, L4+L6, L5+L7), six open questions, cost discipline (<100 ms hot-path p95), honest threat model. Maintainer approved same day. Status flipped `draft → approved`.
+
+### Event 3 — First-pass philosophical reframe
+
+Spec reanchored from "semantic governance / anti-vapor defense" to "structural forcing function for causal-consequence modeling — grafted onto an engine that cannot perform it natively." Two cross-cutting pillars added: **Pillar 1 · Cognitive Blueprints** (scenario-polymorphic surface schemas — Axiomatic Judgment, Fence Reconstruction, Consequence Chain, Unclassified High-Impact catchall) and **Pillar 2 · Append-Only Hash Chain** (tamper-evident episodic + pending-contracts record, SHA-256 chaining, chain-reset protocol for legitimate state loss). BYOS / skill-agnostic stance absorbed into preamble — *"the kernel intercepts state mutation regardless of what external tool, MCP server, or agent framework generated the command. Ecosystem provides the skills; kernel provides the episteme."* CP plan expanded 6 → 8 to absorb new work without breaking the one-commit-per-CP discipline. Status: `approved (reframed)`. Closed a previously-unaddressed threat class (memory-poisoning via retroactive state mutation). `docs/COGNITIVE_SYSTEM_PLAYBOOK.md` updated with BYOS paragraph + blueprint-selected-protocol insert + tamper-evident-record insert.
+
+### Event 4 — Second-pass reframe: Protocol Synthesis & Active Guidance
+
+Maintainer raised that the first-pass reframe addressed "LLM can't predict consequences" but not the second face of the same failure: *"When I search the internet or look at docs, how do I distinguish what is actually correct or what specifically fits MY context?"* Source A says X, Source B says Y; the agent cannot tell which fits THIS project's tooling / THIS team's constraints / THIS op-class's history because *fit* is a causal-world-model judgment. The agent defaults to a statistically-central synthesis — a Doxa that fits no context specifically. Each conflicting pair of sources contains a hidden context-dependent protocol ("in context X, do Y"); extracting it requires modeling WHY they conflict rather than averaging them.
+
+Spec renamed to *Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC*. Third pillar added:
+
+- **Pillar 3 · Framework Synthesis & Active Guidance.** On every synthesis-capable blueprint firing (primarily Axiomatic Judgment, secondarily Fence Reconstruction), the kernel forces three outputs: (1) **distillation** — name why sources conflict (`conflict_cause`) + what features of the current situation select between them (`context_signature`); (2) **framework update** — commit the extracted rule (`synthesized_protocol`) to `~/.episteme/framework/protocols.jsonl`, hash-chained per Pillar 2; (3) **active guidance** — canonicalize future ops' context signatures, query the framework, surface matching protocols as stderr advisory (one per op) before blueprint enforcement runs, plus SessionStart digest + minimal `episteme guide` CLI.
+
+Axiomatic Judgment extended with five synthesis-arm fields (`conflict_cause`, `context_signature`, `synthesized_protocol`, `framework_entry_ref`, `guidance_trigger`). Fence Reconstruction becomes the first real Pillar 3 synthesis producer in CP5 — on successful constraint-removal (rollback not triggered within window), emits a context-specific constraint-safety protocol. Guidance is advisory-only, never blocking — collapsing into enforcement would produce a feedback loop where the kernel enforces its own synthesis against the operator.
+
+CP plan expanded 8 → 9 (CP9 = Pillar 3 active guidance surface). Hash-chain scope in RC extended to include framework protocols stream (still explicitly excludes `derived_knobs.json` and profile-axis changes — those expansions are later governance decisions). Status: `approved (reframed, second pass)`. Four new verification gates land: (a) framework holds ≥ 3 non-trivial protocols after 30-day soak; (b) ≥ 1 protocol fires as guidance on a subsequent op; (c) operator spot-check verdict recorded on that firing; (d) chain verification succeeds across all three streams (episodic, pending contracts, framework protocols). `COGNITIVE_SYSTEM_PLAYBOOK.md` §1 updated with source-chaos framing and three-axis "what Reasoning Surface is" statement; §3 extended with framework-synthesis-and-guidance paragraph.
+
+### Event 5 — Authoritative docs aligned
+
+`docs/PLAN.md`, `docs/PROGRESS.md`, `docs/NEXT_STEPS.md` updated to reflect closed 0.11.0 milestone and open v1.0 RC cycle. `NEXT_STEPS.md` resume block rewritten to point at CP1 of the 9-CP plan with full checkpoint breakdown and load-bearing spec constraints. `PLAN.md` opens a new active milestone (*v1.0.0 RC — Causal-Consequence Scaffolding & Protocol Synthesis*) with 9 CPs listed, load-bearing constraints enumerated, and open assumptions recorded; 0.11.0 moves to Closed with phases 12-14 marked complete.
+
+### What did NOT happen in this session
+
+No code. No CP1 work. No test runs. The session was pure governance: tag 0.11.0, draft + approve + twice-reframe the v1.0 RC spec, align the authoritative docs. CP1 is the next executable unit in a future session; per session discipline, code work begins after the authoritative docs are clean and the plan is ready to drive execution.
+
+### What remains as honest open questions
+
+- Whether Axiomatic Judgment's synthesis-arm fields produce operator-visible value in RC despite the blueprint's full realization being deferred to v1.0.1. If 30-day soak shows empty or useless synthesis-arm content, the design needs revision before v1.0.1.
+- Whether the context-signature algorithm (regex + entity hashing) is FP-averse enough. Unverified until real synthesis traffic accumulates.
+- Whether advisory-only Pillar 3 guidance is the right posture. If operator verdicts over soak consistently flag "missed the obvious guidance," revisit at v1.0.1.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.
