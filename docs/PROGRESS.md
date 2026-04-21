@@ -194,7 +194,7 @@ Substrate-only delivery per the spec's CP2 scope ("No behavior change until CP5 
 
 Docs-only, zero-code, zero-kernel-change pass executed between CP3 (shipped) and CP4 (not started). Motivation: the existing `README.md` opened with dense philosophical framing (*"episteme installs an epistemic posture"* → prefrontal-cortex metaphor → Kahneman six-mode taxonomy in paragraph form) that was optimal for governance-internal readers and suboptimal for GTM surface — newcomers could not reach the product value ("Thinking Framework forces context-fit protocol extraction from conflicting sources") without reading past three dense paragraphs first.
 
-**Change landed (commit `c1d5da7`):**
+**Change landed (commit `23abc0a`, post-rebase SHA; originally `c1d5da7` before the rebase that synced origin/master to remote HEAD at push time):**
 
 - **New accessible opening.** One-line positioning ("Sovereign Cognitive Kernel that installs a mandatory Thinking Framework"), anchor nav, plain-English TL;DR anchored on *context-blindness* (not capability failure — modern AI is capable, the gap is context-fit), "The problem · the solution" section with the five-field table inline, and a "Protocol Synthesis & Active Guidance — the ultimate vision" section that walks the five-step loop (detect conflict → decompose → synthesize → guide actively → self-maintain) with explicit pointer to `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`.
 - **Moved down into "Architecture & philosophy".** The doxa · episteme · praxis triad, 결 · gyeol vocabulary, lifecycle ASCII diagram, and four-strata Mermaid diagram now live in a bottom section. No content was deleted — readers who want the philosophical spine still get it after the accessible framing. Kernel files table (`SUMMARY.md`, `CONSTITUTION.md`, `REASONING_SURFACE.md`, etc.) moved into the same section.
@@ -211,7 +211,70 @@ Docs-only, zero-code, zero-kernel-change pass executed between CP3 (shipped) and
 - No `CHANGELOG.md` entry — this is a README/GTM surface pass, not a kernel version bump.
 - Local-only commit per maintainer instruction; no push.
 
-**Relation to CP flow.** This event is parallel to the CP track, not part of it. CP3 remains the last shipped CP; CP4 (Layer 3 blueprint-aware grounding) remains the next executable unit. The README realignment does not change any load-bearing spec constraint, blueprint, pillar, or verification gate.
+**Relation to CP flow.** This event is parallel to the CP track, not part of it. CP3 (committed `101d3cd` post-rebase; originally `e1f49c9`) remains the last shipped CP at Event-10 time; CP4 (Layer 3 blueprint-aware grounding) is the next executable unit. The README realignment does not change any load-bearing spec constraint, blueprint, pillar, or verification gate.
+
+---
+
+## Event 11 — 2026-04-21 — CP4 shipped: Layer 3 contextual grounding, blueprint-aware
+
+**The second user-visible behavior change of the v1.0 RC cycle (CP3 was the first).** `reasoning_surface_guard.py` now runs Layer 3 after Layer 2 in the same hot-path `if status == "ok"` block. Layer 3 extracts FP-averse entity-shaped tokens from the blueprint's declared grounded fields (generic: `disconfirmation` + `unknowns`), verifies each against the project working tree via `git ls-files` (with `os.walk` fallback for non-git dirs), and rejects surfaces whose entity set fails the spec-mandated gate: `grounded ≥ 2 AND (not_found / named) > 0.5`. Tests: **361/361 passing** (340 CP3 baseline + 21 new). Zero regressions.
+
+### CP4 delivery
+
+- **`core/hooks/_grounding.py` (new, ~240 LOC).** Four entity extractors, each requiring a structural marker absent from normal English prose:
+  - `snake_case` — mandatory `_` between lowercase groups (rejects "velocity", "migration", "baseline", "build"; matches `user_id`, `reasoning_surface_guard`)
+  - `SCREAMING_CASE` — mandatory `_` between uppercase groups (rejects CI / API / URL / AWS acronyms; matches `NODE_ENV`, `AWS_REGION`)
+  - `path_with_ext` — known code / config extension after a `.` (matches `_grounding.py`, `PLAN.md`, `config.yaml`; rejects "e.g.", "U.S.A")
+  - `hex_sha` — 7-40 hex chars with at least one digit AND one letter (matches `e1f49c9`; rejects all-digit page numbers and all-letter English hex words like "acceded")
+
+  Caching: in-process warm cache keyed on `(cwd, newest-tracked-file mtime)`. Bounded scan — 500 files, 64 KB per file, 2 MB total. Persistent on-disk cache deferred to CP4.1 if profiling demands. Gate is a pure function (`layer3_verdict_from_counts`) exported for direct unit testing. Graceful degrade: any exception yields `("pass", "")` with a one-line stderr fallback handled by the guard caller; Layers 1 & 2 stay the ultimate enforcer.
+
+- **`core/hooks/reasoning_surface_guard.py`.** Absolute import of `ground_blueprint_fields as _layer3_ground_blueprint_fields` via the sys.path injection pattern CP3 established. `main()` wiring after Layer 2: runs only when status is still `"ok"` (including the Layer-2-advisory-but-status-ok case); "reject" downgrades status to `"incomplete"`; "advisory" emits stderr and continues. Scenario-detector call fixed to match the `(pending_op, surface_text=None, project_context={})` signature CP3 established — a TypeError on the first test run surfaced the kwargs mismatch; resolved before commit.
+
+- **`tests/test_layer3_grounding_hot_path.py` (new, 21 tests across 7 classes):**
+  - `TestEntityExtraction` (6) — snake_case requires `_`; English prose (including the three CP3-gap fluent-vacuous examples as subtests) extracts zero entities; path-with-ext matches; SCREAMING_CASE requires `_`; hex SHA requires digit+letter; all-digit hex doesn't extract.
+  - `TestLayer3GateLogic` (4) — pure function tests on `layer3_verdict_from_counts`: `n_named=0` passes; all-grounded passes; sparse-repo (`grounded < 2`) with ungrounded entities advisories; gate boundary at exactly 50% miss is advisory (must be strictly >0.5 to reject).
+  - `TestGroundingAgainstProjectFixture` (4) — end-to-end via `ground_blueprint_fields` against a seeded tmp_path: named-all-ground passes; 4-phantom + 2-real = reject; unknowns[] entries also grounded; fake entities in knowns / assumptions do NOT trigger Layer 3 (category-safe per the generic blueprint's grounded-field set).
+  - `TestLayer3HotPathIntegration` (3) — drives the full chain via `guard.main()`: fake entities block the op (rc=2 + "Layer 3 grounding" in stderr); real entities pass; pure-English disconfirmation (no extractable entities) passes.
+  - `TestLayer3OnSpecFluentVacuousExamples` (2) — documents the honest CP4 limit: the three CP3-gap examples have no entity-shaped tokens, so Layer 3 passes them intentionally. Fluent-vacuous + added fake entities blocks at Layer 3 — demonstrates the compose-across-layers property.
+  - `TestLayer3GracefulDegrade` (1) — nonexistent cwd → no crash; verdict ∈ {`pass`, `advisory`}.
+  - `TestLayer3Latency` (1) — warm-cache 20-call loop on a 50-file project, asserting average < 100 ms per call (well within spec's <100 ms combined Layer 1+2+3 ceiling).
+
+### Honest CP4 limit — documented, not latent
+
+The three spec fluent-vacuous examples that CP3 could not catch contain NO entity-shaped tokens:
+
+1. *"the migration may produce unexpected behavior if edge cases are encountered"*
+2. *"if the build process exhibits anomalous behavior we should investigate before proceeding"*
+3. *"if results diverge from expectations we will return to first principles"*
+
+Layer 3's regex extractors (deliberately narrow to stay FP-averse on English prose) return an empty entity set for all three. Gate says `n_named == 0 → pass`. This is correct per spec § Layer 2 *Composition cost*: "An agent that evades Layer 2 by producing trigger + observable vocabulary is forced toward MORE specific language, which raises surface area for Layer 3 (blueprint entity grounding) and Layer 5 (vapor scoring). Evading Layer 2 helps Layer 3 catch you." The three remaining examples evade Layer 2 WITHOUT adding specificity; they have no Layer 3 surface area — but also cannot produce the Layer 4 `verification_trace` that CP6 will require. The composition closes them at CP6, not CP4.
+
+Tested explicitly via `test_cp4_honestly_passes_pure_english_fluent_vacuous` — if the extractor widens in a future tuning pass and starts finding entities in pure English, this test fails loudly, forcing an FP-aversion re-audit before CP5.
+
+### Deferred discoveries (Blueprint D territory, logged — not fixed inline)
+
+10. **Pyright unused-variable lint across test files.** The CP3 / CP4 test harnesses use `_out` / `_err` tuple-unpacking to discard unused return values; Pyright flags each as "not accessed." Pre-existing in CP3 tests, carried forward in CP4 tests. Harmless — the leading-underscore is the canonical "intentionally unused" convention. Candidate for project-level Pyright config ignore rule (or suppression of `reportUnusedVariable` on underscore-prefixed names). Not blocking any CP.
+
+11. **CP3 commit reference `e1f49c9` drifted to `101d3cd` after the post-rebase push to origin/master.** Event 10 narrative and NEXT_STEPS resume block cited the pre-rebase SHA. Fixed as part of this Event 11 doc-sync commit alongside the `c1d5da7` → `23abc0a` README-commit SHA drift.
+
+12. **NEXT_STEPS.md had an entire second copy of the document appended** (lines 245-488 duplicated lines 1-244). Pre-existing at least since CP3; origin unknown. Deduplicated as part of this Event 11 doc-sync commit — file now 247 lines, single canonical Resume block.
+
+### What did NOT happen
+
+- No changes to `_specificity.py`, `_scenario_detector.py`, `_blueprint_registry.py`, or the existing `generic_fallback.yaml`. CP4 is additive; the registry parser and CP3 classifier are untouched.
+- No Blueprint B (Fence Reconstruction) — that's CP5.
+- No hash chain, no framework substrate, no synthesis arm, no framework-query guidance — those land at CP7 / CP9.
+- No `verification_trace` schema — that's CP6.
+- No `generic_fallback.yaml` schema bump for `grounded_fields`. Inlined in `_GROUNDED_FIELDS_BY_BLUEPRINT` in `_grounding.py` instead, matching CP3's `_CLASSIFIED_FIELDS_BY_BLUEPRINT` pattern; keeps the YAML parser stable.
+
+### Honest open questions carrying into CP5
+
+- Whether Fence Reconstruction's selector triggers (git-diff signature against policy files + removal-lexicon) FP-averse-gate correctly against routine `.episteme/` file maintenance. Unverified until CP5 lands.
+- Whether the in-process Layer 3 cache invalidation key (`newest-tracked-mtime`) is granular enough. Edge case: an operator who rewrites a file with `touch` / `git commit --amend` preserving mtime — cache may serve stale. Candidate for content-hash-based key if this surfaces in CP5/CP6 soak.
+- Whether CP4's "reject only when grounded ≥ 2" clause is too lenient on small projects. A fresh repo with 3 fake entities named and 1 accidentally-matching entity in an unrelated file would pass. Acceptable at CP4 (the spec calls this the sparse-context advisory case); revisit if operator verdicts during soak consistently flag missed rejections at grounded=1.
+
+**Commit plan:** one atomic commit for CP4, message subject `feat(v1.0-rc): CP4 Layer 3 contextual grounding, blueprint-aware` — **shipped as `2558c67`.**
 
 ---
 
