@@ -1,0 +1,33 @@
+# v1.0 RC · Blueprint registry — generic fallback
+#
+# The four-field fallback Reasoning Surface. Applies when no named
+# scenario fires at scenario-detection time. Matches the historic
+# surface shape documented in kernel/REASONING_SURFACE.md § The four
+# fields — `knowns` / `unknowns` / `assumptions` / `disconfirmation` —
+# so any surface written under the pre-v1.0-RC contract validates
+# unchanged under the generic blueprint.
+#
+# This file is the source of truth for the historic four fields. If a
+# kernel reader ever asks "which fields are guaranteed to be asked for,"
+# the answer lives here, not in prose.
+#
+# Named blueprints (A Axiomatic Judgment / B Fence Reconstruction /
+# C Consequence Chain / D Architectural Cascade & Escalation) ship in
+# CP5 / CP6 / CP10 with richer field contracts + selector triggers.
+# Additions are governance-gated per spec § Blueprint registry
+# governance.
+
+name: generic
+description: >
+  Four-field fallback Reasoning Surface. Applies when no named scenario
+  fires. Kernel-native shape, matches kernel/REASONING_SURFACE.md § The
+  four fields.
+version: 1
+required_fields:
+  - knowns
+  - unknowns
+  - assumptions
+  - disconfirmation
+optional_fields: []
+synthesis_arm: false
+selector_triggers: []

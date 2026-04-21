@@ -12,13 +12,23 @@ Exact next actions, in priority order. Update this file at every handoff.
 - **Second pass** — added Pillar 3 (Framework Synthesis & Active Guidance); renamed subtitle to *Causal-Consequence Scaffolding & Protocol Synthesis*; CP plan 8 → 9.
 - **Third pass** — enshrined the **ultimate why** in the preamble (information overload → context-fit protocol extraction → living thinking framework → active guidance → continuous self-maintenance). Promoted the prior "Blueprint D · Unclassified High-Impact (catchall)" to a load-bearing **Blueprint D · Architectural Cascade & Escalation** (patch-vs-refactor evaluation, symmetric cascade synchronization, continuous digging & logging). Goodhart closer for blueprint-absence preserved as a **generic maximum-rigor fallback** (Consequence-Chain-shaped), not a blueprint. CP plan 9 → 10 (CP10 = Blueprint D scaffolding + cascade detector + deferred-discovery hash-chained write).
 
-**Next action (fresh session):** review + commit the **CP1 bundled pass** landed 2026-04-21 (CP1 code extraction + Blueprint-D self-dogfood cascade sync across 13 surfaces + 8 deferred discoveries logged in `docs/PROGRESS.md` Event 7). After commit, proceed to **CP2 — scenario detector + blueprint registry**.
+**Next action (fresh session):** review + commit the **CP2 pass** landed 2026-04-21 (scenario detector + blueprint registry substrate + generic_fallback.yaml + 22 tests). After commit, proceed to **CP3 — Layer 2 in the hot path, blueprint-aware** (wires `reasoning_surface_guard.py` to call `_specificity._classify_disconfirmation` against `_scenario_detector.detect_scenario(...)`'s selected blueprint's fields).
 
-**CP1 bundled-pass state (awaiting paused-review):**
+**CP2 pass state (awaiting paused-review):**
 
-- Code: new `core/hooks/_specificity.py`; `src/episteme/_profile_audit.py` rewired via `sys.path` injection + explicit `as X` re-exports. Behavior unchanged. Test suite: **304/304 passing.**
-- Cascade sync (Blueprint D on the kernel itself): NARRATIVE.md · POSTURE.md · kernel/REASONING_SURFACE.md · kernel/MEMORY_ARCHITECTURE.md · kernel/README.md · kernel/KERNEL_LIMITS.md · kernel/FAILURE_MODES.md · kernel/CHANGELOG.md · docs/ARCHITECTURE.md · docs/COGNITIVE_OS_ARCHITECTURE.md→EPISTEME_ARCHITECTURE.md (git mv) · AGENTS.md · llms.txt · authoritative trio (PLAN/PROGRESS/NEXT_STEPS).
-- Deferred discoveries: 8 entries logged in Event 7 — SVG assets, demo narration, demo artifacts, CONTRIBUTING/DEMOS, kernel/SUMMARY, archival v0.11 specs, in-code phase-12 references (legitimate, flagged for completeness), Pyright extraPaths config.
+- `core/blueprints/generic_fallback.yaml` — source of truth for the historic four fields.
+- `core/hooks/_blueprint_registry.py` — zero-dep YAML subset parser + `Blueprint` frozen dataclass + `Registry` class with lazy-load + cache + duplicate-name rejection. Exceptions: `BlueprintParseError`, `BlueprintValidationError`.
+- `core/hooks/_scenario_detector.py` — `detect_scenario(pending_op, surface_text, project_context) -> str` stub; always returns `"generic"` at CP2; signature locked for CP3.
+- `tests/test_scenario_detector.py` — 22 tests covering load / field tuple / detector contract / error cases / caching / parser edge cases / dataclass immutability.
+- Tests: **326/326 passing** (304 baseline + 22 new).
+- Narrative: `docs/PROGRESS.md` Event 8.
+- Hot-path behavior: **unchanged** (CP2 is substrate only; `reasoning_surface_guard.py` is untouched).
+
+**CP1 bundle (committed) for reference:**
+
+- Commit: chkpts `ce0f4e3` / `3d4b20a` / `f5f8d0f` on master; narrative preserved in annotated tag `v1.0-rc-cp1` (`git show v1.0-rc-cp1`).
+- Follow-up fix: `2a2ed68` — `fix(v1.0-rc): pytest pythonpath includes repo root for core.hooks` (closes runtime half of deferred-discovery #8).
+- Cascade touched 13 surfaces; 8 deferred discoveries logged in Event 7 (one now partially resolved by `2a2ed68`).
 
 **The ten v1.0 RC checkpoints:**
 
@@ -241,13 +251,23 @@ Exact next actions, in priority order. Update this file at every handoff.
 - **Second pass** — added Pillar 3 (Framework Synthesis & Active Guidance); renamed subtitle to *Causal-Consequence Scaffolding & Protocol Synthesis*; CP plan 8 → 9.
 - **Third pass** — enshrined the **ultimate why** in the preamble (information overload → context-fit protocol extraction → living thinking framework → active guidance → continuous self-maintenance). Promoted the prior "Blueprint D · Unclassified High-Impact (catchall)" to a load-bearing **Blueprint D · Architectural Cascade & Escalation** (patch-vs-refactor evaluation, symmetric cascade synchronization, continuous digging & logging). Goodhart closer for blueprint-absence preserved as a **generic maximum-rigor fallback** (Consequence-Chain-shaped), not a blueprint. CP plan 9 → 10 (CP10 = Blueprint D scaffolding + cascade detector + deferred-discovery hash-chained write).
 
-**Next action (fresh session):** review + commit the **CP1 bundled pass** landed 2026-04-21 (CP1 code extraction + Blueprint-D self-dogfood cascade sync across 13 surfaces + 8 deferred discoveries logged in `docs/PROGRESS.md` Event 7). After commit, proceed to **CP2 — scenario detector + blueprint registry**.
+**Next action (fresh session):** review + commit the **CP2 pass** landed 2026-04-21 (scenario detector + blueprint registry substrate + generic_fallback.yaml + 22 tests). After commit, proceed to **CP3 — Layer 2 in the hot path, blueprint-aware** (wires `reasoning_surface_guard.py` to call `_specificity._classify_disconfirmation` against `_scenario_detector.detect_scenario(...)`'s selected blueprint's fields).
 
-**CP1 bundled-pass state (awaiting paused-review):**
+**CP2 pass state (awaiting paused-review):**
 
-- Code: new `core/hooks/_specificity.py`; `src/episteme/_profile_audit.py` rewired via `sys.path` injection + explicit `as X` re-exports. Behavior unchanged. Test suite: **304/304 passing.**
-- Cascade sync (Blueprint D on the kernel itself): NARRATIVE.md · POSTURE.md · kernel/REASONING_SURFACE.md · kernel/MEMORY_ARCHITECTURE.md · kernel/README.md · kernel/KERNEL_LIMITS.md · kernel/FAILURE_MODES.md · kernel/CHANGELOG.md · docs/ARCHITECTURE.md · docs/COGNITIVE_OS_ARCHITECTURE.md→EPISTEME_ARCHITECTURE.md (git mv) · AGENTS.md · llms.txt · authoritative trio (PLAN/PROGRESS/NEXT_STEPS).
-- Deferred discoveries: 8 entries logged in Event 7 — SVG assets, demo narration, demo artifacts, CONTRIBUTING/DEMOS, kernel/SUMMARY, archival v0.11 specs, in-code phase-12 references (legitimate, flagged for completeness), Pyright extraPaths config.
+- `core/blueprints/generic_fallback.yaml` — source of truth for the historic four fields.
+- `core/hooks/_blueprint_registry.py` — zero-dep YAML subset parser + `Blueprint` frozen dataclass + `Registry` class with lazy-load + cache + duplicate-name rejection. Exceptions: `BlueprintParseError`, `BlueprintValidationError`.
+- `core/hooks/_scenario_detector.py` — `detect_scenario(pending_op, surface_text, project_context) -> str` stub; always returns `"generic"` at CP2; signature locked for CP3.
+- `tests/test_scenario_detector.py` — 22 tests covering load / field tuple / detector contract / error cases / caching / parser edge cases / dataclass immutability.
+- Tests: **326/326 passing** (304 baseline + 22 new).
+- Narrative: `docs/PROGRESS.md` Event 8.
+- Hot-path behavior: **unchanged** (CP2 is substrate only; `reasoning_surface_guard.py` is untouched).
+
+**CP1 bundle (committed) for reference:**
+
+- Commit: chkpts `ce0f4e3` / `3d4b20a` / `f5f8d0f` on master; narrative preserved in annotated tag `v1.0-rc-cp1` (`git show v1.0-rc-cp1`).
+- Follow-up fix: `2a2ed68` — `fix(v1.0-rc): pytest pythonpath includes repo root for core.hooks` (closes runtime half of deferred-discovery #8).
+- Cascade touched 13 surfaces; 8 deferred discoveries logged in Event 7 (one now partially resolved by `2a2ed68`).
 
 **The ten v1.0 RC checkpoints:**
 

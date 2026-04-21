@@ -121,6 +121,32 @@ Every deferred entry above would become an immediate hash-chained `deferred_disc
 
 ---
 
+## Event 8 — 2026-04-21 — CP2 shipped: scenario detector + blueprint registry substrate
+
+Substrate-only delivery per the spec's CP2 scope ("No behavior change until CP5 wires Fence Reconstruction"). Three new files + one test file; `reasoning_surface_guard.py` is untouched. Tests: **326/326 passing** (+22 on top of the 304 baseline).
+
+**CP2 delivery:**
+
+- **`core/blueprints/generic_fallback.yaml`** — source of truth for the historic four fields (`knowns` / `unknowns` / `assumptions` / `disconfirmation`). Shape: `name`, `description`, `version`, `required_fields[]`, `optional_fields[]`, `synthesis_arm`, `selector_triggers[]`. `synthesis_arm: false` (generic does not emit framework protocols — only named blueprints A / B / D do). `selector_triggers: []` (the generic fallback applies when NO named selector fires). `version: 1` is defensive for future blueprint-schema evolution.
+- **`core/hooks/_blueprint_registry.py`** — hand-rolled YAML subset parser (zero PyYAML dependency, matching Phase 9's `_derived_knobs.py` convention) + `Blueprint` frozen dataclass + `Registry` class with lazy-load + cache + duplicate-name rejection + missing-directory tolerance. Parser covers scalars / block-folded strings (`>`) / block lists of scalars / inline empty list/dict (`[]`/`{}`) / comments / blank lines. Additional shapes (lists of dicts, nested maps) land with the blueprints that need them (CP5+). Exceptions: `BlueprintParseError` (structural), `BlueprintValidationError` (CP2-minimum contract — non-empty `name`, list-typed `required_fields` / `optional_fields` / `selector_triggers`, int-typed `version`).
+- **`core/hooks/_scenario_detector.py`** — `detect_scenario(pending_op, surface_text, project_context) -> str` stub returning `"generic"` for every input. Signature is the contract CP3 commits to; docstring names where real selectors land (CP5 Fence Reconstruction, CP10 Architectural Cascade). `GENERIC_FALLBACK` module-level constant so downstream callers reference the literal without stringly-typed coupling.
+- **`tests/test_scenario_detector.py`** — 22 tests (not 10 — the extra 12 cover edge cases that surfaced during writing): generic loads with exact four-field tuple in order · synthesis-arm false · selector-triggers empty · version 1 · source-path resolves · detector returns generic for empty / plausible-Fence / plausible-Cascade inputs · signature parameters stable (locks CP3's call contract) · constant matches blueprint name · unknown blueprint raises KeyError listing known names · malformed YAML raises BlueprintParseError · missing-name / non-list / duplicate-name raise BlueprintValidationError · empty + nonexistent dirs yield empty registry (supports forks without blueprints/) · cache idempotent (same dataclass instance across calls) · reload invalidates cache · folded block scalar parsed · Blueprint dataclass frozen (immutable; safe to share across hot-path calls).
+
+**What did NOT happen:**
+
+- `reasoning_surface_guard.py` unchanged. The hot path does not yet consult the detector or registry.
+- No synthesis arm. No hash chain. No framework. Those land at CP5 / CP7 / CP9 respectively.
+- No Pyright fix for `core.hooks` import resolution — still the runtime-works-but-static-analyzer-can't-follow gap tracked as deferred-discovery #8's Pyright half. Right bundle point remains CP3.
+
+**Honest open questions carrying into CP3:**
+
+- Whether the hand-rolled YAML parser's scope (CP2 subset) is correctly bounded. If CP5's Fence Reconstruction blueprint needs list-of-dicts for selector triggers, the parser extends there — which is fine, but the extension shouldn't retroactively break CP2's generic_fallback parsing. Guard: test coverage.
+- Whether `GENERIC_FALLBACK = "generic"` is the right literal. Spec uses "generic" throughout, so this is likely stable, but renaming costs zero at CP2 and costs CP3 call-site churn after CP3 lands.
+
+**Commit plan:** one atomic commit for CP2, message subject `feat(v1.0-rc): CP2 scenario detector + blueprint registry substrate`. Awaiting paused-review per CP discipline.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.

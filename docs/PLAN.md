@@ -23,7 +23,7 @@ Upgrade the Reasoning Surface from syntactic enforcement to a three-pillar / fou
 | CP | Scope | Status |
 |---|---|---|
 | 1 | Extract `_classify_disconfirmation` from `src/episteme/_profile_audit.py` to `core/hooks/_specificity.py`. Phase 12 imports from new module; behavior unchanged. **Bundled with the Blueprint-D self-dogfood cascade sync** (see `docs/PROGRESS.md` Event 7). 304/304 tests green. | **code + cascade complete; awaiting paused-review-before-commit** |
-| 2 | Scenario detector (`core/hooks/_scenario_detector.py`) + blueprint registry (`core/blueprints/`) with generic-fallback blueprint. No behavior change until CP5. | not started |
+| 2 | Scenario detector (`core/hooks/_scenario_detector.py`) + blueprint registry (`core/blueprints/`) with generic-fallback blueprint. No behavior change until CP5. | **shipped — 2026-04-21; 326/326 tests green; awaiting paused-review-before-commit** |
 | 3 | Layer 2 in hot path, blueprint-aware. `reasoning_surface_guard.py` classifies against selected blueprint's fields. | not started |
 | 4 | Layer 3 contextual grounding, blueprint-aware. New `core/hooks/_grounding.py`. FP-averse gating. | not started |
 | 5 | Blueprint B (Fence Reconstruction), realized end-to-end + **first Pillar 3 synthesis output** — constraint-safety protocol emitted on successful removal. | not started |
