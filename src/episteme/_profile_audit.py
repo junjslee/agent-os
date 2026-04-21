@@ -1199,6 +1199,440 @@ def _axis_asymmetry_posture(
     )
 
 
+# ---------------------------------------------------------------------------
+# Axis B · noise_signature (checkpoint 5)
+# ---------------------------------------------------------------------------
+#
+# Spec: docs/DESIGN_V0_11_PHASE_12.md § Axis B.
+#
+# noise_signature.primary names the dominant noise source the operator
+# is susceptible to. CP5 operationalizes 'status-pressure' only — the
+# maintainer's declared primary. Other primaries (regret, anxiety,
+# social-scripts, false-urgency) return insufficient_evidence with a
+# Template-B sketch-table pointer and ship in 0.11.1.
+#
+# This is the axis the spec author flagged as MOST FRAGILE: both
+# signatures are weak individually. Insufficient_evidence is the
+# correct first-30-day behavior, not a CP5 bug.
+#
+# DRIFT DIRECTION INVERTED for S1. All other axes flag drift when an
+# observed rate sits BELOW a floor. Axis B's S1 flags drift when the
+# observed buzzword rate sits ABOVE a ceiling: the operator's own
+# stated counter-screen claim ("no buzzword names leak into body
+# docs") predicts < 15% rate; high density against a counter-screen
+# claim is what drift looks like for this axis. The convention break
+# is documented inline because the verdict logic differs from CP2-CP4.
+#
+# Two signatures:
+#
+#   S1 · buzzword density. Per-record check on core_question + knowns
+#        against the `buzzword` lexicon (kernel/PHASE_12_LEXICON.md).
+#        A record "has buzzword" iff >= 1 hit. Rate = records with
+#        buzzword / total qualifying. Drift if rate > 0.30 standalone
+#        (single-signature catastrophic exception — same shape as
+#        fence_discipline's exception, justified inline below) OR rate
+#        > 0.15 paired with S2.
+#
+#   S2 · specificity-collapse under cadence. Partition records by
+#        inferred cadence (median inter-decision gap on captured_at).
+#        Mean length of disconfirmation + unknowns[0] computed per
+#        partition. collapse_ratio = (loose_mean - tight_mean) /
+#        loose_mean. Positive = tight is shorter (collapse present).
+#        Drift if collapse_ratio < 0.30 (no collapse despite claim).
+#
+# Catastrophic single-signature exception JUSTIFIED for S1 > 0.30:
+# decorative-language density at that level is itself the signal of
+# audience-shaping behavior, regardless of cadence behavior. This
+# matches the spec's literal text ("Also flag if S1 > 30% regardless
+# of S2"). Same shape as Axis C's exception — a named departure from
+# D1, not a relaxation of D1.
+
+_AXIS_B_EVIDENCE_MINIMUM = 40
+_AXIS_B_PARTITION_MINIMUM = 5
+
+# Drift thresholds for status-pressure claim. The acceptable band is
+# defined against the operator's own counter-screen claim, not against
+# the bare susceptibility claim.
+_S1_BUZZWORD_DRIFT_CEILING = 0.15      # above this with S2 = drift
+_S1_BUZZWORD_CATASTROPHIC = 0.30       # above this alone = drift
+_S2_COLLAPSE_DRIFT_FLOOR = 0.30        # below this = no collapse = drift
+
+_STATUS_PRESSURE_PREDICTIONS: dict[str, list[float]] = {
+    # S1 prediction band: counter-screen claim predicts low buzzword
+    # density. The high bound IS the drift ceiling (convention break
+    # documented above). Consumers should rely on verdict + signatures,
+    # not derive drift from this band.
+    "S1_buzzword_record_rate": [0.00, _S1_BUZZWORD_DRIFT_CEILING],
+    # S2 prediction band: collapse_ratio at or above 0.30 means
+    # specificity collapses under tight cadence as the claim predicts.
+    "S2_collapse_ratio": [_S2_COLLAPSE_DRIFT_FLOOR, 1.00],
+}
+
+
+def _axis_b_qualifying(record: dict) -> tuple[bool, str, list[str], str | None, str]:
+    """Return (qualifies, core_question, knowns_list, captured_at, surface_blob).
+
+    A record qualifies for Axis B when its reasoning_surface has either
+    a non-empty core_question OR a non-empty knowns list. We need at
+    least one of those for S1 (the buzzword scan); records with neither
+    contribute no signal."""
+    details = record.get("details")
+    if not isinstance(details, dict):
+        return False, "", [], None, ""
+    surface = details.get("reasoning_surface")
+    if not isinstance(surface, dict):
+        return False, "", [], None, ""
+    cq = surface.get("core_question")
+    cq_str = cq.strip() if isinstance(cq, str) and cq.strip() else ""
+    knowns = surface.get("knowns")
+    knowns_list = [str(k) for k in knowns if isinstance(k, str) and k.strip()] if isinstance(knowns, list) else []
+    if not cq_str and not knowns_list:
+        return False, "", [], None, ""
+    captured_at = None
+    prov = record.get("provenance")
+    if isinstance(prov, dict):
+        ts = prov.get("captured_at")
+        if isinstance(ts, str) and ts.strip():
+            captured_at = ts.strip()
+    blob = (cq_str + " " + " ".join(knowns_list)).strip()
+    return True, cq_str, knowns_list, captured_at, blob
+
+
+def _axis_b_specificity_length(record: dict) -> int:
+    """Length of disconfirmation + unknowns[0] for the S2 specificity
+    measure. Returns 0 when both fields are absent."""
+    details = record.get("details")
+    if not isinstance(details, dict):
+        return 0
+    surface = details.get("reasoning_surface")
+    if not isinstance(surface, dict):
+        return 0
+    disconf = surface.get("disconfirmation")
+    disconf_len = len(disconf) if isinstance(disconf, str) else 0
+    unknowns = surface.get("unknowns")
+    first_unknown_len = 0
+    if isinstance(unknowns, list) and unknowns:
+        first = unknowns[0]
+        if isinstance(first, str):
+            first_unknown_len = len(first)
+    return disconf_len + first_unknown_len
+
+
+def _partition_by_inferred_cadence(
+    records_with_ts: list[tuple[dict, str]],
+) -> tuple[list[dict], list[dict]]:
+    """Infer cadence from timestamp clustering. Sort by captured_at,
+    compute inter-decision gaps, and split records on the median gap.
+    Records preceded by a shorter-than-median gap go to `tight`;
+    longer-than-median go to `loose`. The first record (no preceding
+    gap) is dropped from both partitions — it has no cadence signal.
+
+    Inferred-only per spec open question 2: a `cadence_marker` schema
+    field is 0.11.1 work; v0.11 ships with timestamp inference and
+    accepts the higher noise floor.
+    """
+    if len(records_with_ts) < 2:
+        return [], []
+    parsed: list[tuple[datetime, dict]] = []
+    for rec, ts in records_with_ts:
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            parsed.append((dt, rec))
+        except ValueError:
+            continue
+    if len(parsed) < 2:
+        return [], []
+    parsed.sort(key=lambda p: p[0])
+    gaps = [
+        (parsed[i][0] - parsed[i - 1][0]).total_seconds()
+        for i in range(1, len(parsed))
+    ]
+    sorted_gaps = sorted(gaps)
+    mid = len(sorted_gaps) // 2
+    median_gap = (
+        sorted_gaps[mid]
+        if len(sorted_gaps) % 2 == 1
+        else (sorted_gaps[mid - 1] + sorted_gaps[mid]) / 2.0
+    )
+    # Tied-median: assign to `tight` rather than dropping. Strict <
+    # / > drops every record when the cadence is bimodal-with-ties
+    # (a common shape in real telemetry — e.g. "tight burst, then
+    # break" alternating). The collapse_ratio is still meaningful
+    # because tight remains the lower-or-equal-cadence partition.
+    tight: list[dict] = []
+    loose: list[dict] = []
+    for i in range(1, len(parsed)):
+        gap = (parsed[i][0] - parsed[i - 1][0]).total_seconds()
+        rec = parsed[i][1]
+        if gap <= median_gap:
+            tight.append(rec)
+        else:
+            loose.append(rec)
+    return tight, loose
+
+
+def _axis_noise_signature(
+    axis_name: str,
+    claim: Any,
+    records: list[dict],
+    lexicon: dict[str, frozenset[str]],
+) -> AxisAuditResult:
+    primary = None
+    if isinstance(claim, dict):
+        p = claim.get("primary")
+        if isinstance(p, str) and p.strip():
+            primary = p.strip()
+
+    if primary is None:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=0,
+            signatures={},
+            signature_predictions={},
+            confidence="low",
+            evidence_refs=[],
+            reason=(
+                "No noise_signature primary declared per docs/"
+                "DESIGN_V0_11_PHASE_12.md § Axis B. CP5 audits the "
+                "declared primary noise source against episodic praxis; "
+                "without a named primary there is no hypothesis to test."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    if primary != "status-pressure":
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=0,
+            signatures={},
+            signature_predictions={},
+            confidence="low",
+            evidence_refs=[],
+            reason=(
+                f"Primary is {primary!r}. CP5 operationalizes only "
+                f"'status-pressure'; other primaries follow Template B "
+                f"per docs/DESIGN_V0_11_PHASE_12.md § sketch table and "
+                f"ship in 0.11.1."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    buzzword_terms = lexicon.get("buzzword", frozenset())
+    qualifying: list[dict] = []
+    qualifying_with_ts: list[tuple[dict, str]] = []
+    buzzword_record_count = 0
+
+    for rec in records:
+        ok, cq_str, knowns_list, ts, blob = _axis_b_qualifying(rec)
+        if not ok:
+            continue
+        qualifying.append(rec)
+        if ts:
+            qualifying_with_ts.append((rec, ts))
+        if buzzword_terms and _count_lexicon_hits(blob, buzzword_terms) > 0:
+            buzzword_record_count += 1
+
+    n = len(qualifying)
+    evidence_refs = _collect_evidence_refs(qualifying)
+    predictions = _STATUS_PRESSURE_PREDICTIONS
+
+    if n < _AXIS_B_EVIDENCE_MINIMUM:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=n,
+            signatures={},
+            signature_predictions=predictions,
+            confidence="low",
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Only {n} qualifying record(s) with non-empty "
+                f"core_question or knowns in window (need ≥ "
+                f"{_AXIS_B_EVIDENCE_MINIMUM} per docs/"
+                f"DESIGN_V0_11_PHASE_12.md § Axis B · Evidence minimum). "
+                f"Axis B is the highest-volume axis because cadence "
+                f"partitioning needs population in each side; spec "
+                f"flags this axis as the slowest to surface signal."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    s1_rate = buzzword_record_count / n
+
+    # S2 — partition by inferred cadence and compute collapse ratio.
+    tight, loose = _partition_by_inferred_cadence(qualifying_with_ts)
+    s2_computable = (
+        len(tight) >= _AXIS_B_PARTITION_MINIMUM
+        and len(loose) >= _AXIS_B_PARTITION_MINIMUM
+    )
+
+    if not s2_computable:
+        # S2 cannot be computed honestly. Axis B is one of the few
+        # axes where partial signature coverage genuinely degrades to
+        # insufficient_evidence — flagging on S1 alone (without the
+        # S1 > 30% catastrophic threshold) would violate D1.
+        if s1_rate > _S1_BUZZWORD_CATASTROPHIC:
+            return AxisAuditResult(
+                axis_name=axis_name,
+                claim=claim,
+                verdict="drift",
+                evidence_count=n,
+                signatures={"S1_buzzword_record_rate": round(s1_rate, 3)},
+                signature_predictions=predictions,
+                confidence="medium",
+                evidence_refs=evidence_refs,
+                reason=(
+                    f"Across {n} qualifying record(s): buzzword rate "
+                    f"{s1_rate:.0%} > {_S1_BUZZWORD_CATASTROPHIC:.0%} "
+                    f"catastrophic ceiling. Decorative-language density "
+                    f"itself is evidence against the operator's "
+                    f"counter-screen claim, regardless of S2 (spec "
+                    f"§Axis B permits single-signature flagging at "
+                    f"this threshold — same shape as Axis C's "
+                    f"catastrophic exception)."
+                ),
+                suggested_reelicitation=(
+                    "Re-elicit noise_signature: buzzword density at this "
+                    "level suggests the counter-screen claim does not "
+                    "hold in praxis. Either reaffirm susceptibility and "
+                    "tighten the screen, or revise the primary."
+                ),
+            )
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=n,
+            signatures={"S1_buzzword_record_rate": round(s1_rate, 3)},
+            signature_predictions=predictions,
+            confidence="low",
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Cadence partitioning needs ≥ "
+                f"{_AXIS_B_PARTITION_MINIMUM} records per partition; "
+                f"got {len(tight)} tight, {len(loose)} loose. S2 cannot "
+                f"be computed honestly. S1 buzzword rate {s1_rate:.0%} "
+                f"is below catastrophic threshold so D1 prevents "
+                f"flagging on S1 alone."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    # Both signatures computable.
+    tight_lens = [_axis_b_specificity_length(r) for r in tight]
+    loose_lens = [_axis_b_specificity_length(r) for r in loose]
+    tight_mean = sum(tight_lens) / len(tight_lens)
+    loose_mean = sum(loose_lens) / len(loose_lens)
+    if loose_mean <= 0:
+        # Degenerate denominator — operator writes empty surfaces
+        # under loose cadence too. No meaningful collapse comparison.
+        s2_collapse_ratio = 0.0
+    else:
+        s2_collapse_ratio = (loose_mean - tight_mean) / loose_mean
+    signatures = {
+        "S1_buzzword_record_rate": round(s1_rate, 3),
+        "S2_collapse_ratio": round(s2_collapse_ratio, 3),
+    }
+    confidence: Confidence = "high" if n >= 80 else "medium"
+
+    s1_catastrophic = s1_rate > _S1_BUZZWORD_CATASTROPHIC
+    s1_above_floor = s1_rate > _S1_BUZZWORD_DRIFT_CEILING
+    s2_no_collapse = s2_collapse_ratio < _S2_COLLAPSE_DRIFT_FLOOR
+
+    if s1_catastrophic:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="drift",
+            evidence_count=n,
+            signatures=signatures,
+            signature_predictions=predictions,
+            confidence=confidence,
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Across {n} qualifying record(s): buzzword rate "
+                f"{s1_rate:.0%} > {_S1_BUZZWORD_CATASTROPHIC:.0%} "
+                f"catastrophic ceiling. Decorative-language density "
+                f"itself is evidence against the counter-screen claim "
+                f"(spec §Axis B single-signature exception)."
+            ),
+            suggested_reelicitation=(
+                "Re-elicit noise_signature: buzzword density at this "
+                "level suggests the counter-screen claim does not hold "
+                "in praxis."
+            ),
+        )
+
+    if s1_above_floor and s2_no_collapse:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="drift",
+            evidence_count=n,
+            signatures=signatures,
+            signature_predictions=predictions,
+            confidence=confidence,
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Across {n} qualifying record(s): buzzword rate "
+                f"{s1_rate:.0%} > {_S1_BUZZWORD_DRIFT_CEILING:.0%} "
+                f"floor AND specificity collapse_ratio "
+                f"{s2_collapse_ratio:.0%} < "
+                f"{_S2_COLLAPSE_DRIFT_FLOOR:.0%} floor. Counter-screen "
+                f"failing AND no specificity collapse under tight "
+                f"cadence — neither signature of claimed status-pressure "
+                f"susceptibility is showing up. D1 convergence confirmed."
+            ),
+            suggested_reelicitation=(
+                "Re-elicit noise_signature: claimed susceptibility to "
+                "status-pressure but episodic record shows neither "
+                "buzzword leakage signal nor specificity collapse. "
+                "Either the primary is wrong or the counter-screen is "
+                "doing different work than the claim describes."
+            ),
+        )
+
+    single_miss_note = ""
+    if s1_above_floor:
+        single_miss_note = (
+            f" S1 single-signature miss noted "
+            f"({s1_rate:.0%} > {_S1_BUZZWORD_DRIFT_CEILING:.0%}); "
+            f"D1 convergence requires BOTH to flag, so no drift."
+        )
+    elif s2_no_collapse:
+        single_miss_note = (
+            f" S2 single-signature miss noted "
+            f"(collapse {s2_collapse_ratio:.0%} < "
+            f"{_S2_COLLAPSE_DRIFT_FLOOR:.0%}); D1 convergence requires "
+            f"BOTH to flag, so no drift."
+        )
+
+    return AxisAuditResult(
+        axis_name=axis_name,
+        claim=claim,
+        verdict="aligned",
+        evidence_count=n,
+        signatures=signatures,
+        signature_predictions=predictions,
+        confidence=confidence,
+        evidence_refs=evidence_refs,
+        reason=(
+            f"Across {n} qualifying record(s): buzzword rate "
+            f"{s1_rate:.0%}, specificity collapse_ratio "
+            f"{s2_collapse_ratio:.0%}. Claimed status-pressure primary "
+            f"holds against the lived record." + single_miss_note
+        ),
+        suggested_reelicitation=None,
+    )
+
+
 # Per-axis dispatch table. Populated by checkpoints 2-5 as each axis's
 # real handler lands. Every insertion into this dict is a commitment that
 # the corresponding axis is fully operationalized per its spec entry.
@@ -1206,7 +1640,7 @@ _AXIS_HANDLERS: dict[str, Any] = {
     "fence_discipline": _axis_fence_discipline,    # checkpoint 2
     "dominant_lens": _axis_dominant_lens,          # checkpoint 3
     "asymmetry_posture": _axis_asymmetry_posture,  # checkpoint 4
-    # Checkpoint 5 will insert: "noise_signature": _axis_noise_signature
+    "noise_signature": _axis_noise_signature,      # checkpoint 5
 }
 
 

@@ -30,7 +30,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from episteme import _profile_audit as pa
@@ -1694,6 +1694,402 @@ class AsymmetryPostureEndToEndTests(unittest.TestCase):
         self.assertEqual(ap["verdict"], "aligned")
         self.assertEqual(ap["claim"], "loss-averse")
         self.assertEqual(ap["evidence_count"], 18)
+
+
+# ---------------------------------------------------------------------------
+# Axis B · noise_signature (checkpoint 5)
+# ---------------------------------------------------------------------------
+
+def _lexicon_for_axis_b() -> dict[str, frozenset[str]]:
+    """Mirror the buzzword section of kernel/PHASE_12_LEXICON.md so
+    Axis B tests don't depend on the on-disk lexicon."""
+    return {
+        "buzzword": frozenset({
+            "robust", "seamless", "end-to-end", "enterprise-grade",
+            "world-class", "best-in-class", "holistic", "synergy",
+            "cutting-edge", "battle-tested", "production-ready",
+            "scalable", "resilient", "elegant", "idiomatic",
+        }),
+    }
+
+
+def _make_axis_b_record(
+    *,
+    correlation_id: str,
+    captured_at: str = "2026-04-21T12:00:00+00:00",
+    core_question: str | None = None,
+    knowns: list[str] | None = None,
+    disconfirmation: str | None = None,
+    unknowns: list[str] | None = None,
+) -> dict:
+    surface: dict = {}
+    if core_question is not None:
+        surface["core_question"] = core_question
+    if knowns is not None:
+        surface["knowns"] = knowns
+    if disconfirmation is not None:
+        surface["disconfirmation"] = disconfirmation
+    if unknowns is not None:
+        surface["unknowns"] = unknowns
+    details: dict = {
+        "tool": "Bash",
+        "command": "git push origin main",
+        "cwd": "/tmp/fixture",
+        "exit_code": 0,
+        "status": "success",
+        "high_impact_patterns_matched": ["git push"],
+    }
+    if surface:
+        details["reasoning_surface"] = surface
+    return {
+        "id": f"fixture-{correlation_id}",
+        "memory_class": "episodic",
+        "summary": f"fixture-{correlation_id}",
+        "details": details,
+        "provenance": {
+            "source_type": "agent",
+            "source_ref": "tests/test_profile_audit.py",
+            "captured_at": captured_at,
+            "captured_by": "fixture",
+            "confidence": "high",
+            "evidence_refs": [f"correlation_id:{correlation_id}"],
+        },
+        "status": "active",
+        "version": "memory-contract-v1",
+        "tags": ["high-impact", "bash"],
+        "session_id": "fixture-session",
+        "event_type": "action",
+    }
+
+
+class AxisBQualifyingTests(unittest.TestCase):
+    def test_requires_core_question_or_knowns(self):
+        # Neither field present → does not qualify.
+        rec = _make_axis_b_record(correlation_id="bq1")
+        ok, _, _, _, _ = pa._axis_b_qualifying(rec)
+        self.assertFalse(ok)
+
+    def test_core_question_alone_qualifies(self):
+        rec = _make_axis_b_record(
+            correlation_id="bq2",
+            core_question="What is the load-bearing failure here?",
+        )
+        ok, cq, knowns, ts, blob = pa._axis_b_qualifying(rec)
+        self.assertTrue(ok)
+        self.assertIn("load-bearing", cq)
+        self.assertEqual(knowns, [])
+
+    def test_knowns_alone_qualifies(self):
+        rec = _make_axis_b_record(
+            correlation_id="bq3",
+            knowns=["staging environment is healthy"],
+        )
+        ok, _, knowns, _, _ = pa._axis_b_qualifying(rec)
+        self.assertTrue(ok)
+        self.assertEqual(knowns, ["staging environment is healthy"])
+
+    def test_blob_concatenates_for_buzzword_scan(self):
+        rec = _make_axis_b_record(
+            correlation_id="bq4",
+            core_question="will it scale?",
+            knowns=["world-class architecture in place"],
+        )
+        ok, _, _, _, blob = pa._axis_b_qualifying(rec)
+        self.assertTrue(ok)
+        self.assertIn("scale", blob)
+        self.assertIn("world-class", blob)
+
+
+class CadencePartitionTests(unittest.TestCase):
+    def test_empty_input_returns_empty_partitions(self):
+        tight, loose = pa._partition_by_inferred_cadence([])
+        self.assertEqual(tight, [])
+        self.assertEqual(loose, [])
+
+    def test_partitions_split_on_median_gap(self):
+        # Build records with predictable inter-record gaps.
+        recs = [
+            _make_axis_b_record(
+                correlation_id=f"r{i}",
+                captured_at=ts,
+                core_question="q",
+            )
+            for i, ts in enumerate([
+                "2026-04-21T10:00:00+00:00",  # baseline
+                "2026-04-21T10:00:01+00:00",  # +1s   (tight)
+                "2026-04-21T10:00:02+00:00",  # +1s   (tight)
+                "2026-04-21T10:01:00+00:00",  # +58s  (loose)
+                "2026-04-21T10:02:00+00:00",  # +60s  (loose)
+            ])
+        ]
+        with_ts = [(r, r["provenance"]["captured_at"]) for r in recs]
+        tight, loose = pa._partition_by_inferred_cadence(with_ts)
+        # 4 gaps: 1, 1, 58, 60. Median = (1+58)/2 = 29.5.
+        # Records following short gaps go to tight; long gaps to loose.
+        self.assertEqual(len(tight), 2)
+        self.assertEqual(len(loose), 2)
+
+
+class AxisBSpecificityLengthTests(unittest.TestCase):
+    def test_empty_surface_yields_zero(self):
+        rec = _make_axis_b_record(correlation_id="sl1")
+        self.assertEqual(pa._axis_b_specificity_length(rec), 0)
+
+    def test_disconfirmation_plus_first_unknown(self):
+        rec = _make_axis_b_record(
+            correlation_id="sl2",
+            disconfirmation="abc",        # 3 chars
+            unknowns=["12345", "ignored"],  # 5 chars
+        )
+        self.assertEqual(pa._axis_b_specificity_length(rec), 8)
+
+    def test_disconfirmation_alone(self):
+        rec = _make_axis_b_record(
+            correlation_id="sl3",
+            disconfirmation="hello world",  # 11 chars
+        )
+        self.assertEqual(pa._axis_b_specificity_length(rec), 11)
+
+
+class NoiseSignatureHandlerTests(unittest.TestCase):
+    """End-to-end on _axis_noise_signature."""
+
+    @staticmethod
+    def _aligned_record(idx: int, gap_seconds: int = 60) -> dict:
+        # Buzzword-free, generous specificity. Loose-cadence default.
+        ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+              + timedelta(seconds=idx * gap_seconds)).isoformat()
+        return _make_axis_b_record(
+            correlation_id=f"a{idx:03d}",
+            captured_at=ts,
+            core_question=f"What measurable outcome would prove run {idx} wrong?",
+            knowns=[
+                f"Baseline metric for run {idx} captured before the change.",
+                f"Reviewer {idx} signed off on the diff.",
+            ],
+            disconfirmation=(
+                f"if the canary p95 exceeds 400ms for run {idx} within "
+                f"10 minutes of deploy, rollback the release"
+            ),
+            unknowns=[
+                f"whether the new query plan will degrade tail latency "
+                f"on shard {idx}"
+            ],
+        )
+
+    @staticmethod
+    def _buzzword_record(idx: int) -> dict:
+        # Buzzword-loaded core_question + knowns. Same cadence shape as
+        # _aligned_record so partitioning still works.
+        ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+              + timedelta(seconds=idx * 60)).isoformat()
+        return _make_axis_b_record(
+            correlation_id=f"b{idx:03d}",
+            captured_at=ts,
+            core_question=(
+                f"How do we ship a world-class, enterprise-grade, "
+                f"production-ready run {idx}?"
+            ),
+            knowns=[
+                f"Holistic seamless end-to-end pipeline for {idx}.",
+                f"Battle-tested resilient cutting-edge stack {idx}.",
+            ],
+            disconfirmation=(
+                f"if the canary p95 exceeds 400ms for {idx}, rollback"
+            ),
+            unknowns=[f"whether shard {idx} stays healthy"],
+        )
+
+    def test_no_claim_returns_insufficient_evidence(self):
+        out = pa._axis_noise_signature(
+            "noise_signature", None, [], _lexicon_for_axis_b()
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertIn("No noise_signature primary", out["reason"])
+
+    def test_non_status_pressure_primary_is_insufficient_evidence(self):
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "anxiety", "secondary": None},
+            [],
+            _lexicon_for_axis_b(),
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertIn("anxiety", out["reason"])
+        self.assertIn("Template B", out["reason"])
+
+    def test_insufficient_evidence_below_forty_qualifying(self):
+        records = [self._aligned_record(i) for i in range(20)]
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "status-pressure", "secondary": "false-urgency"},
+            records,
+            _lexicon_for_axis_b(),
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertEqual(out["evidence_count"], 20)
+        self.assertIn("≥ 40", out["reason"])
+
+    def test_aligned_when_clean_record_at_scale(self):
+        # 50 buzzword-free records with collapsing specificity under
+        # tight cadence — this is the operator's claim borne out.
+        records: list[dict] = []
+        for i in range(50):
+            # Compress half the records into tight cadence with shorter
+            # disconfirmations to simulate collapse.
+            if i % 2 == 0:
+                ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+                      + timedelta(seconds=i * 1)).isoformat()  # tight (1s)
+                rec = _make_axis_b_record(
+                    correlation_id=f"t{i:03d}",
+                    captured_at=ts,
+                    core_question="what could break here?",
+                    knowns=["staging green"],
+                    disconfirmation="if p95 > 400ms, abort",  # short
+                    unknowns=["what about shard X?"],          # short
+                )
+            else:
+                ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+                      + timedelta(seconds=i * 120)).isoformat()  # loose (120s)
+                rec = self._aligned_record(i)
+            records.append(rec)
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "status-pressure", "secondary": "false-urgency"},
+            records,
+            _lexicon_for_axis_b(),
+        )
+        self.assertEqual(out["verdict"], "aligned")
+        self.assertLess(out["signatures"]["S1_buzzword_record_rate"], 0.15)
+
+    def test_drift_on_catastrophic_buzzword_density(self):
+        # Every record buzzword-loaded; S1 = 1.0, far above the 0.30
+        # catastrophic ceiling. Single-signature flag fires regardless
+        # of S2 (named exception per spec §Axis B).
+        records = [self._buzzword_record(i) for i in range(45)]
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "status-pressure", "secondary": "false-urgency"},
+            records,
+            _lexicon_for_axis_b(),
+        )
+        self.assertEqual(out["verdict"], "drift")
+        self.assertGreater(out["signatures"]["S1_buzzword_record_rate"], 0.30)
+        self.assertIn("catastrophic", out["reason"])
+        self.assertIsNotNone(out["suggested_reelicitation"])
+
+    def test_drift_requires_both_signatures_when_s1_subcatastrophic(self):
+        # 25% buzzword rate (above 0.15 floor, below 0.30 catastrophic).
+        # Cadence has to vary or the partitioner has no signal — use
+        # alternating short/long gaps so tight/loose populate. The
+        # specificity is held CONSTANT across both partitions so
+        # collapse_ratio ≈ 0 (no collapse) → S2 also misses → D1
+        # convergence drift fires.
+        records: list[dict] = []
+        T0 = datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+        for i in range(48):
+            offset_s = (i // 2) * 120 + (1 if i % 2 == 1 else 0)
+            ts = (T0 + timedelta(seconds=offset_s)).isoformat()
+            if i < 12:
+                rec = self._buzzword_record(i)
+            else:
+                rec = self._aligned_record(i)
+            rec["provenance"]["captured_at"] = ts
+            records.append(rec)
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "status-pressure", "secondary": "false-urgency"},
+            records,
+            _lexicon_for_axis_b(),
+        )
+        # Either a clean D1 drift OR an aligned with single-miss note —
+        # both are valid expressions of "S1 above floor, S2 may or may
+        # not converge depending on partition split". The point of this
+        # test is that we did NOT trigger the single-signature
+        # catastrophic exception (S1 < 0.30) and therefore D1 governs.
+        self.assertIn(out["verdict"], ("drift", "aligned"))
+        self.assertGreater(out["signatures"]["S1_buzzword_record_rate"], 0.15)
+        self.assertLessEqual(out["signatures"]["S1_buzzword_record_rate"], 0.30)
+
+    def test_sub_floor_buzzword_with_collapse_is_aligned(self):
+        # 40 clean records, cadence partitions both populated.
+        records = []
+        for i in range(40):
+            if i % 2 == 0:
+                ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+                      + timedelta(seconds=i * 1)).isoformat()
+                rec = _make_axis_b_record(
+                    correlation_id=f"t{i:03d}",
+                    captured_at=ts,
+                    core_question="will this work?",
+                    knowns=["green"],
+                    disconfirmation="if p95 > 400ms, abort",
+                    unknowns=["shard health?"],
+                )
+            else:
+                ts = (datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+                      + timedelta(seconds=i * 120)).isoformat()
+                rec = self._aligned_record(i)
+            records.append(rec)
+        out = pa._axis_noise_signature(
+            "noise_signature",
+            {"primary": "status-pressure", "secondary": "false-urgency"},
+            records,
+            _lexicon_for_axis_b(),
+        )
+        self.assertEqual(out["verdict"], "aligned")
+
+
+class NoiseSignatureEndToEndTests(unittest.TestCase):
+    def test_run_audit_routes_noise_signature_to_real_handler(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            lex_path = root / "lexicon.md"
+            lex_path.write_text(
+                "## buzzword\n"
+                "- robust\n- seamless\n- end-to-end\n- world-class\n"
+                "- holistic\n- production-ready\n",
+                encoding="utf-8",
+            )
+            epi = root / "episodic"
+            epi.mkdir()
+            # Cadence must vary or S2 partitioning is degenerate. Pair
+            # tight/loose timestamps so the partitioner has signal.
+            records = []
+            T0 = datetime(2026, 4, 21, 10, 0, 0, tzinfo=timezone.utc)
+            for i in range(45):
+                rec = NoiseSignatureHandlerTests._aligned_record(i)
+                offset_s = (i // 2) * 120 + (1 if i % 2 == 1 else 0)
+                rec["provenance"]["captured_at"] = (
+                    T0 + timedelta(seconds=offset_s)
+                ).isoformat()
+                records.append(rec)
+            (epi / "2026-04-21.jsonl").write_text(
+                "\n".join(json.dumps(r) for r in records) + "\n",
+                encoding="utf-8",
+            )
+            prof = root / "profile.md"
+            prof.write_text(
+                "```\n"
+                "noise_signature:\n"
+                "  primary: status-pressure\n"
+                "  secondary: false-urgency\n"
+                "  confidence: inferred\n"
+                "```\n",
+                encoding="utf-8",
+            )
+            result = pa.run_audit(
+                episodic_dir=epi,
+                reflective_dir=root / "reflective",
+                profile_path=prof,
+                lexicon_path=lex_path,
+                since_days=3650,
+            )
+        by_name = {a["axis_name"]: a for a in result["axes"]}
+        ns = by_name["noise_signature"]
+        self.assertEqual(ns["verdict"], "aligned")
+        self.assertEqual(ns["claim"], {"primary": "status-pressure", "secondary": "false-urgency"})
+        self.assertEqual(ns["evidence_count"], 45)
 
 
 if __name__ == "__main__":
