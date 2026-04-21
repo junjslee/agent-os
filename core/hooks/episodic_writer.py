@@ -242,8 +242,13 @@ def _build_record(payload: dict, cmd: str, hits: list[str]) -> dict[str, Any]:
     }
     if surface is not None:
         # Snapshot — not a reference — because the Surface file rolls over.
+        # `knowns` is required by the phase-12 profile-audit loop (Axis C
+        # S1 scans it for constraint-reconstruction evidence). Omitting it
+        # makes fence_discipline uncheckable against real records, so this
+        # snapshot must stay in lockstep with the profile-audit signatures.
         details["reasoning_surface"] = {
             "core_question": surface.get("core_question"),
+            "knowns": surface.get("knowns"),
             "unknowns": surface.get("unknowns"),
             "assumptions": surface.get("assumptions"),
             "disconfirmation": surface.get("disconfirmation"),

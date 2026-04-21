@@ -145,6 +145,7 @@ class ReasoningSurfaceAttachmentTests(unittest.TestCase):
             surface = {
                 "timestamp": "2026-04-20T12:00:00Z",
                 "core_question": "Will this push break the build?",
+                "knowns": ["main branch protected by CI gate since 9c26201"],
                 "unknowns": ["does CI run tests on this branch?"],
                 "assumptions": ["green suite locally"],
                 "disconfirmation": "pipeline fails within 3m of push",
@@ -162,6 +163,11 @@ class ReasoningSurfaceAttachmentTests(unittest.TestCase):
             self.assertEqual(rs["core_question"], surface["core_question"])
             self.assertEqual(rs["domain"], "Complicated")
             self.assertEqual(rs["tacit_call"], False)
+            # `knowns` must be captured — phase-12 Axis C (fence_discipline)
+            # S1 scans this field for constraint-reconstruction evidence.
+            # Omitting it makes the audit blind to the maintainer's own
+            # declared fence_discipline: 4 claim.
+            self.assertEqual(rs["knowns"], surface["knowns"])
             self.assertEqual(record["provenance"]["confidence"], "high",
                              "high confidence when surface + exit present")
 
