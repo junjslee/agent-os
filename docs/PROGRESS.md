@@ -278,6 +278,83 @@ Tested explicitly via `test_cp4_honestly_passes_pure_english_fluent_vacuous` —
 
 ---
 
+## Event 12 — 2026-04-21 — CP5 shipped: Blueprint B (Fence Reconstruction) end-to-end + first Pillar 3 synthesis output
+
+**The first realized blueprint and the first persisted Pillar 3 synthesis producer.** Before CP5, Pillar 3 was paper — the framework file had never been written to. After CP5, a reversible constraint-removal op that passes Fence's five-field contract produces exactly one durable protocol entry in `~/.episteme/framework/protocols.jsonl`. This is the commit that moves "Pillar 3 synthesis & active guidance" from spec narrative into executable code. Tests: **392/392 passing** (361 CP4 baseline + 30 new + 1 fixture migration). Zero regressions.
+
+### CP5 delivery
+
+- **`core/blueprints/fence_reconstruction.yaml` (new).** Five required fields (`constraint_identified`, `origin_evidence`, `removal_consequence_prediction`, `reversibility_classification`, `rollback_path`) per spec § Blueprint B. `synthesis_arm: true`. One `selector_triggers` entry (dict shape) carrying the compound-AND gate.
+
+- **`core/hooks/_blueprint_registry.py`.** YAML parser extended with list-of-dicts support — the documented CP5 extension point that CP2's parser explicitly flagged as deferred. Flat dicts only: each item's keys parse as scalar or `>` / `|` block-scalar values. Nested lists inside dict items remain rejected (raises `BlueprintParseError`). Tested directly with both the Fence YAML and synthetic fixtures.
+
+- **`core/hooks/_scenario_detector.py`.** Real `detect_scenario` selector replacing the CP2 stub. Compound AND: a command-head-anchored removal-verb lexicon regex AND a word-boundary-anchored constraint-path regex must BOTH match the same Bash command. Triggers compiled from the YAML and cached per-process. Returns `"fence_reconstruction"` on match, `"generic"` otherwise. Non-Bash tools never fire Fence even if the strings appear in their payload.
+
+- **`core/hooks/_specificity.py`.** New `_classify_origin_evidence(text) -> Literal["evidence", "legacy", "unknown"]`. Evidence markers: commit SHA (dual digit+letter discipline), `@path:line` anchors, ticket/incident IDs (`#123`, `INC42`, `JIRA-456`, `PAGE7`), URLs, dated events (`2026-04-15`), explicit `git blame` / `postmortem` / `RFC` / `ADR` citations. Legacy hedges: `unclear`, `probably legacy`, `historical reasons`, `no record`, `don't remember`, `forgotten`, `cargo-culted`, `just there`. Priority: `legacy` > `evidence` > `unknown`. A surface citing a SHA but hedging "probably legacy" routes to `legacy` — the hedge is the epistemic claim.
+
+- **`core/hooks/reasoning_surface_guard.py`.** New `_layer_fence_validate` function runs after Layer 1 + 2 + 3 on Fence-selected surfaces. Three verdicts: `pass` (all five fields present + non-lazy + ≥ 15 chars; reversibility == `reversible`; origin-evidence classifies as `evidence`), `advisory-irreversible` (reversibility == `irreversible`; emits stderr escalation to Axiomatic Judgment; NO synthesis write — Axiomatic Judgment lands at CP6 as structure-only, so the block would be premature), `reject` (missing fields, lazy origin evidence, or bad reversibility enum). On `pass`, writes the pending-synthesis marker via `_fence_synthesis.write_pending_marker`. Also: the main() high-impact gate now admits `label = "fence:constraint-removal"` when the scenario detector fires Fence, so constraint-removal ops reach the surface-validation path even though `rm` itself isn't in `HIGH_IMPACT_BASH`.
+
+- **`core/hooks/_grounding.py`.** `_GROUNDED_FIELDS_BY_BLUEPRINT["fence_reconstruction"] = ("disconfirmation", "unknowns", "constraint_identified")` — Layer 3 grounds the Fence-named entity to a real project file per spec § Blueprint B ("line-level precision").
+
+- **`core/hooks/_fence_synthesis.py` (new library, ~260 LOC).** Owns the PreToolUse → PostToolUse handoff. `write_pending_marker(surface, correlation, cwd, cmd) -> path` atomically writes one JSON file per correlation id to `~/.episteme/state/fence_pending/<correlation_id>.json` — file-per-marker sidesteps `fcntl.flock` discipline (the user-approved design decision; also sidesteps the Windows `fcntl` unavailability noted in the RC-engineering checklist). `correlation_id(payload, cmd, ts)` duplicates the shape `calibration_telemetry.py` uses (tool-use-id preferred, SHA-1 over `(second-bucket, cwd, cmd)` fallback) so Pre / Post hooks produce the same id for the same call. `finalize_on_success(correlation, exit_code)` reads the marker, appends a protocol entry on `exit_code == 0`, and deletes the marker unconditionally. Inline minimal `context_signature` over `(cwd-basename, op-class, constraint-head)`. Secret redaction + atomic tempfile+rename writes. `EPISTEME_HOME` env override so tests can isolate.
+
+- **`core/hooks/fence_synthesis.py` (new PostToolUse entrypoint, ~110 LOC).** Reads stdin payload, normalizes (same shape `calibration_telemetry` uses), extracts exit code from nested response shapes, calls `_fence_synthesis.finalize_on_success`. Never blocks; any exception → `return 0`.
+
+- **`hooks/hooks.json`.** `fence_synthesis.py` registered under PostToolUse / Bash alongside `state_tracker.py`, `calibration_telemetry.py`, `episodic_writer.py` (all `async: true`).
+
+### Pillar 3 end-to-end — the load-bearing CP5 verification gate
+
+From `tests/test_fence_reconstruction_end_to_end.py::TestPillar3SynthesisEndToEnd`:
+
+1. **Reversible Fence admission** → PreToolUse writes exactly one `<correlation_id>.json` pending marker.
+2. **PostToolUse `exit_code == 0`** → reads the marker, appends exactly one JSON line to `~/.episteme/framework/protocols.jsonl` with `format_version: "cp5-pre-chain"`, null `chain.prev_hash` / `chain.entry_hash`, a non-empty `synthesized_protocol` string, a stable `context_signature`, and all 5 source fields preserved. Marker deleted.
+3. **PostToolUse `exit_code != 0`** → no protocol written; marker deleted anyway.
+4. **Irreversible Fence** → stderr advisory cites Axiomatic Judgment; no pending marker written at all.
+5. **Generic op (non-Fence)** → no Fence pending marker ever written.
+6. **Corrupt pending marker** → PostToolUse returns 0 cleanly; no protocol written.
+
+### Live dogfood lesson — FP-aversion tuning
+
+The initial `removal_lexicon_pattern` used a loose `\b(?:rm|rmdir|unlink|chmod\s+-x|disable|delete|remove|drop|unset|deactivate|revoke)\b` word-boundary pattern. When the CP5 commit itself was executed, the compound gate fired: the commit-message body contained `deactivate` / `disable` / `remove` alongside `.episteme/` references, so both halves of the AND matched. This is exactly the FP class the compound gate was designed to prevent on the *command* axis, but the lexicon was too permissive across prose.
+
+Fix: anchor removal verbs to command-head (`^\s*(?:sudo\s+)?(?:rm|rmdir|unlink|git\s+rm|chmod\s+-x|chmod\s+0)\b`). Now only actual filesystem-removal commands fire Fence. `git commit -m "...disable..."` starts with `git commit`, not `rm` — no match. `echo "remove"` starts with `echo` — no match. `cat .episteme/foo` starts with `cat`, lexicon fails — no match. Narrow by design for CP5; CP6+ can widen if real use cases surface (e.g., `find ... -delete`).
+
+**This is the selector-tuning loop the spec § Blueprint B acknowledges.** Per Phase 12 discipline: a selector that FPs on its own shipping commit is the strongest possible signal that the selector needed tightening. Logged as a live lesson in the commit body.
+
+### Honest CP5 limits (tested explicitly, not latent)
+
+- **"Rollback not triggered within window"** — CP5 uses PostToolUse `exit_code == 0` as the proxy for "rollback not triggered." The proper time-windowed rollback detection per spec § Pillar 3 lands at CP7 with `_pending_contracts.py` + Layer 6 TTL audit.
+- **`context_signature`** — inline SHA-256 over `(cwd-basename, op-class, constraint-head)`. CP7's canonical `_context_signature.py` will cover project fingerprint + operator profile axes + environment. CP5 protocols carry `context_signature` values that CP7 will re-canonicalize; cross-project / cross-operator match is CP7+ territory.
+- **Hash chain** — every CP5 protocol entry carries `format_version: "cp5-pre-chain"` + null `chain.prev_hash` / `chain.entry_hash`. CP7 walks the file, retroactively computes chain hashes, bumps `format_version`. Tested explicitly — the protocol-writer test asserts both null-chain fields are present.
+- **Irreversible branch** — advisory-only until Axiomatic Judgment (Blueprint A) ships structure at CP6. The current advisory message points at Axiomatic Judgment by name.
+
+### Deferred discoveries (Blueprint D territory, logged — not fixed inline)
+
+16. **Selector-tuning loop visibility.** The live-dogfood FP above is the first clear example of a selector-tuning event that would benefit from a structured log ("when Fence tripped on its own commit, the operator tightened the lexicon to `^anchor`"). Candidate for a `core/blueprints/_selector_log.jsonl` append-only record keyed by blueprint name + date + change class. Out of CP5 scope — lift into CP6 or the post-RC soak window.
+17. **YAML parser refactor debt.** CP2 wrote a bespoke parser covering the exact feature set it needed; CP5 extended it for list-of-dicts. CP6 will likely need nested maps for `verification_trace` shape; CP10 may need more. Candidate for a single structured refactor at CP6 rather than incremental per-CP extension.
+18. **Fence pending-marker TTL of 24h.** Fixed at `MARKER_TTL_SECONDS = 24 * 60 * 60` in `_fence_synthesis.py`. Tests do not exercise expiry; rely on the TTL branch to catch stale markers across session boundaries. Revisit at CP7 when Layer 6's proper TTL lands.
+
+### What did NOT happen
+
+- No hash chain. CP7.
+- No Layer 6 pending-contracts write. CP7.
+- No canonical context_signature. CP7.
+- No framework-query active guidance at PreToolUse. CP9.
+- No SessionStart framework digest. CP9.
+- No `episteme guide` CLI. CP9.
+- No Axiomatic Judgment structure. CP6.
+- No Consequence Chain structure. CP6.
+- No Blueprint D scaffolding. CP10.
+
+### Honest open questions carrying into CP6
+
+- Whether `verification_trace` schema (CP6's core) needs to be a sixth Fence field with its own blueprint-shaped variant, or can be optional at CP6 and required-for-highest-impact at v1.0.1.
+- Whether the selector-tuning lesson above should promote the `removal_lexicon_pattern` from YAML to Python code for tighter control, or stay in YAML with stricter validation. Current: YAML wins on transparency and user-editability.
+
+**Commit plan:** one atomic commit for CP5, message subject `feat(v1.0-rc): CP5 Blueprint B (Fence Reconstruction) end-to-end + first Pillar 3 synthesis output` — **shipped as `117fa69`.**
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.
