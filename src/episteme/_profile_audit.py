@@ -533,12 +533,391 @@ def _axis_fence_discipline(
     )
 
 
+# ---------------------------------------------------------------------------
+# Axis A · dominant_lens (checkpoint 3)
+# ---------------------------------------------------------------------------
+#
+# Spec: docs/DESIGN_V0_11_PHASE_12.md § Axis A.
+#
+# `dominant_lens` is an ordered list; we audit position 0. CP3 operationalizes
+# the `failure-first` value only — position-0 values other than failure-first
+# return insufficient_evidence with a pointer to the 0.11.1 work that covers
+# them. This matches the spec's "four worked axes first, sketched pattern for
+# the rest" discipline.
+#
+# Two signatures:
+#
+#   S1 · failure-frame RATIO over unknowns + disconfirmation. Aggregate
+#        token counts across qualifying records. Claim `failure-first`
+#        predicts > 0.6; drift floor 0.45 (25% proportional shortfall).
+#
+#   S2 · fire-condition RATE across disconfirmation classifier. Each
+#        record's `disconfirmation` → one of {fire, absence, tautological,
+#        unknown}. Fire = conditional trigger (if/when/should/once/after)
+#        AND a specific observable (numeric threshold, metric name,
+#        failure verb). Absence beats fire — a clause like "if nothing
+#        fails" is absence, not fire, even though it contains `fails`.
+#        Claim predicts ≥ 0.70 fire-rate; drift floor 0.55.
+#
+# D1 convergence STRICT for Axis A: both S1 AND S2 must miss their floors
+# to flag drift. A single-signature miss is logged in the record but does
+# not trigger re-elicitation. This is the named default (Axis C's single-
+# signature exception is the anomaly).
+
+# Classifier rule sets. Compiled once at module load. Absence checked
+# FIRST so "if nothing unexpected happens" routes away from fire — the
+# whole point of the axis is that absence-conditions are the wrong shape
+# for a failure-first operator.
+_ABSENCE_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"\bif\s+no(?:body|\s+one|\s+\w+)\s+(?:complain|object|notice|report|flag|raise|push\s+back)", re.I),
+    re.compile(r"\bnothing\s+(?:unexpected|fails?|breaks?|changes|goes\s+wrong|surfaces?)", re.I),
+    re.compile(r"\bno\s+(?:issues?|errors?|failures?|complaints?|problems?|regressions?)\s+(?:appear|arise|emerge|occur|surface|show\s+up)", re.I),
+    re.compile(r"\b(?:everything|all)\s+(?:is|stays|remains|looks)\s+(?:fine|ok|okay|green|normal|healthy)", re.I),
+    re.compile(r"\babsence\s+of\b", re.I),
+    re.compile(r"\bno\s+one\s+(?:notices|complains|reports|pushes\s+back)", re.I),
+    re.compile(r"\bif\s+no\s+alarm", re.I),
+)
+
+# Conditional triggers — the "if / when / should / once / after / unless"
+# that opens a predicted-outcome clause.
+_CONDITIONAL_TRIGGER_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"\bif\b", re.I),
+    re.compile(r"\bwhen\b", re.I),
+    re.compile(r"\bshould\b", re.I),
+    re.compile(r"\bonce\b", re.I),
+    re.compile(r"\bafter\b", re.I),
+    re.compile(r"\bunless\b", re.I),
+)
+
+# Specific observables — numeric thresholds, metric references, failure
+# verbs naming something that can be watched for.
+_OBSERVABLE_PATTERNS: tuple[re.Pattern, ...] = (
+    re.compile(r"\d+\s*%"),
+    re.compile(r"\d+\s*(?:ms|sec|seconds?|min|minutes?|h|hours?|MB|GB|KB|rps|qps|errors?)\b", re.I),
+    re.compile(r"\b(?:exceeds?|drops?|rises?|passes?|crosses?|hits?|reaches?|exceeds?)\s+\d"),
+    re.compile(r"\b(?:fails?|errors?|times?\s*out|crashes?|exits?|panics?|throws?|rejects?|returns?\s+non-?zero|non-?zero\s+exit)\b", re.I),
+    re.compile(r"\b(?:log\s+shows?|query[- ]log|telemetry|ci|pipeline|build|test\s+suite|audit\s+log)\b", re.I),
+    re.compile(r"\bexit\s*code\b", re.I),
+    re.compile(r"\bwithin\s+\d", re.I),
+    re.compile(r"\b(?:p50|p90|p95|p99|latency|throughput|error\s+rate|regression)\b", re.I),
+    re.compile(r"\b(?:returns?|responds?\s+with|produces?)\s+\S"),
+)
+
+
+DisconfirmationClass = Literal["fire", "absence", "tautological", "unknown"]
+
+
+def _classify_disconfirmation(text: Any) -> DisconfirmationClass:
+    """Syntactic classifier for a Reasoning Surface's `disconfirmation`
+    field. Priority: absence > fire > tautological > unknown.
+
+    - `unknown` reserved for empty / very-short content (< 10 chars) —
+      we decline to classify rather than guess.
+    - `absence` fires first so clauses like "if nothing breaks" do not
+      get mis-classified as fire just because they contain 'breaks'.
+    - `fire` requires a conditional trigger AND a specific observable —
+      either alone is tautological.
+    - everything else → `tautological` (pattern-matches the 'restates
+      the knowns' case without a false-positive risk).
+    """
+    if not isinstance(text, str):
+        return "unknown"
+    stripped = text.strip()
+    if len(stripped) < 10:
+        return "unknown"
+
+    low = stripped.lower()
+    if any(pat.search(low) for pat in _ABSENCE_PATTERNS):
+        return "absence"
+
+    has_trigger = any(pat.search(low) for pat in _CONDITIONAL_TRIGGER_PATTERNS)
+    has_observable = any(pat.search(low) for pat in _OBSERVABLE_PATTERNS)
+    if has_trigger and has_observable:
+        return "fire"
+    return "tautological"
+
+
+def _count_lexicon_hits(text: str, terms: frozenset[str]) -> int:
+    """Count term occurrences in text. Multi-word terms are matched as
+    word-boundary phrases; single-word terms as word-boundary lookups.
+    Case-insensitive. Returns 0 on empty input or empty lexicon.
+
+    Mirrors the PHASE_12_LEXICON.md 'whitespace-collapsed, multi-word as
+    regex word-boundary phrases' match rule.
+    """
+    if not text or not terms:
+        return 0
+    # Collapse whitespace to match the lexicon's normalization rule.
+    normalized = re.sub(r"\s+", " ", text.lower())
+    hits = 0
+    for term in terms:
+        if not term:
+            continue
+        tl = term.lower()
+        # Single pattern either way — re.escape + \b boundaries handles
+        # multi-word terms cleanly because spaces are literal between
+        # word characters.
+        pattern = r"\b" + re.escape(tl) + r"\b"
+        hits += len(re.findall(pattern, normalized))
+    return hits
+
+
+def _axis_a_qualifying(record: dict) -> tuple[bool, list[str], str]:
+    """Return (qualifies, unknowns_list, disconfirmation_text). A record
+    qualifies for Axis A when it has both non-empty unknowns and
+    non-empty disconfirmation per spec §Axis A Evidence minimum."""
+    details = record.get("details")
+    if not isinstance(details, dict):
+        return False, [], ""
+    surface = details.get("reasoning_surface")
+    if not isinstance(surface, dict):
+        return False, [], ""
+    unknowns = surface.get("unknowns")
+    if not isinstance(unknowns, list):
+        return False, [], ""
+    unknowns_str = [str(u) for u in unknowns if isinstance(u, str) and u.strip()]
+    if not unknowns_str:
+        return False, [], ""
+    disconf = surface.get("disconfirmation")
+    if not isinstance(disconf, str) or not disconf.strip():
+        return False, [], ""
+    return True, unknowns_str, disconf
+
+
+_AXIS_A_EVIDENCE_MINIMUM = 20
+
+# Claim-anchored prediction bands for dominant_lens[0] = failure-first.
+# Floor = drift threshold, ceiling = 1.0 (perfect alignment with claim).
+# Per spec §Axis A: S1 predicts > 0.6 with drift floor 0.45; S2 predicts
+# ≥ 0.70 with drift floor 0.55.
+_FAILURE_FIRST_PREDICTIONS: dict[str, list[float]] = {
+    "S1_failure_frame_ratio": [0.45, 1.00],
+    "S2_fire_condition_rate": [0.55, 1.00],
+}
+
+
+def _extract_dominant_lens_primary(claim: Any) -> str | None:
+    """Return position-0 lens value, or None if the claim is missing /
+    malformed. `dominant_lens` is declared as an ordered list in the
+    profile; position 0 is the dominant lens the operator commits to."""
+    if isinstance(claim, list) and claim:
+        first = claim[0]
+        if isinstance(first, str) and first.strip():
+            return first.strip()
+    return None
+
+
+def _axis_dominant_lens(
+    axis_name: str,
+    claim: Any,
+    records: list[dict],
+    lexicon: dict[str, frozenset[str]],
+) -> AxisAuditResult:
+    primary = _extract_dominant_lens_primary(claim)
+
+    # Claim absent / malformed → no axis identity to audit. dominant_lens
+    # is categorical (a named lens), so without a claim there is no test
+    # to run — different from Axis C where a null claim can still
+    # surface observed rates informationally. Here we return
+    # insufficient_evidence per the CP1 baseline convention for un-
+    # auditable axes, so the report reads consistently with the other
+    # 11 un-implemented axes on a blank profile.
+    if primary is None:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=0,
+            signatures={},
+            signature_predictions={},
+            confidence="low",
+            evidence_refs=[],
+            reason=(
+                "No dominant_lens claim declared at position 0 per "
+                "docs/DESIGN_V0_11_PHASE_12.md § Axis A. CP3 audits "
+                "the primary (position-0) lens; without a named lens "
+                "there is no hypothesis to test."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    # CP3 implements only failure-first. Other lens values at position 0
+    # ship as insufficient_evidence with a spec sketch-table pointer.
+    if primary != "failure-first":
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=0,
+            signatures={},
+            signature_predictions={},
+            confidence="low",
+            evidence_refs=[],
+            reason=(
+                f"Position-0 claim is {primary!r}. CP3 operationalizes "
+                f"only 'failure-first' as position 0; other lenses "
+                f"follow Template A per docs/DESIGN_V0_11_PHASE_12.md "
+                f"§ sketch table and ship in 0.11.1."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    # S1 + S2 path — claim is `failure-first` at position 0.
+    failure_terms = lexicon.get("failure_frame", frozenset())
+    success_terms = lexicon.get("success_frame", frozenset())
+
+    qualifying: list[dict] = []
+    total_failure = 0
+    total_success = 0
+    fire_count = 0
+    absence_count = 0
+
+    for rec in records:
+        ok, unknowns_list, disconf = _axis_a_qualifying(rec)
+        if not ok:
+            continue
+        qualifying.append(rec)
+        blob = " ".join(unknowns_list) + " " + disconf
+        total_failure += _count_lexicon_hits(blob, failure_terms)
+        total_success += _count_lexicon_hits(blob, success_terms)
+        cls = _classify_disconfirmation(disconf)
+        if cls == "fire":
+            fire_count += 1
+        elif cls == "absence":
+            absence_count += 1
+
+    n = len(qualifying)
+    evidence_refs = _collect_evidence_refs(qualifying)
+    predictions = _FAILURE_FIRST_PREDICTIONS
+
+    if n < _AXIS_A_EVIDENCE_MINIMUM:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=n,
+            signatures={},
+            signature_predictions=predictions,
+            confidence="low",
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Only {n} qualifying record(s) with non-empty unknowns "
+                f"+ disconfirmation in window (need ≥ "
+                f"{_AXIS_A_EVIDENCE_MINIMUM} per docs/"
+                f"DESIGN_V0_11_PHASE_12.md § Axis A · Evidence minimum). "
+                f"Keep accumulating; Axis A requires D1 convergence on "
+                f"two signatures so the volume floor is higher than C."
+            ),
+            suggested_reelicitation=None,
+        )
+
+    # S1 — aggregate token ratio. Zero-denominator guard: an operator
+    # whose qualifying records contain NO failure/success lexicon hits
+    # has no signal; we cannot say drift, we cannot say aligned.
+    denom = total_failure + total_success
+    if denom == 0:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="insufficient_evidence",
+            evidence_count=n,
+            signatures={},
+            signature_predictions=predictions,
+            confidence="low",
+            evidence_refs=evidence_refs,
+            reason=(
+                f"{n} qualifying record(s) but zero failure-frame or "
+                f"success-frame lexicon hits across all of them. "
+                f"Signature S1 cannot be computed against an empty "
+                f"token base."
+            ),
+            suggested_reelicitation=None,
+        )
+    s1_rate = total_failure / denom
+    s2_rate = fire_count / n
+    absence_rate = absence_count / n
+
+    signatures = {
+        "S1_failure_frame_ratio": round(s1_rate, 3),
+        "S2_fire_condition_rate": round(s2_rate, 3),
+        "S2_absence_condition_rate": round(absence_rate, 3),
+    }
+
+    s1_floor = predictions["S1_failure_frame_ratio"][0]
+    s2_floor = predictions["S2_fire_condition_rate"][0]
+    s1_drift = s1_rate < s1_floor
+    s2_drift = s2_rate < s2_floor
+    confidence: Confidence = "high" if n >= 40 else "medium"
+
+    # D1 convergence — both must miss.
+    if s1_drift and s2_drift:
+        return AxisAuditResult(
+            axis_name=axis_name,
+            claim=claim,
+            verdict="drift",
+            evidence_count=n,
+            signatures=signatures,
+            signature_predictions=predictions,
+            confidence=confidence,
+            evidence_refs=evidence_refs,
+            reason=(
+                f"Across {n} qualifying record(s): failure-frame ratio "
+                f"{s1_rate:.0%} < {s1_floor:.0%} floor AND fire-condition "
+                f"rate {s2_rate:.0%} < {s2_floor:.0%} floor. Claim "
+                f"'failure-first' at position 0 not borne out by the "
+                f"lived record. D1 convergence confirmed — both "
+                f"signatures missed."
+            ),
+            suggested_reelicitation=(
+                "Re-elicit dominant_lens[0]: is 'failure-first' the "
+                "actual dominant lens, or is the claim aspirational? "
+                "Consider re-ordering to 'causal-chain' or "
+                "'first-principles' if those better match the record."
+            ),
+        )
+
+    # One-or-none signatures miss → aligned per D1. Emit reason that
+    # names the single-signature miss so the operator can see partial
+    # evidence without the audit pretending to certainty it lacks.
+    single_miss_note = ""
+    if s1_drift:
+        single_miss_note = (
+            f" S1 single-signature miss noted "
+            f"({s1_rate:.0%} < {s1_floor:.0%}); D1 convergence "
+            f"requires BOTH to flag, so no drift."
+        )
+    elif s2_drift:
+        single_miss_note = (
+            f" S2 single-signature miss noted "
+            f"({s2_rate:.0%} < {s2_floor:.0%}); D1 convergence "
+            f"requires BOTH to flag, so no drift."
+        )
+
+    return AxisAuditResult(
+        axis_name=axis_name,
+        claim=claim,
+        verdict="aligned",
+        evidence_count=n,
+        signatures=signatures,
+        signature_predictions=predictions,
+        confidence=confidence,
+        evidence_refs=evidence_refs,
+        reason=(
+            f"Across {n} qualifying record(s): failure-frame ratio "
+            f"{s1_rate:.0%}, fire-condition rate {s2_rate:.0%}. "
+            f"Claim 'failure-first' at position 0 holds against the "
+            f"lived record." + single_miss_note
+        ),
+        suggested_reelicitation=None,
+    )
+
+
 # Per-axis dispatch table. Populated by checkpoints 2-5 as each axis's
 # real handler lands. Every insertion into this dict is a commitment that
 # the corresponding axis is fully operationalized per its spec entry.
 _AXIS_HANDLERS: dict[str, Any] = {
     "fence_discipline": _axis_fence_discipline,  # checkpoint 2
-    # Checkpoint 3 will insert: "dominant_lens": _axis_dominant_lens
+    "dominant_lens": _axis_dominant_lens,        # checkpoint 3
     # Checkpoint 4 will insert: "asymmetry_posture": _axis_asymmetry_posture
     # Checkpoint 5 will insert: "noise_signature": _axis_noise_signature
 }

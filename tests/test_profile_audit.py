@@ -915,5 +915,433 @@ class FenceDisciplineEndToEndTests(unittest.TestCase):
             self.assertEqual(a["verdict"], "insufficient_evidence")
 
 
+# ---------------------------------------------------------------------------
+# Axis A · dominant_lens (checkpoint 3)
+# ---------------------------------------------------------------------------
+#
+# Tests exercise:
+#   - disconfirmation classifier (fire / absence / tautological / unknown)
+#   - lexicon-hit counter (single + multi-word terms, case-insensitive)
+#   - qualifying-record filter (non-empty unknowns AND disconfirmation)
+#   - insufficient_evidence below the 20-record minimum
+#   - aligned when claim holds
+#   - D1 convergence: single-signature miss does NOT flag, both miss flags
+#   - non-failure-first position-0 value returns insufficient_evidence (CP3 scope)
+#   - no-claim / malformed-claim handling
+#   - end-to-end through run_audit against a fixture lexicon
+
+def _lexicon_for_axis_a() -> dict[str, frozenset[str]]:
+    """Minimal lexicon mirroring kernel/PHASE_12_LEXICON.md's failure_frame
+    and success_frame sections so tests are hermetic (don't rely on the
+    filesystem lexicon file).
+    """
+    return {
+        "failure_frame": frozenset({
+            "fails", "breaks", "rejects", "errors", "regresses",
+            "blocks", "timeout", "crashes", "rolls back", "reverts",
+        }),
+        "success_frame": frozenset({
+            "succeeds", "works", "passes", "completes", "validates",
+            "renders", "ships", "green", "healthy",
+        }),
+    }
+
+
+def _make_axis_a_record(
+    *,
+    correlation_id: str,
+    unknowns: list[str] | None = None,
+    disconfirmation: str | None = None,
+    command: str = "git push origin main",
+) -> dict:
+    surface: dict = {}
+    if unknowns is not None:
+        surface["unknowns"] = unknowns
+    if disconfirmation is not None:
+        surface["disconfirmation"] = disconfirmation
+    details = {
+        "tool": "Bash",
+        "command": command,
+        "cwd": "/tmp/fixture",
+        "exit_code": 0,
+        "status": "success",
+        "high_impact_patterns_matched": ["git push"],
+    }
+    if surface:
+        details["reasoning_surface"] = surface
+    return {
+        "id": f"fixture-{correlation_id}",
+        "memory_class": "episodic",
+        "summary": f"fixture-{correlation_id}",
+        "details": details,
+        "provenance": {
+            "source_type": "agent",
+            "source_ref": "tests/test_profile_audit.py",
+            "captured_at": "2026-04-20T00:00:00+00:00",
+            "captured_by": "fixture",
+            "confidence": "high",
+            "evidence_refs": [f"correlation_id:{correlation_id}"],
+        },
+        "status": "active",
+        "version": "memory-contract-v1",
+        "tags": ["high-impact", "bash"],
+        "session_id": "fixture-session",
+        "event_type": "action",
+    }
+
+
+class DisconfirmationClassifierTests(unittest.TestCase):
+    def test_short_or_empty_is_unknown(self):
+        self.assertEqual(pa._classify_disconfirmation(""), "unknown")
+        self.assertEqual(pa._classify_disconfirmation(None), "unknown")
+        self.assertEqual(pa._classify_disconfirmation("too short"), "unknown")
+
+    def test_absence_marker_beats_fire_marker(self):
+        # Contains 'fails' — would match observable lexicon. But the
+        # clause is absence-framed, so classifier routes to absence.
+        text = "if nothing fails during the smoke test we can ship"
+        self.assertEqual(pa._classify_disconfirmation(text), "absence")
+
+    def test_absence_no_one_complains(self):
+        text = "if no one complains within 24h it landed cleanly"
+        self.assertEqual(pa._classify_disconfirmation(text), "absence")
+
+    def test_absence_everything_stays_green(self):
+        text = "if everything stays green after promotion we are done"
+        self.assertEqual(pa._classify_disconfirmation(text), "absence")
+
+    def test_fire_requires_trigger_and_observable(self):
+        # Conditional trigger + specific observable (numeric threshold +
+        # consequence) → fire.
+        text = "if query-log shows >60% typo-driven failures, semantic search is wrong"
+        self.assertEqual(pa._classify_disconfirmation(text), "fire")
+
+    def test_fire_with_failure_verb(self):
+        text = "when the CI pipeline returns a non-zero exit code on main, abort the rollout"
+        self.assertEqual(pa._classify_disconfirmation(text), "fire")
+
+    def test_trigger_without_observable_is_tautological(self):
+        text = "if the plan is wrong we will need to revise it"
+        self.assertEqual(pa._classify_disconfirmation(text), "tautological")
+
+    def test_observable_without_trigger_is_tautological(self):
+        text = "the pipeline fails on non-zero exit codes"
+        self.assertEqual(pa._classify_disconfirmation(text), "tautological")
+
+
+class LexiconHitCounterTests(unittest.TestCase):
+    def test_single_word_term_counts(self):
+        lex = frozenset({"fails", "breaks"})
+        self.assertEqual(pa._count_lexicon_hits("the build fails and fails again", lex), 2)
+        self.assertEqual(pa._count_lexicon_hits("it breaks when pushed", lex), 1)
+
+    def test_case_insensitive(self):
+        lex = frozenset({"fails"})
+        self.assertEqual(pa._count_lexicon_hits("BUILD FAILS hard", lex), 1)
+
+    def test_multi_word_term_matches_as_phrase(self):
+        lex = frozenset({"rolls back"})
+        self.assertEqual(pa._count_lexicon_hits("if the migration rolls back we abort", lex), 1)
+        self.assertEqual(pa._count_lexicon_hits("rolls forward safely", lex), 0)
+
+    def test_word_boundary_not_substring(self):
+        # 'fails' should not match 'failsafe'.
+        lex = frozenset({"fails"})
+        self.assertEqual(pa._count_lexicon_hits("failsafe mechanism in place", lex), 0)
+
+    def test_empty_inputs_return_zero(self):
+        self.assertEqual(pa._count_lexicon_hits("", frozenset({"fails"})), 0)
+        self.assertEqual(pa._count_lexicon_hits("text", frozenset()), 0)
+
+
+class DominantLensClaimExtractionTests(unittest.TestCase):
+    def test_list_returns_position_zero(self):
+        self.assertEqual(
+            pa._extract_dominant_lens_primary(
+                ["failure-first", "causal-chain"]
+            ),
+            "failure-first",
+        )
+
+    def test_empty_or_invalid_returns_none(self):
+        self.assertIsNone(pa._extract_dominant_lens_primary(None))
+        self.assertIsNone(pa._extract_dominant_lens_primary([]))
+        self.assertIsNone(pa._extract_dominant_lens_primary(["  "]))
+        self.assertIsNone(pa._extract_dominant_lens_primary("failure-first"))  # string, not list
+
+
+class AxisAQualifyingFilterTests(unittest.TestCase):
+    def test_requires_both_unknowns_and_disconfirmation(self):
+        # No surface → disqualified.
+        rec = _make_axis_a_record(correlation_id="q1")
+        ok, _, _ = pa._axis_a_qualifying(rec)
+        self.assertFalse(ok)
+
+        # Unknowns only → disqualified (needs both).
+        rec = _make_axis_a_record(
+            correlation_id="q2", unknowns=["what if migration fails"]
+        )
+        ok, _, _ = pa._axis_a_qualifying(rec)
+        self.assertFalse(ok)
+
+        # Both present → qualifies.
+        rec = _make_axis_a_record(
+            correlation_id="q3",
+            unknowns=["what if migration fails"],
+            disconfirmation="if exit code is non-zero, rollback",
+        )
+        ok, u, d = pa._axis_a_qualifying(rec)
+        self.assertTrue(ok)
+        self.assertEqual(u, ["what if migration fails"])
+        self.assertIn("rollback", d)
+
+
+class DominantLensHandlerTests(unittest.TestCase):
+    """Full _axis_dominant_lens path with D1 convergence discipline."""
+
+    @staticmethod
+    def _failure_first_record(correlation_id: str) -> dict:
+        # Failure-frame-dense unknowns + well-formed fire-condition.
+        return _make_axis_a_record(
+            correlation_id=correlation_id,
+            unknowns=[
+                "the migration fails on large tables",
+                "CI breaks if the worker errors mid-run",
+            ],
+            disconfirmation=(
+                "if the canary instance returns a non-zero exit "
+                f"code within 5 minutes of {correlation_id} landing, "
+                "rollback immediately"
+            ),
+        )
+
+    @staticmethod
+    def _success_framed_record(correlation_id: str) -> dict:
+        # Success-dominant content + absence-framed disconfirmation.
+        return _make_axis_a_record(
+            correlation_id=correlation_id,
+            unknowns=[
+                "whether the feature renders on mobile",
+                "whether the demo passes and completes cleanly",
+            ],
+            disconfirmation=(
+                f"if no one complains about {correlation_id} after "
+                "24 hours, the change is accepted"
+            ),
+        )
+
+    @staticmethod
+    def _s2_only_miss_record(correlation_id: str) -> dict:
+        # Failure-frame-dense content (S1 passes) but disconfirmation is
+        # absence-framed (S2 misses). Exercises the D1 single-miss path.
+        return _make_axis_a_record(
+            correlation_id=correlation_id,
+            unknowns=[
+                "migration fails, worker breaks, CI errors, build rejects",
+            ],
+            disconfirmation=(
+                f"if nothing fails during the {correlation_id} soak, we ship"
+            ),
+        )
+
+    @staticmethod
+    def _s1_only_miss_record(correlation_id: str) -> dict:
+        # Success-frame-dense content (S1 misses) + good fire-condition
+        # (S2 passes). Also single-miss → D1 prevents drift.
+        return _make_axis_a_record(
+            correlation_id=correlation_id,
+            unknowns=[
+                "whether the rollout completes and the demo renders cleanly",
+                "whether the suite passes, validates, ships green",
+            ],
+            disconfirmation=(
+                f"if the latency p95 exceeds 500ms within 10 minutes "
+                f"of {correlation_id} rollout, abort"
+            ),
+        )
+
+    def test_no_claim_returns_insufficient_evidence(self):
+        # dominant_lens is categorical — a missing list means there is
+        # no lens to audit, so this axis falls back to the CP1 baseline
+        # convention (insufficient_evidence) rather than Axis C's
+        # claim-absent aligned-with-informational-reason path.
+        out = pa._axis_dominant_lens(
+            "dominant_lens", None, [], _lexicon_for_axis_a()
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertIn("No dominant_lens claim", out["reason"])
+
+    def test_non_failure_first_primary_is_insufficient_evidence(self):
+        # CP3 implements only failure-first. pattern-recognition at
+        # position 0 → insufficient_evidence with a sketch-table pointer.
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["pattern-recognition", "failure-first"],
+            [],
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertIn("pattern-recognition", out["reason"])
+        self.assertIn("Template A", out["reason"])
+
+    def test_insufficient_evidence_below_twenty_qualifying(self):
+        records = [self._failure_first_record(f"r{i}") for i in range(15)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertEqual(out["evidence_count"], 15)
+        self.assertIn("≥ 20", out["reason"])
+
+    def test_aligned_when_claim_holds_at_scale(self):
+        records = [self._failure_first_record(f"r{i:03d}") for i in range(25)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first", "causal-chain"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "aligned")
+        self.assertEqual(out["evidence_count"], 25)
+        self.assertGreaterEqual(out["signatures"]["S1_failure_frame_ratio"], 0.45)
+        self.assertGreaterEqual(out["signatures"]["S2_fire_condition_rate"], 0.55)
+
+    def test_confidence_rises_at_forty_records(self):
+        records = [self._failure_first_record(f"r{i:03d}") for i in range(40)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["confidence"], "high")
+
+    def test_drift_requires_both_signatures_to_miss(self):
+        # 22 records, ALL success-framed + absence-condition → S1 + S2
+        # both miss → drift. This is the D1 convergence path.
+        records = [self._success_framed_record(f"r{i:03d}") for i in range(22)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "drift")
+        self.assertLess(out["signatures"]["S1_failure_frame_ratio"], 0.45)
+        self.assertLess(out["signatures"]["S2_fire_condition_rate"], 0.55)
+        self.assertIn("D1 convergence confirmed", out["reason"])
+        self.assertIsNotNone(out["suggested_reelicitation"])
+
+    def test_d1_single_s1_miss_does_not_flag_drift(self):
+        # S1 misses (success-framed content) but S2 fires cleanly (good
+        # fire-condition). D1 convergence means one-miss = aligned, not
+        # drift — the single-signature path logs the miss but doesn't
+        # punish the operator.
+        records = [self._s1_only_miss_record(f"r{i:03d}") for i in range(22)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "aligned")
+        self.assertLess(out["signatures"]["S1_failure_frame_ratio"], 0.45)
+        self.assertGreaterEqual(out["signatures"]["S2_fire_condition_rate"], 0.55)
+        # The aligned reason still names the single-signature miss so
+        # the operator sees the partial signal.
+        self.assertIn("S1 single-signature miss noted", out["reason"])
+
+    def test_d1_single_s2_miss_does_not_flag_drift(self):
+        # Inverse: S1 passes, S2 misses. Still aligned under D1.
+        records = [self._s2_only_miss_record(f"r{i:03d}") for i in range(22)]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "aligned")
+        self.assertGreaterEqual(out["signatures"]["S1_failure_frame_ratio"], 0.45)
+        self.assertLess(out["signatures"]["S2_fire_condition_rate"], 0.55)
+        self.assertIn("S2 single-signature miss noted", out["reason"])
+
+    def test_zero_token_base_returns_insufficient_evidence(self):
+        # 22 qualifying records but their unknowns / disconfirmation
+        # contain NO failure-frame AND NO success-frame hits — S1 denom
+        # would be zero. Handler refuses to compute a ratio out of nothing.
+        bland_record = _make_axis_a_record(
+            correlation_id="bland",
+            unknowns=["latency question", "dependency question"],
+            disconfirmation="review sign-off outstanding for another day",
+        )
+        records = [dict(bland_record, id=f"r{i}") for i in range(22)]
+        # Reset provenance ids so _collect_evidence_refs produces
+        # unique entries, but content stays lexicon-free.
+        for i, rec in enumerate(records):
+            rec["provenance"] = dict(bland_record["provenance"])
+            rec["provenance"]["evidence_refs"] = [f"correlation_id:bland-{i}"]
+        out = pa._axis_dominant_lens(
+            "dominant_lens",
+            ["failure-first"],
+            records,
+            _lexicon_for_axis_a(),
+        )
+        self.assertEqual(out["verdict"], "insufficient_evidence")
+        self.assertIn("zero failure-frame", out["reason"])
+
+
+class DominantLensEndToEndTests(unittest.TestCase):
+    """run_audit routes dominant_lens to the real CP3 handler."""
+
+    def test_run_audit_reads_lexicon_file_and_resolves_axis_a(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            # Seed a lexicon file the audit will actually read.
+            lex_path = root / "lexicon.md"
+            lex_path.write_text(
+                "## failure_frame\n"
+                "- fails\n- breaks\n- errors\n- crashes\n- rolls back\n"
+                "\n"
+                "## success_frame\n"
+                "- succeeds\n- works\n- passes\n- green\n- healthy\n",
+                encoding="utf-8",
+            )
+            # 22 failure-first-shaped records.
+            epi = root / "episodic"
+            epi.mkdir()
+            records = [
+                DominantLensHandlerTests._failure_first_record(f"r{i:03d}")
+                for i in range(22)
+            ]
+            (epi / "2026-04-20.jsonl").write_text(
+                "\n".join(json.dumps(r) for r in records) + "\n",
+                encoding="utf-8",
+            )
+            prof = root / "profile.md"
+            prof.write_text(
+                "```\n"
+                "dominant_lens:\n"
+                "  value: [failure-first, causal-chain]\n"
+                "  confidence: inferred\n"
+                "```\n",
+                encoding="utf-8",
+            )
+            result = pa.run_audit(
+                episodic_dir=epi,
+                reflective_dir=root / "reflective",
+                profile_path=prof,
+                lexicon_path=lex_path,
+                since_days=3650,
+            )
+        by_name = {a["axis_name"]: a for a in result["axes"]}
+        dl = by_name["dominant_lens"]
+        self.assertEqual(dl["verdict"], "aligned")
+        self.assertEqual(dl["claim"], ["failure-first", "causal-chain"])
+        self.assertEqual(dl["evidence_count"], 22)
+
+
 if __name__ == "__main__":
     unittest.main()
