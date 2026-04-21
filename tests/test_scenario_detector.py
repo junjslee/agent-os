@@ -117,18 +117,22 @@ class DetectorStub(unittest.TestCase):
 class RegistryErrorCases(unittest.TestCase):
     def test_unknown_blueprint_raises_keyerror_with_known_list(self):
         reg = load_registry()
+        # At CP6 all five RC blueprints ship as known:
+        # generic / fence_reconstruction / axiomatic_judgment /
+        # consequence_chain / architectural_cascade. Probe with a name
+        # that is guaranteed NOT to be a blueprint now or in the
+        # foreseeable roadmap — the contract is that KeyError lists
+        # what IS known so the operator can see the gap.
         with self.assertRaises(KeyError) as ctx:
-            # At CP5 fence_reconstruction is realized. axiomatic_judgment
-            # lands at CP6 as schema-only; use it as the "not yet
-            # realized" probe. When CP6 ships, migrate to another
-            # not-yet-realized name (consequence_chain or
-            # architectural_cascade).
-            reg.get("axiomatic_judgment")
+            reg.get("definitely_nonexistent_blueprint_xyz")
         message = str(ctx.exception)
-        self.assertIn("axiomatic_judgment", message)
+        self.assertIn("definitely_nonexistent_blueprint_xyz", message)
         # The error lists what IS known — so the operator can see the gap.
         self.assertIn("generic", message)
-        self.assertIn("fence_reconstruction", message)  # CP5 now realized
+        self.assertIn("fence_reconstruction", message)  # CP5 realized
+        self.assertIn("axiomatic_judgment", message)   # CP6 stub
+        self.assertIn("consequence_chain", message)    # CP6 stub
+        self.assertIn("architectural_cascade", message)  # CP6 stub
 
     def test_malformed_yaml_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

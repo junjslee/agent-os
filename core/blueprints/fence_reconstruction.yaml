@@ -26,7 +26,12 @@ description: >
   reversibility, and declare a rollback_path before the op is admitted.
   Reversible firings emit a constraint-safety protocol to the framework
   on PostToolUse success; irreversible firings advisory-escalate to
-  Axiomatic Judgment and do NOT emit synthesis.
+  Axiomatic Judgment and do NOT emit synthesis. At CP6, the
+  `rollback_path` field IS the Layer 4 verification trace per spec
+  § Blueprint B — declared via `verification_trace_maps_to` below and
+  smoke-tested at PreToolUse (syntactic + path-existence + prod-marker
+  absence, NOT actual execution which would undo the removal before
+  it happens).
 version: 1
 required_fields:
   - constraint_identified
@@ -36,6 +41,8 @@ required_fields:
   - rollback_path
 optional_fields: []
 synthesis_arm: true
+verification_trace_required: true
+verification_trace_maps_to: rollback_path
 selector_triggers:
   - removal_lexicon_pattern: '^\s*(?:sudo\s+)?(?:rm|rmdir|unlink|git\s+rm|chmod\s+-x|chmod\s+0)\b'
     constraint_path_pattern: '(?:\.episteme/|\bkernel/[A-Z][A-Z_0-9]*\.md|\.github/workflows/|\bpre-commit\b|\bpyproject\.toml\b|\bpolicy[/_-]|\bsecurity[/_-])'

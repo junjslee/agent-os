@@ -1,0 +1,51 @@
+# v1.0 RC CP6 · Blueprint D — Architectural Cascade & Escalation
+# (structure-only stub)
+#
+# Scenario: while working on one intended task, the agent discovers a
+# flaw, vulnerability, stale/deprecated artifact, config gap, or
+# evidence that core logic must change to preserve system coherence.
+# Blueprint D is the engine of the kernel's continuous self-maintenance
+# axis (spec § Ultimate Why) — forces patch-vs-refactor evaluation,
+# symmetric cascade synchronization across the full blast radius, and
+# continuous digging + logging of adjacent discoveries back into the
+# hash-chained framework.
+#
+# CP6 scope: schema structure only. Selector triggers are empty —
+# Blueprint D does NOT fire at RC. CP10 ships the cascade detector
+# (four trigger classes: cross-surface-ref diff check, refactor/
+# rename/deprecate lexicon, self-escalation flaw_classification,
+# generated-artifact symbol-reference check) + structural field
+# validation + immediate hash-chained write of deferred_discoveries
+# entries.
+#
+# Required fields include `deferred_discoveries` — the Pillar 3
+# continuous-digging log. Each entry carries
+# (description, observable, log_only_rationale) per spec § Blueprint D.
+#
+# Spec: docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Blueprint D ·
+# Architectural Cascade & Escalation.
+
+name: architectural_cascade
+description: >
+  Continuous self-maintenance on emergent architectural flaws. Forces
+  flaw_classification + posture_selected (patch|refactor) +
+  patch_vs_refactor_evaluation (with concrete blast-radius reference)
+  + blast_radius_map (enumerated surfaces; not-applicable entries must
+  carry a reason) + sync_plan (one concrete action per map entry) +
+  deferred_discoveries (adjacent gaps hash-chained into the framework).
+  Structure-only at CP6; selector (four trigger classes) + field-level
+  validation + hash-chained deferred_discovery writes land at CP10.
+  Retrospective sync-plan orphan-reference detection lands in v1.0.1.
+version: 1
+required_fields:
+  - flaw_classification
+  - posture_selected
+  - patch_vs_refactor_evaluation
+  - blast_radius_map
+  - sync_plan
+  - deferred_discoveries
+optional_fields:
+  - verification_trace
+synthesis_arm: true
+verification_trace_required: false
+selector_triggers: []

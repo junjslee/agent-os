@@ -30,11 +30,26 @@ from unittest.mock import patch
 from core.hooks import reasoning_surface_guard as guard
 
 
-def _surface_with(disconfirmation: str, unknowns: list[str] | None = None) -> dict:
+_SENTINEL = object()
+
+
+def _surface_with(
+    disconfirmation: str,
+    unknowns: list[str] | None = None,
+    verification_trace: object = _SENTINEL,
+) -> dict:
     """Build a Layer-1-passing surface with the specified
     classifier-eligible fields. Knowns / assumptions are Layer-1-valid
-    strings but classifier-irrelevant by design."""
-    return {
+    strings but classifier-irrelevant by design.
+
+    CP6: the generic blueprint declares ``verification_trace_required:
+    true``, so every surface that reaches a high-impact Bash op must
+    carry a parseable verification_trace to pass Layer 4. The helper
+    inserts a default valid trace so tests focused on Layers 1-3
+    continue passing. Tests exercising Layer 4 pass ``None`` (absent)
+    or a dict (shape-invalid) explicitly.
+    """
+    surface = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "core_question": "Does this pass the Layer 2 classifier?",
         "knowns": ["repo at tip of master"],
@@ -45,6 +60,13 @@ def _surface_with(disconfirmation: str, unknowns: list[str] | None = None) -> di
         "assumptions": ["hook runner is Claude Code"],
         "disconfirmation": disconfirmation,
     }
+    if verification_trace is _SENTINEL:
+        surface["verification_trace"] = {
+            "or_test": "tests/test_layer2_classifier_hot_path.py::test_smoke",
+        }
+    elif verification_trace is not None:
+        surface["verification_trace"] = verification_trace
+    return surface
 
 
 def _write_and_run(surface: dict, cwd: Path, command: str) -> tuple[int, str, str]:
@@ -199,70 +221,80 @@ class Layer2PerEntryUnknowns(unittest.TestCase):
         self.assertEqual(err, "")
 
 
-class Layer2OnFluentVacuousExamples(unittest.TestCase):
+class LayerCompositionOnFluentVacuousExamples(unittest.TestCase):
     """The five spec-named fluent-vacuous examples from
     docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Why this exists.
 
     The spec's Verification section says "blocked at write time by
     some combination of Layers 2-4 + Fence Reconstruction blueprint
-    where applicable" — not "by Layer 2 alone." At CP3, Layer 2
-    catches the TWO examples whose observable-free verbs don't trip
-    the classifier's permissive pattern set. The remaining THREE slip
-    through because the v0.11.0 classifier accepts `produces`,
-    `returns`, `build` (etc.) as observable-shaped tokens even when
-    used in fluent-vacuous sentences.
+    where applicable" — not "by Layer 2 alone." At CP6 the closure is
+    complete:
 
-    The three that slip through are expected to be caught by CP4
-    (Layer 3 entity grounding — will require the fluent-vacuous
-    surface to ground its terms to real project entities) and CP6
-    (Layer 4 verification_trace — fluent-vacuous surfaces cannot
-    declare an executable verification). See docs/PROGRESS.md Event 9
-    for the deferred-discovery log entry tracking this.
+    - TWO examples block at Layer 2 — observable-free verbs
+      (`reassess`, `evaluate`) the classifier's pattern set catches
+      directly.
+    - THREE examples block at Layer 4 — their verbs (`produces`,
+      `exhibits`, `diverge`) pass Layer 2's permissive classifier and
+      their text carries no entities so Layer 3 has no surface area,
+      but they have committed to NO executable verification trace.
+      The composition L2 + L4 is the intended closure path per spec
+      § Why these layers compose well.
+
+    All five examples use ``verification_trace=None`` so the test
+    isolates the surface-text axis: a fluent-vacuous disconfirmation
+    without a trace commitment cannot pass the hot path.
     """
 
-    CP3_BLOCKS = [
+    LAYER2_BLOCKS = [
         "if any unforeseen issue arises during deployment we will reassess our approach",
         "should monitoring detect concerning patterns we will pause and evaluate next steps",
     ]
-    CP3_GAP_NEEDS_CP4_OR_CP6 = [
+    LAYER4_BLOCKS = [
         "the migration may produce unexpected behavior if edge cases are encountered",
         "if the build process exhibits anomalous behavior we should investigate before proceeding",
         "if results diverge from expectations we will return to first principles",
     ]
 
-    def test_cp3_blocks_observable_free_examples(self):
-        for text in self.CP3_BLOCKS:
+    def test_layer2_blocks_observable_free_examples(self):
+        for text in self.LAYER2_BLOCKS:
             with self.subTest(text=text):
-                surface = _surface_with(disconfirmation=text)
+                surface = _surface_with(
+                    disconfirmation=text, verification_trace=None
+                )
                 with tempfile.TemporaryDirectory() as td:
                     rc, _out, err = _write_and_run(
                         surface, Path(td), "git push origin main"
                     )
                 self.assertEqual(
                     rc, 2,
-                    f"CP3 Layer 2 should have blocked but passed: {text!r}"
+                    f"Layer 2 should have blocked but passed: {text!r}"
                 )
                 self.assertIn("Layer 2", err)
                 self.assertIn("disconfirmation", err)
 
-    def test_cp3_classifier_gap_three_examples_still_slip_through(self):
-        # Honest test of the CURRENT classifier behavior. A future CP
-        # (CP4 Layer 3 entity grounding OR CP6 Layer 4
-        # verification_trace) must close these. If this test starts
-        # FAILING because one of these begins blocking — that is
-        # progress: move the string from CP3_GAP to CP3_BLOCKS above.
-        for text in self.CP3_GAP_NEEDS_CP4_OR_CP6:
+    def test_layer4_blocks_l2_l3_leaky_fluent_vacuous(self):
+        # These three passed Layer 2 ('produces', 'exhibits', 'diverge'
+        # read as observable-shaped at the classifier) and carry no
+        # entity-shaped tokens (Layer 3 honestly passes — no surface
+        # area). They leak through the first three layers. At CP6,
+        # absence of verification_trace is the closure: a fluent-
+        # vacuous author cannot also name an executable command,
+        # dashboard URL, or test id without breaking the fluency.
+        for text in self.LAYER4_BLOCKS:
             with self.subTest(text=text):
-                surface = _surface_with(disconfirmation=text)
+                surface = _surface_with(
+                    disconfirmation=text, verification_trace=None
+                )
                 with tempfile.TemporaryDirectory() as td:
-                    rc, _out, _err = _write_and_run(
+                    rc, _out, err = _write_and_run(
                         surface, Path(td), "git push origin main"
                     )
                 self.assertEqual(
-                    rc, 0,
-                    f"unexpected Layer-2 block at CP3 "
-                    f"(not a regression — promote to CP3_BLOCKS): {text!r}"
+                    rc, 2,
+                    f"Layer 4 should have blocked but passed: {text!r}"
                 )
+                self.assertIn("Layer 4", err)
+                self.assertIn("verification_trace", err)
 
 
 class Layer2DoesNotClassifyKnownsOrAssumptions(unittest.TestCase):

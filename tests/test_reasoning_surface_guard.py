@@ -15,8 +15,15 @@ def _fresh_surface_payload() -> dict:
     # per-entry on `unknowns`. Both fields must carry a conditional
     # trigger (`if`/`when`/`should`/`once`/`after`/`unless`) AND a
     # specific observable (fails/errors/returns-non-zero/exit-code/
-    # metric name/etc.) so they classify as `fire`. Original intent
-    # preserved: surface describes CI-on-push parity concerns.
+    # metric name/etc.) so they classify as `fire`.
+    #
+    # CP6 — generic blueprint declares ``verification_trace_required:
+    # true``. Layer 4 requires a parseable verification_trace for
+    # high-impact Bash ops. A valid ``or_test`` slot is the simplest
+    # form (no matching threshold_observable required) and keeps this
+    # fixture focused on surface-field semantics rather than on the
+    # Layer 4 grammar itself (covered in
+    # tests/test_layer4_verification_trace_hot_path.py).
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "core_question": "Does this change preserve the kernel contract?",
@@ -27,6 +34,9 @@ def _fresh_surface_payload() -> dict:
         ],
         "assumptions": ["cwd is repo root"],
         "disconfirmation": "CI fails on main after push or tag verification rejects",
+        "verification_trace": {
+            "or_test": "tests/test_reasoning_surface_guard.py::test_smoke",
+        },
     }
 
 

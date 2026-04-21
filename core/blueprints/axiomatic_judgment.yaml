@@ -1,0 +1,45 @@
+# v1.0 RC CP6 · Blueprint A — Axiomatic Judgment (structure-only stub)
+#
+# Scenario: conflicting-source resolution. Source A says X, Source B
+# says Y; the agent must pick. This is the primary Protocol Synthesis
+# & User-Guidance engine of the kernel per spec § Blueprint A.
+#
+# CP6 scope: schema structure only. Selector triggers are empty —
+# Blueprint A does NOT fire at RC. Field-level validation is
+# advisory-only; full realization (conflict_cause / context_signature
+# enforcement, framework-query integration, guidance-trigger emission)
+# lands in v1.0.1 alongside the rich `episteme guide` authoring path.
+#
+# Registry loads this file at CP6 for schema inspection only. Hot path
+# skips Blueprint A because selector_triggers is empty.
+#
+# Spec: docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Blueprint A ·
+# Axiomatic Judgment.
+
+name: axiomatic_judgment
+description: >
+  Conflicting-source resolution with synthesis escalation. Decision arm
+  requires sources+believability_weight, conflict_axis, decision_rule,
+  fail_condition_per_source, fallback_if_both_wrong. Synthesis arm
+  (conflict_cause, context_signature, synthesized_protocol,
+  framework_entry_ref, guidance_trigger) writes context-dependent
+  protocol to the Pillar 3 framework for active guidance on future
+  matching contexts. Structure-only at CP6; selector + field-level
+  validation land in v1.0.1.
+version: 1
+required_fields:
+  - sources
+  - conflict_axis
+  - decision_rule
+  - fail_condition_per_source
+  - fallback_if_both_wrong
+  - conflict_cause
+  - context_signature
+  - synthesized_protocol
+  - framework_entry_ref
+  - guidance_trigger
+optional_fields:
+  - verification_trace
+synthesis_arm: true
+verification_trace_required: false
+selector_triggers: []

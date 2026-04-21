@@ -90,7 +90,20 @@ class BlueprintValidationError(ValueError):
 class Blueprint:
     """A loaded blueprint definition. CP2 shape — CP5+ may add fields
     (e.g. `selector_trigger_specs`, `synthesis_field_specs`). New fields
-    are optional at load time until a hot-path consumer requires them."""
+    are optional at load time until a hot-path consumer requires them.
+
+    **CP6 additions:**
+
+    - ``verification_trace_required`` — when ``True``, the guard's
+      Layer 4 composition treats absence or shape-invalidity of the
+      surface's ``verification_trace`` as a block (for the generic
+      blueprint, gated on high-impact Bash match). Default ``False``
+      keeps the advisory-only posture for A / C / D stubs at RC.
+    - ``verification_trace_maps_to`` — when set, names a top-level
+      surface field whose string value is treated as the
+      command-slot of an implicit VerificationTrace. Fence uses this
+      to map ``rollback_path`` → Layer 4 command.
+    """
 
     name: str
     description: str
@@ -100,6 +113,8 @@ class Blueprint:
     synthesis_arm: bool
     selector_triggers: tuple[Any, ...]
     source_path: Path
+    verification_trace_required: bool = False
+    verification_trace_maps_to: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -430,6 +445,27 @@ def _validate_and_construct(data: dict, *, source: Path) -> Blueprint:
             f"{source}: `version` must be an integer (got {type(version).__name__})"
         )
 
+    # CP6 additions — optional scalar fields. Default values match the
+    # CP2-through-CP5 implicit contract so existing blueprints load
+    # unchanged (verification_trace_required=False, no trace mapping).
+    vt_required_raw = data.get("verification_trace_required", False)
+    if not isinstance(vt_required_raw, bool):
+        raise BlueprintValidationError(
+            f"{source}: `verification_trace_required` must be a boolean "
+            f"(got {type(vt_required_raw).__name__})"
+        )
+
+    vt_maps_to_raw = data.get("verification_trace_maps_to")
+    if vt_maps_to_raw is not None and not isinstance(vt_maps_to_raw, str):
+        raise BlueprintValidationError(
+            f"{source}: `verification_trace_maps_to` must be a string "
+            f"naming a surface field, or absent "
+            f"(got {type(vt_maps_to_raw).__name__})"
+        )
+    vt_maps_to = vt_maps_to_raw.strip() if isinstance(vt_maps_to_raw, str) else None
+    if vt_maps_to == "":
+        vt_maps_to = None
+
     return Blueprint(
         name=name.strip(),
         description=str(data.get("description", "")).strip(),
@@ -439,6 +475,8 @@ def _validate_and_construct(data: dict, *, source: Path) -> Blueprint:
         synthesis_arm=bool(data.get("synthesis_arm", False)),
         selector_triggers=tuple(selector_triggers),
         source_path=source,
+        verification_trace_required=vt_required_raw,
+        verification_trace_maps_to=vt_maps_to,
     )
 
 

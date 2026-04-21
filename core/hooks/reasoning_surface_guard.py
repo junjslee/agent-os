@@ -71,6 +71,11 @@ from _specificity import (  # noqa: E402  # pyright: ignore[reportMissingImports
 from _grounding import (  # noqa: E402  # pyright: ignore[reportMissingImports]
     ground_blueprint_fields as _layer3_ground_blueprint_fields,
 )
+from _verification_trace import (  # noqa: E402  # pyright: ignore[reportMissingImports]
+    VerificationTrace as _VerificationTrace,
+    validate_trace as _validate_trace,
+    smoke_test_rollback_path as _smoke_test_rollback,
+)
 import _fence_synthesis  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 
@@ -671,14 +676,85 @@ def _layer_fence_validate(surface: dict) -> tuple[str, str]:
             "irreversible` — this op exceeds Blueprint B's scope. "
             "Escalate to Blueprint A (Axiomatic Judgment) which decomposes "
             "per-source conflicts on irreversible decisions. "
-            "Axiomatic Judgment structural validation lands at CP6; until "
-            "then this is an advisory-only escalation (not a block). "
+            "Axiomatic Judgment structural validation lands at CP6 as "
+            "structure-only; full enforcement lands v1.0.1. Until then "
+            "this is an advisory-only escalation (not a block). "
             "No constraint-safety protocol will be synthesized for an "
             "irreversible op."
         )
         return ("advisory-irreversible", detail)
 
     return ("pass", "")
+
+
+def _layer4_fence_smoke_test(
+    surface: dict,
+    cwd: Path,
+) -> tuple[str, str]:
+    """Layer 4 · CP6 — Fence rollback_path smoke test.
+
+    Runs AFTER `_layer_fence_validate` returns ``"pass"`` on a
+    reversible Fence firing. The Fence blueprint declares
+    ``verification_trace_maps_to: rollback_path`` — so the existing
+    ``rollback_path`` field IS the Layer 4 verification trace. This
+    function runs the reversible-context smoke test
+    (``shlex.split`` + prod-marker absence + path-existence) against
+    it. NOT actual rollback execution — running the rollback at
+    PreToolUse would undo the constraint removal before it happens.
+
+    Returns ``(verdict, detail)`` where verdict ∈ {``"pass"``,
+    ``"reject"``}. Graceful degrade: any unexpected exception inside
+    the smoke test yields ``("pass", "")`` with a stderr fallback in
+    the caller — Layers 1-3 + Fence structural checks stay enforced.
+    """
+    rollback = str(surface.get("rollback_path") or "").strip()
+    if not rollback:
+        # Should have been caught by _layer_fence_validate's missing-
+        # field check; defensive pass-through.
+        return ("pass", "")
+    verdict, detail = _smoke_test_rollback(rollback, cwd)
+    if verdict == "valid":
+        return ("pass", "")
+    return (
+        "reject",
+        f"Layer 4 (Fence rollback smoke test): {detail}",
+    )
+
+
+def _layer4_generic_validate(
+    surface: dict,
+    blueprint_name: str,
+) -> tuple[str, str]:
+    """Layer 4 · CP6 — generic verification_trace validation.
+
+    Called when the selected blueprint declares
+    ``verification_trace_required: true`` AND does NOT map the trace
+    to a blueprint-specific field (``verification_trace_maps_to`` is
+    None — i.e. the generic blueprint at RC). Extracts the
+    ``verification_trace`` object from the surface, validates against
+    the RC field contract (``_verification_trace.validate_trace``),
+    returns a reject when the trace is absent, shape-invalid, has no
+    parseable slot, or carries a command without a strict
+    threshold_observable.
+
+    This is the closure path for the three spec fluent-vacuous examples
+    that honestly passed Layers 2+3: they carry no verification_trace,
+    so L4 rejects them with the "declare a commitment" message.
+    """
+    raw = surface.get("verification_trace")
+    trace = _VerificationTrace.from_surface_field(raw)
+    verdict, detail = _validate_trace(trace)
+    if verdict == "valid":
+        return ("pass", "")
+    return (
+        "reject",
+        f"Layer 4 (blueprint `{blueprint_name}`): {detail}. High-impact "
+        f"ops must declare a `verification_trace` object with a parseable "
+        f"`command` (+ matching `threshold_observable`), `or_dashboard` "
+        f"(http(s) URL), or `or_test` (pytest / unittest id) — the "
+        f"kernel uses it at Layer 6 / CP7 to check whether the "
+        f"disconfirmation actually fired.",
+    )
 
 
 def _surface_status(cwd: Path) -> tuple[str, str]:
@@ -952,11 +1028,34 @@ def main() -> int:
                         )
                         # Do NOT write synthesis marker on irreversible.
                     elif fence_verdict == "pass":
-                        # Reversible Fence admitted — write Pillar 3
-                        # pending-synthesis marker for the PostToolUse
-                        # finalizer to act on (exit_code == 0 →
-                        # constraint-safety protocol written to
-                        # ~/.episteme/framework/protocols.jsonl).
+                        # Layer 4 · CP6 — Fence rollback_path smoke test.
+                        # Spec § Blueprint B: verification is the
+                        # rollback_path executed as a smoke test in a
+                        # reversible context. At RC the smoke test is
+                        # syntactic + path-existence + prod-marker
+                        # absence; full sandboxed execution lands in
+                        # v1.0.1.
+                        try:
+                            l4_verdict, l4_detail = _layer4_fence_smoke_test(
+                                layer2_surface, cwd
+                            )
+                        except Exception as exc:  # graceful degrade
+                            sys.stderr.write(
+                                f"[episteme] Layer 4 (Fence smoke) "
+                                f"fallback: {exc.__class__.__name__}; "
+                                f"Layers 1-3 + Fence structural still "
+                                f"enforced.\n"
+                            )
+                            l4_verdict, l4_detail = ("pass", "")
+                        if l4_verdict == "reject":
+                            status = "incomplete"
+                            detail = l4_detail
+                    if status == "ok" and fence_verdict == "pass":
+                        # Reversible Fence admitted AND Layer 4 smoke
+                        # test green — write Pillar 3 pending-synthesis
+                        # marker for the PostToolUse finalizer to act on
+                        # (exit_code == 0 → constraint-safety protocol
+                        # written to ~/.episteme/framework/protocols.jsonl).
                         try:
                             cmd_for_marker = (
                                 _bash_command(payload)
@@ -976,9 +1075,43 @@ def main() -> int:
                         except Exception:
                             # Synthesis bookkeeping failure must never
                             # block the admitted op. Layers 1-3 +
-                            # Fence have already validated; synthesis
-                            # is advisory-in-aggregate.
+                            # Fence + L4 have already validated;
+                            # synthesis is advisory-in-aggregate.
                             pass
+
+                # Layer 4 · CP6 — generic verification_trace. Runs when
+                # the blueprint declares verification_trace_required:
+                # true AND does NOT map the trace to a field (Fence is
+                # already handled in-line above). At RC this applies to
+                # the generic blueprint — closing the three fluent-
+                # vacuous examples from spec § "Why this exists" that
+                # honestly passed Layers 2+3.
+                if status == "ok" and blueprint_name != "fence_reconstruction":
+                    try:
+                        _bp = _load_registry().get(blueprint_name)
+                        _needs_trace = (
+                            _bp.verification_trace_required
+                            and _bp.verification_trace_maps_to is None
+                        )
+                    except (_BlueprintParseError, _BlueprintValidationError,
+                            KeyError, OSError):
+                        _bp = None
+                        _needs_trace = False
+                    if _needs_trace:
+                        try:
+                            l4g_verdict, l4g_detail = _layer4_generic_validate(
+                                layer2_surface, blueprint_name
+                            )
+                        except Exception as exc:  # graceful degrade
+                            sys.stderr.write(
+                                f"[episteme] Layer 4 generic fallback: "
+                                f"{exc.__class__.__name__}; Layers 1-3 "
+                                f"still enforced.\n"
+                            )
+                            l4g_verdict, l4g_detail = ("pass", "")
+                        if l4g_verdict == "reject":
+                            status = "incomplete"
+                            detail = l4g_detail
 
     if status == "ok":
         _write_audit(tool_name, label, cwd, status, "passed", mode)

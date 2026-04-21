@@ -372,9 +372,24 @@ Blueprint-specific shapes:
 - **Axiomatic Judgment** — one verification per source's `fail_condition`. Validates the source's believability-weight against an observable.
 - **Fence Reconstruction** — verification is the `rollback_path` executed as a smoke test in a reversible context (not against prod).
 
-When `verification_trace` is present, the validator parses it and checks that at least one of `command` / `or_dashboard` / `or_test` is non-empty AND specific (executable, parseable URL, or test-id format). When absent on a high-impact op, stderr advisory ("recommend declaring verification_trace") without block — backward compatibility for v0.11.0 surfaces.
+When `verification_trace` is present, the validator parses it and checks that at least one of `command` / `or_dashboard` / `or_test` is non-empty AND specific:
 
-By v1.0.1, `verification_trace` becomes required for the highest-impact ops (`terraform apply`, `kubectl apply` against prod, db migrations).
+- `command` — shell-parseable (`shlex.split` succeeds) AND ≥ 2 tokens. Bare single-word commitments (`"verify"`, `"check"`) reject because the kernel cannot hold the agent to them at Layer 6.
+- `or_dashboard` — `urllib.parse.urlparse` scheme in `{http, https}` AND non-empty netloc.
+- `or_test` — pytest id shape `path::test_name` OR unittest id shape `module.Class.test_name`. Makefile / ad-hoc runners belong in the `command` slot.
+- `threshold_observable` — required when `command` is set. Strict grammar: must contain a comparison operator (`>`, `<`, `>=`, `<=`, `==`, `!=`) AND a digit sequence. Forces a concrete numeric comparison rather than a hand-wavy "I'll watch it."
+
+**Blocking posture (CP6 amendment, 2026-04-21).** The pre-CP6 language ("stderr advisory on absent, block deferred to v1.0.1") was written for backward compatibility with v0.11.0 surfaces. In practice, three spec fluent-vacuous examples (*"the migration may produce unexpected behavior..."*, *"if the build process exhibits anomalous behavior..."*, *"if results diverge from expectations..."*) honestly passed Layers 2 + 3 — the only available closure path was Layer 4. CP6 promotes Layer 4 to a **blocking gate for the generic blueprint when the op matches `HIGH_IMPACT_BASH`.** Backward compatibility is preserved for the backward-compat population that actually matters — non-high-impact Bash, Write/Edit of non-lockfile paths, and Read — none of which reach the Layer 4 dispatch. The blueprint stubs shipped at CP6 (Axiomatic Judgment decision + synthesis arms, Consequence Chain, Architectural Cascade cascade fields) ship with `verification_trace_required: false` and **advisory-only** validation — their full Layer 4 realization lands with their selectors in v1.0.1.
+
+By v1.0.1, `verification_trace` becomes required for the highest-impact ops (`terraform apply`, `kubectl apply` against prod, db migrations) with stricter rules — `window_seconds` required, per-tier traces for Consequence Chain.
+
+**Fence Reconstruction — rollback_path as verification.** The blueprint declares `verification_trace_maps_to: rollback_path`. The existing `rollback_path` surface field is wrapped as the Layer 4 command slot and smoke-tested in a *reversible context*:
+
+1. `shlex.split` — the command parses as a shell invocation with ≥ 2 tokens.
+2. Prod-marker absence — the command does NOT contain `prod`, `production`, or `live`. Branch literals (`main`, `master`) intentionally excluded — too many non-prod local contexts. The deny-list may widen post-soak if real prod references leak through.
+3. Path-existence — any path-shaped token (ending in a recognised code / config file extension) resolves to a file present in the project tree. Reuses Layer 3's cached project fingerprint. Bare directories (`tests/`) and git refs (`HEAD`, `main`) pass — the check is about catching nonexistent-FILE references, not every `/`-bearing token.
+
+Smoke test is syntactic + referential, NOT actual execution — executing the rollback at PreToolUse would undo the constraint removal before it happens. Full sandboxed execution lands in v1.0.1+.
 
 **How an agent evades it.** Write a fake command. The hot path can't run it at write time (side effect). Layer 6 (time-bound contract, hash-chained) checks whether the named command was actually run within the declared window. Write-time vapor becomes audit-time failure.
 

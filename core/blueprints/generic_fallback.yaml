@@ -21,13 +21,18 @@ name: generic
 description: >
   Four-field fallback Reasoning Surface. Applies when no named scenario
   fires. Kernel-native shape, matches kernel/REASONING_SURFACE.md § The
-  four fields.
+  four fields. At CP6, `verification_trace_required: true` promotes
+  Layer 4 to a blocking gate when the op matches HIGH_IMPACT_BASH in
+  reasoning_surface_guard.py — the closure path for the three spec
+  fluent-vacuous examples that leaked through CP3/CP4.
 version: 1
 required_fields:
   - knowns
   - unknowns
   - assumptions
   - disconfirmation
-optional_fields: []
+optional_fields:
+  - verification_trace
 synthesis_arm: false
 selector_triggers: []
+verification_trace_required: true

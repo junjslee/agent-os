@@ -355,6 +355,76 @@ Fix: anchor removal verbs to command-head (`^\s*(?:sudo\s+)?(?:rm|rmdir|unlink|g
 
 ---
 
+## Event 13 — 2026-04-21 — CP6 shipped: Layer 4 verification_trace schema + close fluent-vacuous gap
+
+First Layer 4 shipment at v1.0 RC. Closes the three fluent-vacuous evasion examples that honestly passed Layers 2+3 at CP3 / CP4 (spec § "Why this exists" items #2, #3, #5). Ships three blueprint stubs as structure-only so the registry inventory matches the spec's four-named-blueprint contract. Tests: **429/429 passing** (+37 on top of the 392 baseline; zero regressions).
+
+### The closure path (compose-across-layers)
+
+The three examples —
+
+1. *"the migration may produce unexpected behavior if edge cases are encountered"*
+2. *"if the build process exhibits anomalous behavior we should investigate before proceeding"*
+3. *"if results diverge from expectations we will return to first principles"*
+
+— classify as `fire` at Layer 2 because their verbs (`produces`, `exhibits`, `diverge`) read as observable-shaped to the v0.11.0 classifier, and carry no entity-shaped tokens so Layer 3 has no surface area. Both are honest compose-across-layers behavior per spec § Layer 2 Composition cost — *"evading Layer 2 forces specificity, which raises Layer 3 surface area; an agent that produces NO specificity has no Layer 3 surface area but also cannot produce a Layer 4 verification_trace."* CP6 realizes exactly that: absence of a parseable verification_trace is the Layer 4 closure.
+
+Migration in `tests/test_layer2_classifier_hot_path.py`: the class `Layer2OnFluentVacuousExamples` is renamed to `LayerCompositionOnFluentVacuousExamples`; `CP3_BLOCKS` → `LAYER2_BLOCKS`; the old `CP3_GAP_NEEDS_CP4_OR_CP6` → `LAYER4_BLOCKS` with new test `test_layer4_blocks_l2_l3_leaky_fluent_vacuous` asserting `rc == 2` and `"Layer 4"` + `"verification_trace"` in stderr. The old `test_cp3_classifier_gap_three_examples_still_slip_through` is retired. Number of test methods preserved.
+
+### Posture A amendment (spec § Layer 4)
+
+The pre-CP6 spec read *"stderr advisory on absent; blocking required in v1.0.1."* That language was backward-compat-first — preserving v0.11.0 surfaces in the wild that had no `verification_trace`. In practice, the three fluent-vacuous examples were new-author evasion, not legacy data. Per the CP6 plan approved on 2026-04-21 (Posture A), Layer 4 is **blocking for the generic blueprint when the op matches `HIGH_IMPACT_BASH`** and **advisory-only** for the stub blueprints (A / C / D). `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` § Layer 4 updated in the same commit to reflect the amendment with an explicit rationale paragraph.
+
+### CP6 delivery
+
+- **`core/hooks/_verification_trace.py`** (new, ~330 LOC) — `VerificationTrace` frozen dataclass (`command` / `or_dashboard` / `or_test` / `window_seconds` / `threshold_observable`) + `validate_trace` pure function returning a 5-class `TraceVerdict` (`valid` / `absent` / `shape_invalid` / `unparseable_command` / `no_observable`) + `smoke_test_rollback_path` for Fence wrapping. Strict grammars: command = `shlex.split` succeeds AND ≥ 2 tokens; `or_dashboard` = http/https + netloc; `or_test` = pytest `path::name` OR unittest `module.Class.test_name`; `threshold_observable` = operator `>|<|>=|<=|==|!=` AND digit.
+- **`core/blueprints/generic_fallback.yaml`** — `verification_trace_required: true` added. The closure gate for the three fluent-vacuous examples.
+- **`core/blueprints/fence_reconstruction.yaml`** — `verification_trace_required: true` + `verification_trace_maps_to: rollback_path` added. The existing `rollback_path` field is now also the Layer 4 command slot; smoke-tested syntactic + prod-marker absence + file-extension path-existence.
+- **`core/blueprints/axiomatic_judgment.yaml`** (new) — 10 required_fields covering decision arm + synthesis arm (per spec § Blueprint A). `synthesis_arm: true`, `verification_trace_required: false`, empty selector_triggers — loads into the registry at CP6 but does NOT fire. Selector + full field validation land in v1.0.1.
+- **`core/blueprints/consequence_chain.yaml`** (new) — 5 required_fields (first_order_effect / second_order_effect / failure_mode_inversion / base_rate_reference / margin_of_safety). `synthesis_arm: false`. Selector + per-tier verification_trace land in v1.0.1.
+- **`core/blueprints/architectural_cascade.yaml`** (new) — 6 required_fields for Blueprint D (flaw_classification / posture_selected / patch_vs_refactor_evaluation / blast_radius_map / sync_plan / deferred_discoveries). `synthesis_arm: true`. Selector triggers + hash-chained deferred-discovery writes land at CP10.
+- **`core/hooks/_blueprint_registry.py`** — `Blueprint` dataclass extended with two optional scalar fields (`verification_trace_required: bool = False`, `verification_trace_maps_to: str | None = None`). `_validate_and_construct` parses them with type checks. YAML parser **unchanged** per the CP6 ruling on Deferred Discovery #17 — verification_trace shape lives in Python, blueprint YAML only carries boolean/scalar flags. No nested-map parser extension needed at CP6 or CP10 (blast_radius_map / sync_plan use the list-of-dicts shape CP5 already added).
+- **`core/hooks/reasoning_surface_guard.py`** — imports `_verification_trace`. New `_layer4_fence_smoke_test` runs after `_layer_fence_validate` returns `pass` on reversible Fence; new `_layer4_generic_validate` runs when the selected blueprint declares `verification_trace_required` AND does not map the trace to a field (generic). Both wired into `main()` after Layer 3 / Fence with the same graceful-degrade pattern CP3 / CP4 / CP5 established.
+- **`tests/test_layer4_verification_trace_hot_path.py`** (new) — 37 tests across 5 classes: validator pure function (17), hot-path generic blueprint integration (7), Fence rollback smoke test (5), blueprint stubs structural (6), back-compat (2).
+- **Test fixture migrations** — `_fresh_surface_payload` in `test_reasoning_surface_guard.py` and `_surface_with` in `test_layer2_classifier_hot_path.py` / `test_layer3_grounding_hot_path.py` gain a default `verification_trace: or_test` slot so pre-existing tests continue to pass; tests exercising Layer 4 absence explicitly pass `verification_trace=None`. One inline Fence-adjacent test in `test_fence_reconstruction_end_to_end.py` updated identically. The scenario-detector KeyError test migrates its unknown probe from `axiomatic_judgment` (now a known stub) to `definitely_nonexistent_blueprint_xyz`.
+- **Spec sync** — `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` § Layer 4 rewritten with the Posture A amendment paragraph, the strict field grammars, and the Fence rollback smoke-test protocol. Spec status line unchanged — the amendment is a shipping-clarification inside CP6's scope, not a new approval event.
+
+### Closing Deferred Discovery #17 — YAML parser refactor
+
+**Ruling: not needed at CP6.** The `verification_trace` shape lives in Python (`_verification_trace.VerificationTrace`), not in blueprint YAML. Per-blueprint variation reduced to two top-level scalar flags — `verification_trace_required: bool` and `verification_trace_maps_to: str | None` — both of which the CP2 parser handles natively.
+
+Re-examination against CP10 Blueprint D requirements (`blast_radius_map[]`, `sync_plan[]`, `deferred_discoveries[]`) shows those are list-of-dicts, which CP5 already extended the parser for. No further shape expansion is visible in the roadmap. Revisit ONLY if a concrete nested-map requirement surfaces; speculative refactor violates first-principles "don't build for hypothetical future requirements" and would trade a stable hand-rolled parser for a larger surface area without demand evidence.
+
+DD #17 closed. Tracking moved to a completion note below; the stale-in-backlog entry in PROGRESS Event 12 is not mutated (historical record preserved).
+
+### Honest CP6 limits (tested explicitly, not latent)
+
+- **Advisory-only on stub blueprints.** Axiomatic / Consequence Chain / Blueprint D load into the registry at CP6 but do NOT fire at RC — `selector_triggers: []`. Their field-level validation is not exercised by the hot path. Full realization lands in v1.0.1 (Axiomatic + Consequence Chain) and CP10 + v1.0.1 (Blueprint D retrospective sync-plan verification). This is the spec-literal "schemas for A / C / D ship as structure; blueprint validation is advisory-only at RC" posture.
+- **Prod-marker deny-list narrow.** Only `prod`, `production`, `live` trigger the Fence smoke test's prod-marker reject — per CP6 plan Q4. Branch literals (`main`, `master`) intentionally excluded; they FP too often on non-prod local workflows. Widen post-soak if real prod references leak through.
+- **File-extension path-existence.** Smoke test only grounds tokens ending in a recognised code / config extension (`.py`, `.md`, `.yaml`, etc.). Bare directories (`tests/`) and git refs (`HEAD`, `main`) pass. This avoids the earlier FP where `git revert HEAD and rerun ... tests/` flagged `tests/` as a missing path.
+- **Layer 4 absent = block only for generic high-impact Bash.** Write/Edit / Read / low-impact Bash are not touched — they never reach the Layer 4 dispatch. Back-compat for v0.11.0 surfaces in the wild is preserved for exactly the population that matters (non-high-impact tool calls).
+- **`window_seconds` advisory-only at RC.** Present in the dataclass, validated as positive int when provided, but not required even when `command` is set. v1.0.1 promotes it to required for the highest-impact list (`terraform apply`, `kubectl apply` against prod, db migrations).
+
+### What did NOT happen
+
+- No hash chain. CP7.
+- No Layer 6 pending-contracts write from Layer 4 traces. CP7 wires the async checker that consumes the committed trace.
+- No framework-query active guidance at PreToolUse. CP9.
+- No `episteme review` spot-check CLI. CP8.
+- No Axiomatic Judgment field-level enforcement — advisory-only at RC, full realization v1.0.1.
+- No Consequence Chain per-tier verification_trace. v1.0.1 for the highest-impact list.
+- No Blueprint D selector firing or retrospective orphan-reference check. CP10 + v1.0.1.
+
+### Honest open questions carrying into CP7
+
+- Whether the Layer 4 grammars (strict `threshold_observable`, `or_test` limited to pytest / unittest) produce FP or adoption friction over the RC soak. Guardrail: the strict grammar stays blocking; soak-observed FPs inform a v1.0.1 loosening decision, not an ad-hoc CP6+ patch.
+- Whether Fence's file-extension path-existence heuristic captures the "rollback references nonexistent file" class reliably. First honest probe: the Fence test suite's rollback strings — they all pass, which is the intended behavior.
+- Whether to promote Axiomatic Judgment's selector at CP7 or keep it scoped to v1.0.1 as the spec reads. Contingent on whether CP7's context-signature canonicalization lands clean enough to power the synthesis-arm framework writes.
+
+**Commit plan:** one atomic commit for CP6, message subject `feat(v1.0-rc): CP6 Layer 4 verification_trace schema + close fluent-vacuous gap`.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.

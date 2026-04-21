@@ -523,6 +523,16 @@ class TestPillar3SynthesisEndToEnd(unittest.TestCase):
                     "disconfirmation": (
                         "CI fails on main after push or tag verification rejects"
                     ),
+                    # CP6 — generic blueprint requires verification_trace
+                    # for high-impact Bash ops. Minimal or_test slot
+                    # keeps the focus on "generic op does not write a
+                    # Fence marker," not on Layer 4 grammar itself.
+                    "verification_trace": {
+                        "or_test": (
+                            "tests/test_fence_reconstruction_end_to_end.py"
+                            "::test_generic_op_does_not_trigger_fence_synthesis"
+                        ),
+                    },
                 }
                 rc, _out, _err = _run_guard(
                     surface, cwd, "git push origin master"

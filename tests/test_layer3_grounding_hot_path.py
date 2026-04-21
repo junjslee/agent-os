@@ -40,15 +40,25 @@ from core.hooks import reasoning_surface_guard as guard
 from core.hooks import _grounding  # pyright: ignore[reportAttributeAccessIssue]
 
 
+_SENTINEL = object()
+
+
 def _surface_with(
     disconfirmation: str,
     unknowns: list[str] | None = None,
     knowns: list[str] | None = None,
     assumptions: list[str] | None = None,
+    verification_trace: object = _SENTINEL,
 ) -> dict:
     """Build a Layer-1-and-Layer-2-passing surface whose Layer-3
-    grounding characteristics are what the test exercises."""
-    return {
+    grounding characteristics are what the test exercises.
+
+    CP6: generic blueprint declares ``verification_trace_required:
+    true``. Helper defaults to a valid trace so Layer-3-focused tests
+    continue passing; tests exercising Layer 4 pass ``None`` or an
+    explicit dict.
+    """
+    surface = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "core_question": "Does this pass the Layer 3 grounding gate?",
         "knowns": knowns or ["repo at tip of master"],
@@ -59,6 +69,13 @@ def _surface_with(
         "assumptions": assumptions or ["hook runner is Claude Code"],
         "disconfirmation": disconfirmation,
     }
+    if verification_trace is _SENTINEL:
+        surface["verification_trace"] = {
+            "or_test": "tests/test_layer3_grounding_hot_path.py::test_smoke",
+        }
+    elif verification_trace is not None:
+        surface["verification_trace"] = verification_trace
+    return surface
 
 
 def _seed_project(cwd: Path, files: dict[str, str]) -> None:

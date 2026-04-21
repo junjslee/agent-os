@@ -1,0 +1,42 @@
+# v1.0 RC CP6 · Blueprint C — Consequence Chain (structure-only stub)
+#
+# Scenario: irreversible or high-blast-radius operation —
+# `terraform apply` against prod, `kubectl apply` against prod,
+# `alembic upgrade`, `prisma migrate deploy`, `gh release create`.
+# Fields hook to the mental-model lattice in COGNITIVE_SYSTEM_PLAYBOOK.md
+# § 3 (Munger: inversion, second-order, base rates, margin of safety).
+#
+# CP6 scope: schema structure only. Selector triggers are empty —
+# Blueprint C does NOT fire at RC. The highest-impact op list
+# (terraform/kubectl/alembic/prisma/gh-release) will route to this
+# blueprint in v1.0.1; at RC those ops still fall through to the
+# generic blueprint (which now carries verification_trace_required).
+#
+# verification_trace_per_tier (one verification per consequence tier —
+# first-order, second-order, failure-mode) is the v1.0.1 enforcement;
+# at RC the flag below is declared so the schema shape is visible to
+# readers but is not parsed by the guard.
+#
+# Spec: docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Blueprint C ·
+# Consequence Chain.
+
+name: consequence_chain
+description: >
+  Irreversible / high-blast-radius operation decomposition. Requires
+  first_order_effect + second_order_effect + failure_mode_inversion +
+  base_rate_reference + margin_of_safety, each with a named observable
+  and an explicit buffer statement. Structure-only at CP6; selector +
+  field-level validation + verification_trace_per_tier enforcement
+  land in v1.0.1.
+version: 1
+required_fields:
+  - first_order_effect
+  - second_order_effect
+  - failure_mode_inversion
+  - base_rate_reference
+  - margin_of_safety
+optional_fields:
+  - verification_trace
+synthesis_arm: false
+verification_trace_required: false
+selector_triggers: []
