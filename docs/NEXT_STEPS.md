@@ -25,11 +25,28 @@ Exact next actions, in priority order. Update this file at every handoff.
    - `a8d83d6` `feat(hooks)` — SessionStart `_noise_watch_line()` producer consumes `noise_watch_set` knob + 11 new tests.
    - `e66abe9` `feat(hooks)` — Frame-stage `_advisory_footer()` consumes `preferred_lens_order` + `explanation_form` + 11 new tests.
    All four commits are advisory-only (zero exit-code impact); the soak against `v1.0.0-rc1` stays valid. Post-Phase-A knob-consumption: 5 of 7 (was 2 of 7).
-5. **Phase B — post-soak v1.0.1 work (DO NOT START DURING SOAK).** Behavior-changing closure of the remaining orphan-knob gaps + the Ashby escalate-by-default gap from the REFERENCES.md audit:
+5. **Phase B — post-soak v1.0.1 work (DO NOT START DURING SOAK — explicit decision, see § "Hybrid-C decision record" below).** Behavior-changing closure of the remaining orphan-knob gaps + the Ashby escalate-by-default gap from the REFERENCES.md audit:
    - Wire `default_autonomy_class` into `block_dangerous.py` or a new PreToolUse escalation shim (derives from `risk_tolerance` + `asymmetry_posture`; changes irreversible-op gating behavior).
    - Wire `fence_check_strictness` into Blueprint B `_fence_synthesis.py` / `_layer_fence_validate` thresholds (derives from `cognitive.fence_discipline`).
    - Ashby escalate-by-default prototype — new PreToolUse hook shim, narrow start on network egress, closes `FAILURE_MODE 9` (controller-variety mismatch). Per existing NEXT_STEPS item 14 in § "Fix during RC cycle."
+   - MCP proxy daemon — closes intra-call write-then-execute (bypass vector #1). Medium-term, may land in Phase B or a separate v1.1 arc depending on implementation cost.
 6. **Phase C — v1.1+ schema evolution (post-soak evidence-driven).** Jaynes/Laplace evidence-weighted assumption update — add posterior plausibility field to the `memory-contract` schema, migrate episodic/reflective writers. Gated on soak evidence that boolean assumptions are losing information (sampling ≥ 20 episodic records and finding ≥ 3 cases where an assumption "flipped to known" lost information about remaining uncertainty).
+
+### Hybrid-C decision record (2026-04-22, post-push)
+
+Operator asked whether to start Phase B immediately (skip soak) or wait. Reviewed 6 remaining gaps (5 orphan-knob consumers + Ashby escalate-by-default + SUMMARY Blueprint D mention + MCP daemon + Jaynes schema) against soak-corruption risk:
+
+- **4 of 6 corrupt the soak** — `default_autonomy_class`, `fence_check_strictness`, Ashby escalate-by-default, Jaynes schema all change episodic-record shape or block distribution. Wiring any of them mid-soak means the Verification-#1b gate proof gets conflated pre-vs-post; cognitive-adoption gates 21–28 cannot compare against the tagged RC state.
+- **1 is soak-safe and shipped today** — Kernel SUMMARY Blueprint D mention (Event 17 DD #3 carry-forward). Surgical: added modes 10+11 to the failure-modes table, added a three-pillars paragraph naming Axiomatic Judgment · Fence Reconstruction · Consequence Chain · Blueprint D · generic fallback. Zero code change. Manifest regen'd. Commit SHA: `<post-commit>`.
+- **1 is implementation-dependent** — MCP proxy daemon. Deferred to Phase B with a judgment call at that point.
+
+**Decision: Hybrid Option C.** Ship item 5 now; freeze items 1–4 + 6 until soak closes. Named alternatives considered:
+- *Option A (strict wait).* Nothing moves until day 7. Rejected as unnecessarily idle; item 5 had zero soak impact.
+- *Option B (do all 6 now).* Rejected. Would require honestly downgrading the release narrative to "engineering gates only; cognitive gates deferred to v1.0.1." The product's thesis is a structural forcing function against confident wrongness; skipping its own forcing function on launch day is the dogfood failure gate 28 exists to catch.
+
+**Soak target close: ~2026-04-29.** At that mark, score cognitive-adoption gates 21–28 against real-use episodic records (manual sampling per NEXT_STEPS § "Verification for RC gate — cognitive adoption"). If ≥ 4 of 8 pass, v1.0 GA window opens and Phase B can resume. If < 4 pass, extend soak or reopen gaps as v1.0.1 known-gaps honestly.
+
+**If a future agent session reads this before ~2026-04-29:** the answer to "can I start Phase B now" is **no** regardless of framing. The only item safe to touch is Phase C-adjacent schema work that doesn't land in the hot path, OR purely-non-kernel work (web dashboard, demo polish, docs). If unsure, ask the operator before touching any file in `core/hooks/` or `core/blueprints/`.
 7. **v1.0.1 follow-ups already logged as deferred discoveries (CP10 surface):** kernel-state-file exemption allowlist widening if post-soak shows more `.episteme/` state files need shielding; per-file cross-ref counting if Trigger 3 FPs accumulate; retrospective sync-plan orphan-reference verification; `kernel/SUMMARY.md` Blueprint D mention update.
 
 5. **Visual coherence pass — shipped 2026-04-22, Event 21.** `docs/ARCHITECTURE.md` (Mermaid), `docs/assets/src/architecture_v2.dot` (Graphviz), and `docs/assets/system-overview.svg` (hand-authored) all rewritten to the v1.0 RC shipped state; SVGs regenerated; PNGs rasterized via `rsvg-convert` at 144 dpi; README.md stale "v1.0 RC, in flight" line flipped. Three pillars, four named blueprints, and the Blueprint D cascade detector now visible in all three diagrams. Archival v0.11 spec docs left as-is per historical-record discipline. Deferred: the TikZ/TeX sibling source; kernel SUMMARY Blueprint D mention (carried forward from Event 17 DD #3).
