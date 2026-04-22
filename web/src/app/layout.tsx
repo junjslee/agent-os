@@ -50,8 +50,31 @@ export default function RootLayout({
       className={`${fraunces.variable} ${satoshi.variable} ${jetbrains.variable}`}
     >
       <body className="min-h-screen antialiased">
+        <div className="atmosphere" aria-hidden />
+        <div className="column-grid" aria-hidden>
+          <div className="column-grid-inner">
+            <div>
+              <span className="data-stream" style={{ animationDuration: "6s", animationDelay: "0s" }} />
+            </div>
+            <div>
+              <span className="data-stream" style={{ animationDuration: "8s", animationDelay: "1.4s" }} />
+            </div>
+            <div>
+              <span className="data-stream" style={{ animationDuration: "5.5s", animationDelay: "0.7s" }} />
+            </div>
+            <div>
+              <span className="data-stream" style={{ animationDuration: "7.2s", animationDelay: "2.1s" }} />
+            </div>
+          </div>
+        </div>
         <div className="grid-overlay" aria-hidden />
         <div className="noise-layer" aria-hidden />
+        <div className="gradient-blur" aria-hidden>
+          <div />
+          <div />
+          <div />
+          <div />
+        </div>
         {children}
       </body>
     </html>

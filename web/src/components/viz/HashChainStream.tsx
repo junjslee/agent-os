@@ -41,7 +41,7 @@ export function HashChainStream({
   return (
     <div
       className={cn(
-        "flex h-full flex-col border border-hairline bg-surface/20",
+        "relative flex h-full flex-col panel-gradient",
         className,
       )}
     >

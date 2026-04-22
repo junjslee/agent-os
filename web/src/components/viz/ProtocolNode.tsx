@@ -20,8 +20,8 @@ export function ProtocolNode({ protocol, className }: ProtocolNodeProps) {
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       className={cn(
-        "group relative flex cursor-pointer flex-col gap-4 border border-hairline bg-surface/30 p-5 transition-colors",
-        "hover:border-verified/30 hover:bg-surface/60",
+        "group relative flex cursor-pointer flex-col gap-4 panel-gradient p-5 transition-[background-image]",
+        "hover:[background-image:linear-gradient(color-mix(in_oklab,var(--color-surface)_96%,transparent),color-mix(in_oklab,var(--color-surface)_96%,transparent)),linear-gradient(180deg,rgba(125,224,176,0.35)_0%,rgba(125,224,176,0.05)_100%)]",
         className,
       )}
     >

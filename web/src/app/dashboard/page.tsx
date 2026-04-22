@@ -6,6 +6,7 @@ import { LiveProtocolGrid } from "@/components/viz/LiveProtocolGrid";
 import { TelemetryTicker } from "@/components/viz/TelemetryTicker";
 import { CascadeDetector } from "@/components/viz/CascadeDetector";
 import { SignalBadge } from "@/components/ui/SignalBadge";
+import { CornerMarkers } from "@/components/ui/CornerMarkers";
 import { fixtureTelemetry } from "@/lib/fixtures/chain";
 import { fixtureCascadeSignals } from "@/lib/fixtures/cascade";
 
@@ -47,16 +48,21 @@ export default function DashboardPage() {
         </section>
 
         <section className="border-b border-hairline">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-6 py-10 md:grid-cols-12 md:px-12 md:py-14">
-            <div className="md:col-span-8">
-              <LiveReasoningMatrix intervalMs={10_000} />
-            </div>
-            <div className="md:col-span-4">
-              <LiveHashChainStream
-                intervalMs={10_000}
-                limit={50}
-                className="h-full min-h-[620px]"
-              />
+          <div className="mx-auto max-w-7xl px-6 py-10 md:px-12 md:py-14">
+            <div className="relative">
+              <CornerMarkers />
+              <div className="grid grid-cols-1 gap-5 p-3 md:grid-cols-12">
+                <div className="md:col-span-8">
+                  <LiveReasoningMatrix intervalMs={10_000} />
+                </div>
+                <div className="md:col-span-4">
+                  <LiveHashChainStream
+                    intervalMs={10_000}
+                    limit={50}
+                    className="h-full min-h-[620px]"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>

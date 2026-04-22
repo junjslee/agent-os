@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { CornerMarkers } from "@/components/ui/CornerMarkers";
 import type { CascadeSignal } from "@/lib/types/episteme";
 
 interface CascadeDetectorProps {
@@ -14,12 +15,8 @@ const stateStyles: Record<CascadeSignal["state"], string> = {
 
 export function CascadeDetector({ signals, className }: CascadeDetectorProps) {
   return (
-    <div
-      className={cn(
-        "border border-hairline bg-surface/20",
-        className,
-      )}
-    >
+    <div className={cn("relative panel-gradient", className)}>
+      <CornerMarkers topOnly />
       <header className="flex items-center justify-between border-b border-hairline px-4 py-3">
         <span className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-muted">
           blueprint d · cascade detector

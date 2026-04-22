@@ -124,3 +124,200 @@ body {
 .flash-break {
   animation: flash-break 1.8s var(--ease-standard) infinite;
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   v1.1 polish — atmosphere, gradient borders, progressive blur,
+   column-grid data streams, mask-word reveal, corner markers.
+   Bridges "austere terminal" → "alive operator console" without
+   touching typography, narrative, or signal palette.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Atmospheric radial glow mesh.
+   Two low-opacity color glows using signal accents at the page corners.
+   Heavy blur + tiny opacity = chromatic without saturation. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(100, 160, 245, 0.055), transparent 42%),
+    radial-gradient(circle at 82% 92%, rgba(232, 116, 100, 0.042), transparent 42%),
+    radial-gradient(circle at 50% 50%, rgba(125, 224, 176, 0.025), transparent 55%);
+  filter: blur(80px);
+}
+
+/* 2. Gradient-lit panel borders.
+   Two-stop light-from-top simulation via double-background on padding-box
+   + border-box. Brighter on top edge, fades to near-invisible at bottom. */
+.panel-gradient {
+  background:
+    linear-gradient(color-mix(in oklab, var(--color-surface) 92%, transparent), color-mix(in oklab, var(--color-surface) 92%, transparent))
+      padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.06) 100%)
+      border-box;
+  border: 1px solid transparent;
+}
+
+.panel-gradient-strong {
+  background:
+    linear-gradient(var(--color-elevated), var(--color-elevated)) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(255, 255, 255, 0.1) 100%)
+      border-box;
+  border: 1px solid transparent;
+}
+
+/* 3. Progressive-blur top gradient.
+   Six overlapping backdrop-blur bands masked to different stripes so blur
+   intensity increases toward the nav edge. Makes the header feel correctly
+   floating over atmospheric content. */
+.gradient-blur {
+  position: fixed;
+  z-index: 40;
+  inset: 0 0 auto 0;
+  height: 9%;
+  pointer-events: none;
+}
+.gradient-blur > div,
+.gradient-blur::before,
+.gradient-blur::after {
+  position: absolute;
+  inset: 0;
+}
+.gradient-blur::before {
+  content: "";
+  z-index: 1;
+  backdrop-filter: blur(0.5px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 12.5%, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 37.5%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 12.5%, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 37.5%);
+}
+.gradient-blur > div:nth-of-type(1) {
+  z-index: 2;
+  backdrop-filter: blur(1px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 12.5%, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 1) 37.5%, rgba(0, 0, 0, 0) 50%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 12.5%, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 1) 37.5%, rgba(0, 0, 0, 0) 50%);
+}
+.gradient-blur > div:nth-of-type(2) {
+  z-index: 3;
+  backdrop-filter: blur(2px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 1) 37.5%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 62.5%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 1) 37.5%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 62.5%);
+}
+.gradient-blur > div:nth-of-type(3) {
+  z-index: 4;
+  backdrop-filter: blur(4px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 37.5%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 1) 62.5%, rgba(0, 0, 0, 0) 75%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 37.5%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 1) 62.5%, rgba(0, 0, 0, 0) 75%);
+}
+.gradient-blur > div:nth-of-type(4) {
+  z-index: 5;
+  backdrop-filter: blur(8px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 1) 62.5%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 87.5%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 1) 62.5%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 87.5%);
+}
+.gradient-blur::after {
+  content: "";
+  z-index: 6;
+  backdrop-filter: blur(16px);
+  -webkit-mask: linear-gradient(to top, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 1) 87.5%, rgba(0, 0, 0, 1) 100%);
+  mask: linear-gradient(to top, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 1) 87.5%, rgba(0, 0, 0, 1) 100%);
+}
+
+/* 4. Animated column-grid data streams.
+   Fixed full-height 4-column grid under page content. Each divider hosts
+   a short vertical gradient line that translates top→bottom on a loop,
+   staggered per column. Tinted with --color-chain for identity. */
+.column-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  padding: 0 1.5rem;
+}
+.column-grid-inner {
+  width: 100%;
+  max-width: 80rem; /* matches max-w-7xl */
+  height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  position: relative;
+}
+.column-grid-inner > div {
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+@media (min-width: 768px) {
+  .column-grid-inner > div { display: block; }
+}
+.column-grid-inner > div:last-child {
+  border-right: 0;
+}
+.data-stream {
+  position: absolute;
+  right: -1px;
+  width: 1px;
+  height: 8rem;
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(100, 160, 245, 0.0) 10%,
+    rgba(100, 160, 245, 0.45) 50%,
+    rgba(100, 160, 245, 0.0) 90%,
+    transparent 100%
+  );
+  animation: data-stream-flow linear infinite;
+}
+@keyframes data-stream-flow {
+  0% { transform: translateY(-120%); }
+  100% { transform: translateY(1200%); }
+}
+
+/* 5. Word-mask reveal — staggered slide-up from behind an overflow mask. */
+.mask-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  line-height: 1.05;
+  padding-bottom: 0.06em;
+}
+.mask-word-inner {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  animation: mask-word-rise 900ms var(--ease-enter) forwards;
+}
+@keyframes mask-word-rise {
+  0% { transform: translateY(110%); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 6. Corner markers — outward-offset + glyphs at panel corners. */
+.corner-marker {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  color: rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+.corner-marker svg { width: 100%; height: 100%; }
+.corner-marker.tl { top: -5px; left: -5px; }
+.corner-marker.tr { top: -5px; right: -5px; }
+.corner-marker.bl { bottom: -5px; left: -5px; }
+.corner-marker.br { bottom: -5px; right: -5px; }
+
+/* 7. Ambient status pulse dot — consumed by AmbientStatus. */
+@keyframes status-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.status-pulse {
+  animation: status-pulse 2.4s var(--ease-standard) infinite;
+}

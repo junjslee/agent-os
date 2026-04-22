@@ -20,10 +20,7 @@ export function TelemetryTicker({ events, className }: TelemetryTickerProps) {
 
   return (
     <div
-      className={cn(
-        "border border-hairline bg-surface/20 font-mono text-[0.75rem]",
-        className,
-      )}
+      className={cn("panel-gradient font-mono text-[0.75rem]", className)}
     >
       <header className="flex items-center justify-between border-b border-hairline px-4 py-2">
         <span className="text-[0.6875rem] uppercase tracking-[0.2em] text-muted">

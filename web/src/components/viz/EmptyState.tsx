@@ -19,8 +19,9 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex h-full flex-col items-start justify-center gap-3 border border-hairline bg-surface/20 p-8",
-        tone === "error" && "border-disconfirm/30",
+        "flex h-full flex-col items-start justify-center gap-3 panel-gradient p-8",
+        tone === "error" &&
+          "[background-image:linear-gradient(var(--color-surface),var(--color-surface)),linear-gradient(180deg,rgba(232,116,100,0.4)_0%,rgba(232,116,100,0.04)_100%)]",
         className,
       )}
     >

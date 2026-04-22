@@ -185,7 +185,7 @@ export function ReasoningMatrix({ surface, className }: ReasoningMatrixProps) {
         </span>
       </header>
 
-      <div className="border border-hairline bg-surface/20 p-5">
+      <div className="panel-gradient p-5">
         <p className="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted">
           core question
         </p>
@@ -194,7 +194,7 @@ export function ReasoningMatrix({ surface, className }: ReasoningMatrixProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-0 border border-hairline md:grid-cols-2">
+      <div className="panel-gradient grid grid-cols-1 gap-0 md:grid-cols-2">
         {(["knowns", "unknowns", "assumptions", "disconfirmation"] as Quadrant[]).map(
           (q, i) => (
             <div
@@ -220,7 +220,7 @@ export function ReasoningMatrix({ surface, className }: ReasoningMatrixProps) {
       </div>
 
       {surface.hypothesis && (
-        <div className="border border-hairline bg-surface/20 p-5">
+        <div className="panel-gradient p-5">
           <p className="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted">
             hypothesis · thinking as a bet
           </p>

@@ -895,6 +895,81 @@ All four disconfirmation criteria cleared:
 
 ---
 
+## Event 20 — 2026-04-22 — GTM web/ v1.1 polish pass (operator-console richness without narrative drift)
+
+Third delivery of the GTM parallel work stream. Seven aesthetic elements from the Aura Spatial Intelligence reference landed without touching typography (Fraunces + Satoshi + JetBrains Mono), narrative, or the signal palette. Build green; smoke-tested in dev against the live kernel.
+
+### Why this session ran
+
+A side-by-side audit against the downloaded `Aura-Spatial-Intelligence-Landing-Page-Template` reference showed mine captured the bones (dark substrate, mono voice, numbered sections, restrained palette) but missed the reference's "feels alive" richness — gradient-lit borders, atmospheric glow, progressive blur, animated data streams, corner markers, telemetry chrome, word-mask reveal. I called out seven missable elements and the operator approved a polish pass with the explicit constraint *"don't touch typography (Fraunces/Satoshi) or the core narrative."*
+
+### Delivery
+
+- **`web/src/app/globals.css`** — seven new CSS blocks appended: `.atmosphere` (3-stop chromatic glow mesh using chain/disconfirm/verified signals at 2-5% opacity with 80px blur — subtle chromatic richness without color saturation); `.panel-gradient` / `.panel-gradient-strong` (two-stop light-from-top simulation via `background: linear-gradient(...) padding-box, linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 55%, rgba(255,255,255,0.06) 100%) border-box; border: 1px solid transparent`); `.gradient-blur` (4-stop progressive backdrop-blur gradient for the top 9% of viewport, blur intensity increases toward the nav edge); `.column-grid` + `.column-grid-inner` + `.data-stream` + `@keyframes data-stream-flow` (fixed full-height 4-column grid under content, each divider hosts a 1px × 8rem chain-tinted gradient line that translates -120%→1200% on a 5.5-8s loop, staggered per column); `.mask-word` + `.mask-word-inner` + `@keyframes mask-word-rise` (staggered slide-up-from-mask reveal); `.corner-marker` + `.tl/.tr/.bl/.br` positioning (absolute + / glyphs at -5px offset from container corners); `.status-pulse` (2.4s opacity+scale pulse for live telemetry dots).
+- **`web/src/app/layout.tsx`** — `<div className="atmosphere" />`, `<div className="column-grid">` with 4 data-stream spans, `<div className="gradient-blur">` with 4 nested divs, wired as body-level chrome in the right z-order: atmosphere (z=-1) · column-grid (z=0) · grid-overlay + noise (z=-1, doc-order overlay) · gradient-blur (z=40) · content · Header (z=50).
+- **`web/src/components/ui/CornerMarkers.tsx`** (new) — reusable component emitting 4 `+`-glyph spans at container corners; `topOnly` prop for panels flush with content below.
+- **`web/src/components/site/AmbientStatus.tsx`** (new) — client component wired to `useLiveResource` against `/api/surface`, `/api/chain?limit=1`, `/api/protocols` at 25s cadence. Renders the terminal-console status strip: `chain · verified · <hash[:6]>` / `surface · N m fresh` or `stale (N m)` / `protocols · NN · soak` / `mode · live|fixtures`. Pulse dot on the chain indicator so the header reads "alive" even before content loads. Collapses to mobile-hidden via `lg:flex`.
+- **`web/src/components/site/Header.tsx`** — integrates `<AmbientStatus />` between brand and nav; nav links gain leading pilled status dots (`● framework`, `● surface`, `● protocols`) matching the reference's terminal-prompt pattern; keeps the sharp-cornered `dashboard →` CTA.
+- **`web/src/components/site/Hero.tsx`** — restructured inside a `panel-gradient` container with `<CornerMarkers />`; H1 now renders via `HERO_WORDS.map` with per-word `mask-word` → `mask-word-inner` spans staggered at 70ms between each (9 words × 70ms = ~600ms total reveal); subtitle / CTA cluster / metrics row each get a staggered delayed `mask-word-rise` animation at 700/900/1100ms so the whole hero choreographs on load; inner atmosphere — two low-opacity chain/disconfirm radial glows scoped to the hero panel for localized depth.
+- **`web/src/components/viz/ReasoningMatrix.tsx`** — core-question panel + matrix outer grid + hypothesis panel swapped from `border border-hairline` to `panel-gradient`. Inner quadrant buttons keep their hairline dividers; outer frame gets the gradient-lit edge.
+- **`web/src/components/viz/HashChainStream.tsx`** — container swapped to `panel-gradient`.
+- **`web/src/components/viz/ProtocolNode.tsx`** — panel-gradient on the card with a verified-tinted hover state (switches the border gradient to a phosphor-green fade on hover).
+- **`web/src/components/viz/EmptyState.tsx`** — panel-gradient base; error tone swaps the border gradient to a crimson fade.
+- **`web/src/components/viz/CascadeDetector.tsx`** — panel-gradient + top-only corner markers.
+- **`web/src/components/viz/TelemetryTicker.tsx`** — panel-gradient.
+- **`web/src/components/site/LiveExhibit.tsx`** — wrapping `relative` frame with `<CornerMarkers />` around the matrix+chain pair; landing-page panel-of-panels feel.
+- **`web/src/app/dashboard/page.tsx`** — same wrapping frame + corner markers around the matrix+chain section.
+
+### Smoke test (dev server, `$EPISTEME_PROJECT=/Users/junlee/episteme`)
+
+| signal | result |
+|---|---|
+| `/api/surface` (live) | `has_surface=True`, `age=0m` — AmbientStatus renders `surface · 0m fresh` |
+| `/api/chain?limit=1` (live) | `integrity=ok`, real head hash `bf188467fae5…` from Event 17's deferred_discoveries |
+| `/api/protocols` (live) | `count=0` — AmbientStatus renders `protocols · 00 · soak` |
+| landing HTML | 200 · 97 KB (up from 81 KB in v2; the extra 16 KB is the word-mask markup + corner markers + AmbientStatus) |
+| dashboard HTML | 200 · 59 KB (up from 50 KB) |
+| markup element counts | `mask-word-inner × 18` (9 words × 2 — outer span + inner), `data-stream × 8` (4 column divs + 4 span refs), `corner-marker × 16` (4 markers × 4 panels = Hero, LiveExhibit frame, dashboard frame, cascade detector), `panel-gradient × 7` on dashboard |
+| AmbientStatus wiring | `chain / surface / protocols / mode` labels all present in initial landing HTML |
+
+### Honest limits + choices
+
+- **`color-mix(in oklab, ...)` used in `.panel-gradient`.** Modern CSS, supported in Chrome 111+ / Firefox 113+ / Safari 16.4+ — which matches Next 16's declared browser floor. No polyfill needed.
+- **Data streams paint over content** per reference pattern. Panels with `panel-gradient` backgrounds are opaque, so streams are hidden behind panels and visible in the negative space — exactly the reference's effect.
+- **Corner markers are selective, not universal.** Applied to Hero, LiveExhibit frame, dashboard primary frame, CascadeDetector — not to every ProtocolNode card or EmptyState. Universal application would be noise; selective application reads as "signature panel."
+- **Atmosphere glow colors honor the signal palette.** Used `chain` (blue), `disconfirm` (crimson), `verified` (green) at 2-5% opacity — not pure white like the reference. The chromatic hint is legible as operator-console, not generic "dark theme."
+- **Hero word-mask uses CSS animation with per-word `animation-delay`** rather than GSAP. Simpler; no new dep; same effect. Motion library stays available for interactive state (matrix expand, chain flash).
+- **AmbientStatus degrades gracefully.** On cold start (before first fetch resolves) each row renders `—` with the muted tone; first successful fetch swaps in real values. The pulse dot on the chain indicator reads "alive" even while the fetch is pending.
+
+### What did NOT change
+
+- No typography changes (Fraunces + Satoshi + JetBrains Mono preserved).
+- No narrative changes. Copy bans on `guardrail/blocker/safety` intact; active vocabulary unchanged.
+- No signal-palette changes. Four accent colors still `verified / unknown / disconfirm / chain`.
+- No API route or server-reader changes. v2 wiring unchanged.
+- No viz component prop-surface changes. ReasoningMatrix / HashChainStream / ProtocolNode all accept the same props they did in v1.
+
+### Deferred discoveries (surfaced during v1.1)
+
+1. **The `panel-gradient` class duplicates substrate color in CSS.** `color-mix(in oklab, var(--color-surface) 92%, transparent)` is inlined twice. If `--color-surface` is rethemed, the panel-gradient's inner fill stays locked unless a dedicated `--panel-inner` token is added. Logged for v1.2 if theming becomes a real requirement.
+2. **`column-grid` data streams always render, regardless of `EPISTEME_MODE`.** In `fixtures` mode the streams still animate, which is fine aesthetically — but an operator might expect visual stillness when kernel is not running. Logged; not a v1.1 fix.
+3. **AmbientStatus doesn't distinguish "kernel unreachable" from "kernel idle."** A fetch error and a normal empty-chain both show muted dashes. Distinguishing requires exposing fetch error state in the header strip; trivially doable but cluttered. Logged for later.
+
+### Self-check against reference
+
+Seven of seven elements landed:
+- [x] gradient-lit panel borders — `panel-gradient` on ReasoningMatrix container, HashChainStream, ProtocolNode, EmptyState, CascadeDetector, TelemetryTicker, Hero outer frame, core-question + hypothesis boxes
+- [x] atmospheric radial glow mesh — `.atmosphere` fixed div in layout
+- [x] progressive-blur top gradient — `.gradient-blur` 4-stop div in layout
+- [x] animated column-grid data streams — `.column-grid` + 4 `.data-stream` spans
+- [x] corner markers (+) — `<CornerMarkers />` on 4 key surfaces
+- [x] AmbientStatus nav chrome — wired to /api/surface + /api/chain + /api/protocols with live fallback
+- [x] word-mask hero reveal — 9 staggered words + subtitle + CTAs + metrics choreographed on load
+
+**Commit plan:** atomic commit for v1.1 polish, message subject `feat(web): GTM site v1.1 polish pass (atmosphere + panel-gradient + progressive-blur + data-streams + corner-markers + AmbientStatus + word-mask reveal)`.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.

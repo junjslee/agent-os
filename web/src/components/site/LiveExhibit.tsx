@@ -1,4 +1,5 @@
 import { Sectioned } from "@/components/ui/Sectioned";
+import { CornerMarkers } from "@/components/ui/CornerMarkers";
 import { LiveReasoningMatrix } from "@/components/viz/LiveReasoningMatrix";
 import { LiveHashChainStream } from "@/components/viz/LiveHashChainStream";
 
@@ -27,16 +28,19 @@ export function LiveExhibit() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
-        <div className="md:col-span-8">
-          <LiveReasoningMatrix intervalMs={30_000} />
-        </div>
-        <div className="md:col-span-4">
-          <LiveHashChainStream
-            intervalMs={30_000}
-            limit={12}
-            className="h-full min-h-[560px]"
-          />
+      <div className="relative">
+        <CornerMarkers />
+        <div className="grid grid-cols-1 gap-5 p-3 md:grid-cols-12">
+          <div className="md:col-span-8">
+            <LiveReasoningMatrix intervalMs={30_000} />
+          </div>
+          <div className="md:col-span-4">
+            <LiveHashChainStream
+              intervalMs={30_000}
+              limit={12}
+              className="h-full min-h-[560px]"
+            />
+          </div>
         </div>
       </div>
     </Sectioned>
