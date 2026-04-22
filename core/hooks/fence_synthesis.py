@@ -36,6 +36,7 @@ from _fence_synthesis import (  # noqa: E402  # pyright: ignore[reportMissingImp
     correlation_id as _correlation_id,
     finalize_on_success as _finalize_on_success,
 )
+import _spot_check  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 
 def _tool_name(payload: dict) -> str:
@@ -108,7 +109,26 @@ def main() -> int:
         from datetime import datetime, timezone
         ts = datetime.now(timezone.utc).isoformat()
         correlation = _correlation_id(payload, cmd, ts)
-        _finalize_on_success(correlation, _extract_exit_code(payload))
+        # Finalize synthesis first so we know whether a protocol was
+        # produced. CP8: pass the synthesis signal into the spot-check
+        # sampler; the multiplier lands before the sample roll.
+        envelope = _finalize_on_success(
+            correlation, _extract_exit_code(payload)
+        )
+        try:
+            ctx = _spot_check.build_post_context(correlation)
+            if ctx is not None:
+                _spot_check.maybe_sample(
+                    correlation_id=correlation,
+                    op_label=ctx["op_label"],
+                    blueprint=ctx["blueprint"],
+                    context_signature=ctx["context_signature"],
+                    surface_snapshot=ctx["surface_snapshot"],
+                    synthesis_produced=envelope is not None,
+                    cwd=ctx["cwd"],
+                )
+        except Exception:
+            pass  # Spot-check failure must not block PostToolUse.
     except Exception:
         pass  # Never block PostToolUse on synthesis bookkeeping failure.
     return 0

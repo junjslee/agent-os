@@ -462,15 +462,38 @@ Smoke test is syntactic + referential, NOT actual execution — executing the ro
 
 ### Layer 8 · operator spot-check sampling (blueprint-prioritized)
 
-**What it checks.** A configurable percentage of high-impact surfaces is flagged for explicit operator review even when they pass Layers 1–4. Default rate: 10% for the first 30 days from install (calendar-from-install), then decay to 5%. Blueprint-fired surfaces sampled at 2× the base rate — the operator's calibration signal lands where the cognitive claim is largest. Selection decisions (which blueprint fired for which op) are themselves spot-checked at a lower rate to cover selector-Goodhart.
+**What it checks.** A configurable percentage of high-impact surfaces is flagged for explicit operator review even when they pass Layers 1–4. Default rate: 10% for the first 30 days from the first-sample anchor (`~/.episteme/sample_schedule_anchor.json`), then 5%. Blueprint-fired / synthesis-producing / Blueprint D resolution ops are sampled at **2× base** — the operator's calibration signal lands where the cognitive claim is largest. Selection decisions (which blueprint fired for which op) are themselves spot-checked at a lower rate to cover selector-Goodhart.
 
-Flagged surfaces queue to `~/.episteme/state/spot_check_queue.jsonl` (hash-chained). SessionStart presents them at the start of the next session ("3 surfaces flagged for review since last session — `episteme review`"). Operator verdicts (real / vapor / wrong-blueprint) train per-operator tuning over time.
+**Multiplier algebra (CP8 — max-not-sum).** If an op matches multiple multiplier classes (e.g. `blueprint_fired` + `synthesis_produced`), the effective rate is `base × max(multipliers)` capped at 1.0. Compounding would flood low-volume sessions on the same signal without additional evidence.
 
-**How an agent evades it.** Cannot. The operator is the ground truth. Sampling is random; the agent cannot predict which surfaces get reviewed.
+**Sampling timing (CP8 plan Q1).** At **PostToolUse**, not PreToolUse. Two reasons: (a) the `synthesis_produced` multiplier only has its true value after `_fence_synthesis.finalize_on_success` has run, and (b) the PreToolUse hot path stays narrow. `maybe_sample` is idempotent by `correlation_id` so both PostToolUse hooks (`fence_synthesis.py` and `calibration_telemetry.py`) can call it — first call wins.
 
-**Composition cost.** Layer 8 is the calibration layer for all the others. Operator verdicts tune thresholds in Layers 2, 3, 5 and adjust blueprint bind-rates — making the system self-correcting against drift in either direction.
+**Install anchor (CP8 plan Q3).** The 30-day cold window anchors on the first call to `read_or_seed_anchor` rather than a literal install timestamp — no clean canonical install signal exists. Operators who want a different reference can pre-seed `~/.episteme/sample_schedule_anchor.json`. Post-`rm -rf ~/.episteme/` the anchor restarts at the fresh-install rate, which is correct because the operator IS in a cold-start window after a wipe.
 
-**Cost / scope.** ~0 ms hot path (queue write + hash). Operator burden: ~5% of high-impact surfaces × 30 seconds review = a few minutes per session for a maintainer doing ~10 high-impact ops/day. Ships v1.0 RC; sample rate configurable per-project.
+Flagged surfaces queue to `~/.episteme/state/spot_check_queue.jsonl` (hash-chained via CP7's `_chain.append`). SessionStart presents the pending count: *"3 surfaces flagged for review — run `episteme review`"*.
+
+**Verdict dimensions (CP8 plan Q5 — enums locked).**
+
+- `surface_validity` ∈ {`real`, `vapor`, `wrong_blueprint`} — required on every verdict.
+- `protocol_quality` ∈ {`useful`, `vague`, `overfit`, `wrong_context`} — required when `multipliers_applied` contains `synthesis_produced`.
+- `cascade_integrity` ∈ {`real_sync`, `theater`, `partial`} — required when `multipliers_applied` contains `blueprint_d_resolution` (CP10 will populate this path).
+
+**Append-only verdict pattern.** Verdicts are written as SEPARATE `spot_check_verdict` records on the same chain — entries are never mutated. Latest-wins read semantics on revisions. `episteme review --revise` records a new verdict with `is_revision: true` pointing at the prior entry hash.
+
+**Skip semantics (CP8 plan Q4 — 7-day TTL).** `(s)kip` during review writes a `spot_check_skip` record with `expires_at = now + 7 days`. The reader hides skipped entries from `list_pending` until the TTL elapses; after TTL the entry re-presents so surfaces don't silently drop out of review.
+
+**`episteme review` CLI.** Four forms:
+
+- `episteme review` — interactive prompt for the oldest pending entry. Enforces required dimensions per multiplier class.
+- `episteme review --list [--all]` — non-interactive pending list (add `--all` for verdicted + skipped).
+- `episteme review --stats` — JSON summary (total / verdicted / pending / skipped / surface_validity distribution).
+- `episteme review --correlation-id <id> [--revise]` — review a specific entry, with `--revise` required when it already has a verdict.
+
+**How an agent evades it.** Cannot. The operator is the ground truth. Sampling is pseudo-random via `SystemRandom` in production; the agent cannot predict which surfaces get reviewed.
+
+**Composition cost.** Layer 8 is the calibration layer for all the others. Operator verdicts tune thresholds in Layers 2, 3, 5 and adjust blueprint bind-rates — making the system self-correcting against drift in either direction. Verdict-informed per-operator tuning is scoped to v1.0.1; CP8 ships the collection substrate only.
+
+**Cost / scope.** ~0 ms hot path (queue write + hash). Operator burden: ~5% of high-impact surfaces × 30 seconds review ≈ a few minutes per session for a maintainer doing ~10 high-impact ops/day. Ships v1.0 RC; sample rate configurable per-project via `.episteme/spot_check_rate` (single float, clamped to [0, 1]).
 
 ## Why these layers compose well
 

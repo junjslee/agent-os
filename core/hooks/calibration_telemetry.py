@@ -145,10 +145,11 @@ def main() -> int:
         if not cmd:
             return 0
         ts = datetime.now(timezone.utc).isoformat()
+        correlation = _correlation_id(payload, cmd, ts)
         record = {
             "ts": ts,
             "event": "outcome",
-            "correlation_id": _correlation_id(payload, cmd, ts),
+            "correlation_id": correlation,
             "tool": "Bash",
             "cwd": str(payload.get("cwd") or os.getcwd()),
             "command_executed": _redact(cmd),
@@ -156,6 +157,33 @@ def main() -> int:
             "status": _extract_status(payload),
         }
         _write_telemetry(record)
+        # CP8 — spot-check sampling at PostToolUse. Idempotent-by-
+        # correlation-id: if `fence_synthesis.py` already queued an
+        # entry for this id (with richer synthesis_produced signal),
+        # this call is a no-op via maybe_sample's dedupe check. For
+        # non-Fence ops the fence hook bailed early; this path is the
+        # primary sampler.
+        try:
+            _hooks_dir = Path(__file__).resolve().parent
+            if str(_hooks_dir) not in sys.path:
+                sys.path.insert(0, str(_hooks_dir))
+            from _spot_check import (  # type: ignore  # pyright: ignore[reportMissingImports]
+                build_post_context,
+                maybe_sample,
+            )
+            ctx = build_post_context(correlation)
+            if ctx is not None:
+                maybe_sample(
+                    correlation_id=correlation,
+                    op_label=ctx["op_label"],
+                    blueprint=ctx["blueprint"],
+                    context_signature=ctx["context_signature"],
+                    surface_snapshot=ctx["surface_snapshot"],
+                    synthesis_produced=False,
+                    cwd=ctx["cwd"],
+                )
+        except Exception:
+            pass  # Spot-check failure never blocks telemetry.
     except Exception:
         pass  # Never block on telemetry failure
     return 0

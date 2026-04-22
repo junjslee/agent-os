@@ -524,6 +524,81 @@ Same-correlation-id double-write: idempotent (byte-identical payload → no-op) 
 
 ---
 
+## Event 15 — 2026-04-21 — CP8 shipped: Layer 8 spot-check sampling + `episteme review` CLI + SessionStart digest
+
+The calibration layer. Samples admitted ops at a configurable rate, queues them in a hash-chained stream, collects operator verdicts across three locked dimensions. Tests: **502/502 passing** (+33 on top of the 469 CP7 baseline; zero regressions).
+
+### Substrate (`core/hooks/_spot_check.py`)
+
+Single module owns rate computation, multiplier algebra, queue I/O, verdict I/O, and the 7-day skip TTL. Reuses CP7's `_chain.append` so every record (entry / verdict / skip) is hash-chained in `~/.episteme/state/spot_check_queue.jsonl`. No mutation — verdicts are separate append-only records joined to entries by `correlation_id` with latest-wins read semantics on revisions.
+
+**Rate computation.** `base_rate()` returns the per-project override when `<cwd>/.episteme/spot_check_rate` exists (clamped to [0, 1]); otherwise 10% within 30 days of the first-sample anchor and 5% after. The anchor (`~/.episteme/sample_schedule_anchor.json`) seeds on first call and is honestly described as a proxy for install time — operators who care can pre-seed it.
+
+**Multiplier algebra (CP8 plan — max-not-sum).** Three multiplier classes: `blueprint_fired` (named blueprint matched, not generic), `synthesis_produced` (PostToolUse produced a Pillar 3 protocol), `blueprint_d_resolution` (CP10 populates; label shipped). `effective_rate = base × max(multiplier_values)` capped at 1.0. If an op carries two multipliers, the rate stays 2× base — not 4× — because compounding on the same signal would flood low-volume sessions without additional evidence.
+
+### PostToolUse sampling (CP8 plan Q1)
+
+Sampling runs at PostToolUse, never PreToolUse. Two reasons: (a) the `synthesis_produced` multiplier only has its true value after `_fence_synthesis.finalize_on_success` returns, and (b) the PreToolUse hot path stays narrow. `maybe_sample` is idempotent by `correlation_id` — both PostToolUse hooks (`fence_synthesis.py` and `calibration_telemetry.py`) call it; first-call-wins. Fence hook sets the richer `synthesis_produced=True` signal when synthesis landed; calibration hook's fallback call for non-Fence ops carries `synthesis_produced=False`.
+
+**Cross-hook data flow.** The PreToolUse guard's prediction record (written to `~/.episteme/telemetry/*-audit.jsonl`) gained a new `blueprint_name` field. `_spot_check.build_post_context(correlation_id)` reads this record at PostToolUse and assembles (op_label, blueprint, cwd, surface_snapshot, context_signature). No direct state sharing between Pre and Post hooks; the telemetry file is the join surface.
+
+### Verdict dimensions (CP8 plan Q5 — enums locked)
+
+Three enums, immutable without a schema-version bump:
+
+- `surface_validity` ∈ {`real`, `vapor`, `wrong_blueprint`} — required on every verdict.
+- `protocol_quality` ∈ {`useful`, `vague`, `overfit`, `wrong_context`} — required when the entry's `multipliers_applied` contains `synthesis_produced`.
+- `cascade_integrity` ∈ {`real_sync`, `theater`, `partial`} — required when `multipliers_applied` contains `blueprint_d_resolution` (CP10 territory; schema shipped at CP8 so CP10 doesn't need to migrate).
+
+`_validate_verdict` enforces the matching rules at write time. Missing a required dimension for an entry's multiplier class raises `ChainError`; unexpected values in the `None`-allowed cases also raise.
+
+### 7-day skip TTL (CP8 plan Q4)
+
+`(s)kip` during review writes a `spot_check_skip` record with `expires_at = now + 7 days`. Reader hides skipped entries from `list_pending` until TTL elapses — after that, the entry re-presents so surfaces never silently drop out of review. Prevents the "queue grows forever" failure mode where an operator defers entries indefinitely.
+
+### `episteme review` CLI (CP8 plan Q2 — revise semantics shipped)
+
+Four forms:
+
+- `episteme review` — interactive prompt for the oldest pending entry. Enforces required dimensions per multiplier. Aborts cleanly on Ctrl-C / EOF.
+- `episteme review --list [--all]` — non-interactive dump. `--all` includes verdicted + skipped entries.
+- `episteme review --stats` — JSON summary (total / verdicted / pending / skipped / surface_validity distribution).
+- `episteme review --correlation-id <id> [--revise]` — target a specific entry. `--revise` required when the entry already has a verdict; the new verdict record carries `is_revision: true` and the reader's latest-wins semantics switches to the new value.
+
+### SessionStart digest
+
+`core/hooks/session_context.py::_spot_check_line` emits a one-liner — *"N surfaces flagged for review — run `episteme review`"* — when the pending count is > 0. Silent on zero pending (avoid banner fatigue). Graceful degrade on any read failure.
+
+### Phase 12 integration
+
+`src/episteme/_profile_audit.py::_build_chain_integrity_summary` extends to include `spot_check_queue` stream. Per-stream isolation carries forward from CP7: a broken spot-check chain does NOT halt framework-derived or episodic-derived audit queries. Integration test verifies this exactly (`test_audit_reports_break_when_spot_check_tampered`).
+
+### Honest CP8 limits (tested explicitly, not latent)
+
+- **No operator-verdict-informed tuning yet.** The verdict records land in the queue, but no hook reads them to adjust thresholds or blueprint bind-rates. That's v1.0.1 scope. CP8 ships the collection substrate; v1.0.1 ships the feedback loop.
+- **Cross-day telemetry window is two days.** `_read_prediction_record` looks at today's + yesterday's `*-audit.jsonl`. PostToolUse rarely lands more than a day after PreToolUse, but long-running Claude Code sessions crossing midnight are possible; widening the window is a low-cost follow-up if real use shows misses.
+- **Blueprint D multiplier hook-only.** `blueprint_d_resolution` is a valid label but CP10 is the code path that triggers it. At CP8 no op actually gets the 2× multiplier for cascade resolution.
+- **`is_revision` check lives in `write_verdict`, not in the enum layer.** Revising a verdict without `--revise` raises `ChainError` at the Python level; the CLI surfaces that as a friendly error. An operator with direct Python access could bypass by setting `is_revision=True` on a first-verdict write — harmless, but documented.
+- **Rate computation is stateful across calls via the anchor file.** Tests use `EphemeralHome` fixtures to redirect; production uses the real `~/.episteme/`. If an operator runs multiple concurrent episteme installs (unusual), they'd share the anchor — acceptable for v1.0 RC.
+
+### What did NOT happen
+
+- No verdict-informed per-operator tuning. v1.0.1.
+- No Blueprint D selector firing (CP10).
+- No CP9 active-guidance framework query at PreToolUse.
+- No `episteme guide` CLI (CP9).
+- No chain-head signing to git (remains v1.0.1 scope from CP7 threat model).
+
+### Honest open questions carrying into CP9
+
+- Whether the `context_signature` overlap threshold for CP9's framework match is better at 3/6 (conservative), 4/6 (mid), or 5/6 (strict). CP8's queue carries `context_signature` dicts and `multipliers_applied` labels — CP9 can use this corpus to tune the threshold against real samples once the soak accumulates volume.
+- Whether to surface operator note content in Phase 12 drift detection — `spot_check_verdict.note` is a free-text field. If operators consistently note the same theme (e.g. "this op is always over-sampled"), that signal would be useful for automated threshold tuning. Deferred to v1.0.1.
+- Whether multipliers should be additive with a weight system rather than max-not-sum. CP8 locks max-not-sum per plan approval; revisit only if soak shows under-sampling on multi-signal ops.
+
+**Commit plan:** one atomic commit for CP8, message subject `feat(v1.0-rc): CP8 Layer 8 spot-check sampling + episteme review CLI + SessionStart digest`.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.

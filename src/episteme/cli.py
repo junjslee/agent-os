@@ -3874,6 +3874,138 @@ def _chain_dispatch(args) -> int:
     return 2
 
 
+def _review_dispatch(args) -> int:
+    """Dispatch CP8 `episteme review` — list / stats / interactive."""
+    import sys as _sys
+
+    hooks_dir = REPO_ROOT / "core" / "hooks"
+    if str(hooks_dir) not in _sys.path:
+        _sys.path.insert(0, str(hooks_dir))
+    try:
+        import _spot_check  # type: ignore  # pyright: ignore[reportMissingImports]
+    except ImportError as exc:
+        print(f"[episteme review] error loading spot-check module: {exc}", file=sys.stderr)
+        return 2
+
+    if getattr(args, "review_stats", False):
+        stats = _spot_check.stats()
+        print(json.dumps(stats, indent=2, ensure_ascii=False))
+        return 0
+
+    if getattr(args, "review_list", False):
+        show_all = getattr(args, "all", False)
+        entries = (
+            _spot_check.list_entries() if show_all else _spot_check.list_pending()
+        )
+        if not entries:
+            print("(no entries)" if show_all else "(no pending entries)")
+            return 0
+        for e in entries:
+            cid = e.payload.get("correlation_id", "?")
+            op = e.payload.get("op_label", "?")
+            bp = e.payload.get("blueprint", "?")
+            mults = ",".join(e.payload.get("multipliers_applied") or []) or "(none)"
+            state = (
+                "verdicted" if e.verdict is not None
+                else "skipped" if e.skip_until is not None
+                else "pending"
+            )
+            print(f"{cid:20s}  {state:10s}  {op:30s}  bp={bp}  mults={mults}")
+        return 0
+
+    # Interactive review path.
+    correlation_id = getattr(args, "review_correlation_id", None)
+    revise = getattr(args, "revise", False)
+    if correlation_id:
+        entry = _spot_check.get_entry(correlation_id)
+        if entry is None:
+            print(f"[episteme review] no entry with correlation_id {correlation_id!r}", file=sys.stderr)
+            return 2
+    else:
+        pending = _spot_check.list_pending()
+        if not pending:
+            print("(no pending entries — queue empty)")
+            return 0
+        entry = pending[0]
+
+    return _run_interactive_review(_spot_check, entry, revise=revise)
+
+
+def _run_interactive_review(_spot_check, entry, *, revise: bool) -> int:
+    """Interactive prompt flow for a single entry. Returns 0 on
+    recorded verdict, 2 on invalid input / user abort."""
+    payload = entry.payload
+    multipliers = set(payload.get("multipliers_applied") or [])
+    print()
+    print(f"Op: {payload.get('op_label', '?')}")
+    print(f"Blueprint: {payload.get('blueprint', '?')}")
+    print(f"Queued: {payload.get('queued_at', '?')}")
+    print(f"Correlation: {payload.get('correlation_id', '?')}")
+    print(f"Effective rate: {payload.get('effective_rate_at_sample', '?')}")
+    print(f"Multipliers: {','.join(multipliers) or '(none)'}")
+    surface = payload.get("surface_snapshot") or {}
+    if surface.get("core_question"):
+        print(f"  core_question: {surface['core_question']}")
+    if surface.get("disconfirmation"):
+        print(f"  disconfirmation: {surface['disconfirmation']}")
+    if surface.get("hypothesis"):
+        print(f"  hypothesis: {surface['hypothesis']}")
+    if entry.verdict is not None:
+        prev = entry.verdict.get("verdicts", {})
+        print(f"  EXISTING VERDICT: {prev}")
+        if not revise:
+            print(
+                "This entry has a verdict already. Re-run with --revise to overwrite.",
+                file=sys.stderr,
+            )
+            return 2
+    print()
+
+    def _prompt_enum(label: str, values, required: bool) -> str | None:
+        opts = " / ".join(values)
+        suffix = "" if required else " (or blank to skip this dimension)"
+        while True:
+            ans = input(f"{label} [{opts}]{suffix}: ").strip().lower()
+            if not ans and not required:
+                return None
+            if ans in values:
+                return ans
+            print(f"  invalid — expected one of {sorted(values)}")
+
+    try:
+        sv_values = sorted(_spot_check.SURFACE_VALIDITY_VALUES)
+        sv = _prompt_enum("surface_validity", sv_values, required=True)
+        verdicts: dict = {"surface_validity": sv}
+
+        if "synthesis_produced" in multipliers:
+            pq_values = sorted(_spot_check.PROTOCOL_QUALITY_VALUES)
+            pq = _prompt_enum("protocol_quality", pq_values, required=True)
+            verdicts["protocol_quality"] = pq
+
+        if "blueprint_d_resolution" in multipliers:
+            ci_values = sorted(_spot_check.CASCADE_INTEGRITY_VALUES)
+            ci = _prompt_enum("cascade_integrity", ci_values, required=True)
+            verdicts["cascade_integrity"] = ci
+
+        note = input("Optional note (blank to skip): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\n[episteme review] aborted", file=sys.stderr)
+        return 2
+
+    try:
+        _spot_check.write_verdict(
+            correlation_id=payload.get("correlation_id", ""),
+            verdicts=verdicts,
+            note=note,
+            is_revision=revise,
+        )
+    except Exception as exc:
+        print(f"[episteme review] error: {exc}", file=sys.stderr)
+        return 2
+    print("Verdict recorded.")
+    return 0
+
+
 def _audit(fix: bool = False) -> int:
     """Reasoning audit: verify the current project session has addressed cognitive unknowns."""
 
@@ -4274,6 +4406,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Stream to upgrade (only `protocols` has legacy records to upgrade at CP7)",
     )
 
+    # CP8 — Layer 8 spot-check review.
+    review_cmd = sub.add_parser(
+        "review",
+        help="Review sampled Layer 8 spot-check entries (operator verdicts)",
+    )
+    review_cmd.add_argument(
+        "--list", dest="review_list", action="store_true",
+        help="List pending entries instead of entering interactive review",
+    )
+    review_cmd.add_argument(
+        "--stats", dest="review_stats", action="store_true",
+        help="Print queue statistics (total / verdicted / pending / distribution)",
+    )
+    review_cmd.add_argument(
+        "--correlation-id", dest="review_correlation_id", default=None,
+        help="Review the entry matching this correlation id (instead of the oldest pending)",
+    )
+    review_cmd.add_argument(
+        "--revise", action="store_true",
+        help="Record a new verdict even if the entry is already verdicted",
+    )
+    review_cmd.add_argument(
+        "--all", action="store_true",
+        help="With --list: include already-verdicted and skipped entries",
+    )
+
     start = sub.add_parser("start", help="Start the preferred agent surface")
     start.add_argument("tool", nargs="?", default="claude", choices=["claude"])
 
@@ -4668,6 +4826,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         return _audit(fix=getattr(args, "fix", False))
     if args.command == "chain":
         return _chain_dispatch(args)
+    if args.command == "review":
+        return _review_dispatch(args)
     if args.command == "kernel":
         if args.kernel_action == "verify":
             return _kernel_verify()

@@ -6,12 +6,37 @@ starting context without a manual paste.
 """
 import json
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 
 SURFACE_TTL_SECONDS = 30 * 60
+
+
+def _spot_check_line() -> str | None:
+    """Return a one-line digest of pending Layer 8 spot-check entries,
+    or None when the queue is empty / unreadable.
+
+    Inlined pattern consistent with ``_profile_audit_line`` — the hook
+    is a standalone script with no guaranteed sys.path. Graceful
+    degrade on any IO / import failure so SessionStart never blocks
+    on a degraded queue."""
+    _hooks_dir = Path(__file__).resolve().parent
+    if str(_hooks_dir) not in sys.path:
+        sys.path.insert(0, str(_hooks_dir))
+    try:
+        import _spot_check  # type: ignore  # pyright: ignore[reportMissingImports]
+        pending = _spot_check.count_pending()
+    except Exception:
+        return None
+    if pending <= 0:
+        return None
+    noun = "surface" if pending == 1 else "surfaces"
+    return (
+        f"{pending} {noun} flagged for review — run `episteme review`"
+    )
 
 
 def run(args: list[str]) -> str:
@@ -148,6 +173,13 @@ def main() -> int:
     audit_line = _profile_audit_line()
     if audit_line:
         lines.append(audit_line)
+
+    # CP8 · Layer 8 spot-check digest — count of pending entries in
+    # ~/.episteme/state/spot_check_queue.jsonl (entries without a
+    # verdict and without an active skip).
+    spot_line = _spot_check_line()
+    if spot_line:
+        lines.append(spot_line)
 
     # NEXT_STEPS.md if present
     ns = Path("docs/NEXT_STEPS.md")

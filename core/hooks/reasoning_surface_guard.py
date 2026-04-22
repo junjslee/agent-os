@@ -934,6 +934,7 @@ def _write_prediction(
     cmd: str,
     cwd: Path,
     surface: dict | None,
+    blueprint_name: str = "generic",
 ) -> None:
     ts = datetime.now(timezone.utc).isoformat()
     record = {
@@ -945,6 +946,10 @@ def _write_prediction(
         "cwd": str(cwd),
         "command_executed": _redact(cmd),
         "epistemic_prediction": _extract_prediction(surface),
+        # CP8 — PostToolUse spot-check reads blueprint_name back from
+        # here so it can compute the blueprint_fired multiplier without
+        # re-running scenario detection.
+        "blueprint_name": blueprint_name,
         "exit_code": None,
     }
     _write_telemetry(record)
@@ -998,6 +1003,10 @@ def main() -> int:
     status, detail = _surface_status(cwd)
     advisory_only = (cwd / ".episteme" / "advisory-surface").exists()
     mode = "advisory" if advisory_only else "strict"
+    # Default blueprint name — overridden by the layer-2/3 block when
+    # the surface file exists and scenario detection runs. Declared
+    # here so CP8's prediction-record extension can always read it.
+    blueprint_name = "generic"
 
     # Layer 2 · v1.0 RC CP3 — runs only after Layer 1 passes. A Layer-2
     # rejection downgrades status from "ok" to "incomplete" so the
@@ -1188,7 +1197,10 @@ def main() -> int:
         if tool_name == "Bash":
             cmd = _bash_command(payload)
             surface = _read_surface(cwd)
-            _write_prediction(payload, tool_name, label, cmd, cwd, surface)
+            _write_prediction(
+                payload, tool_name, label, cmd, cwd, surface,
+                blueprint_name=blueprint_name,
+            )
         return 0
 
     header = f"REASONING SURFACE {status.upper()}: high-impact op `{label}` with {detail}."

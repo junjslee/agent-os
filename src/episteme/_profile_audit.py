@@ -228,6 +228,23 @@ def _build_chain_integrity_summary() -> dict[str, Any]:
         }
     except Exception as exc:
         out["pending_contracts"] = {"intact": False, "reason": f"{exc.__class__.__name__}: {exc}"}
+    # CP8 — Layer 8 spot-check queue. Per-stream isolation: a broken
+    # spot-check chain does not halt framework-derived or
+    # episodic-derived audit queries.
+    try:
+        import _spot_check  # type: ignore  # pyright: ignore[reportMissingImports]
+        sc_verdict = _spot_check.verify_chain()
+        out["spot_check_queue"] = {
+            "intact": sc_verdict.intact,
+            "total_entries": sc_verdict.total_entries,
+            "break_index": sc_verdict.break_index,
+            "reason": sc_verdict.reason,
+        }
+    except Exception as exc:
+        out["spot_check_queue"] = {
+            "intact": False,
+            "reason": f"{exc.__class__.__name__}: {exc}",
+        }
     return out
 
 
