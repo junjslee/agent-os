@@ -1199,6 +1199,58 @@ Three SVGs · one GIF · one cast · two source files · 4.2 MB total (mostly th
 
 ---
 
+## Event 25 — 2026-04-22 — `v1.0.0-rc1` tagged · first Vercel production deploy · RC soak opens
+
+After Event 24's asset cleanup, the RC shipping checklist closed out. Both irreversible GTM moves landed in the same window.
+
+### What shipped
+
+- **`v1.0.0-rc1` tag** on HEAD `93b9658` (checkpoint commit on top of `b52c42e` README ABCD-architecture section). All ten CPs (CP1–CP10) shipped, 565/565 tests green + 21 subtests, `episteme kernel verify` clean, `episteme doctor` green on macOS. This is the engineering-gates-pass state referenced throughout NEXT_STEPS § "Road to v1.0.0 RC."
+- **First Vercel production deploy** of `web/` — the operator executed the deploy; the fixtures-mode default (`NODE_ENV=production` ∧ unset `EPISTEME_HOME` → `fixtures`) ensured the public first render was safe without any env-var configuration, per the Event 22 deploy contract. Production URL not captured in this session — recorded honestly as "deployed, URL tracked operator-side."
+
+### RC soak window — what this opens
+
+Per spec § Verification and NEXT_STEPS § "Verification for RC gate — cognitive adoption," the 7-day RC soak window is now open against the tagged commit `93b9658`. Cognitive-adoption gates 21–28 begin measuring real use:
+
+- **Gate 21** — Reasoning-Surface snapshot quality in `~/.episteme/memory/episodic/*.jsonl` (sample 20 random, target zero lazy placeholders and zero disconfirmations without observable outcomes).
+- **Gate 22** — Disconfirmation actually fires on ≥ 1 recorded decision with downstream action change.
+- **Gate 23** — Facts / inferences / preferences stay separated (target < 10% cross-labeling).
+- **Gate 24** — Hypothesis → test → update cycle observable on ≥ 3 of 5 sampled surfaces.
+- **Gate 25** — Phase 12 profile-audit loop surfaces ≥ 1 real drift detection against the operator's own profile.
+- **Gate 26** — Semantic-tier promotion job emits ≥ 1 reasoning-shape regularity (not just outcome regularity).
+- **Gate 27** — Failure-mode taxonomy cited in episodic records across ≥ 3 distinct mode ids.
+- **Gate 28** — Dogfood: kernel edits *on* episteme itself show the same discipline demanded of downstream users.
+
+Ship GA when both engineering gates and ≥ 4 of 8 cognitive gates pass against real use, remaining four named as known-gaps in v1.0.1 scope.
+
+### First real Fence synthesis — Verification-#1b gate proof
+
+Zero synthesized protocols exist on disk today (`~/.episteme/framework/protocols.jsonl` absent or empty). The first successful constraint-removal op during soak that passes Blueprint B's Fence Reconstruction validation (`_layer_fence_validate` + `_layer4_fence_smoke_test`) produces the first hash-chained framework protocol entry, and CP9's `episteme guide` will surface it at a future matching context. This is the Verification-#1b gate — it cannot be faked by feature work; it requires a real constraint-removal op and a real match downstream.
+
+### What does NOT happen during the soak
+
+- **No further CPs.** The implementation arc is closed per Event 17. CP11+ belongs to v1.0.1 or later, not mid-soak.
+- **No behavior-changing hook edits.** Kernel hook changes mid-soak invalidate the 7-day evidence window against the tagged commit. Advisory-only additions (stderr, template footer, SessionStart banner) are permitted — they do not change exit codes on any input.
+- **No schema evolution.** Episodic-record fields, reasoning-surface-JSON keys, blueprint YAML shape — all frozen for soak duration.
+
+### What *is* scoped during the soak — Phase A of v1.0.1 audit close-out
+
+A pre-soak audit (this session) mapped `kernel/REFERENCES.md` 23 primary sources to concrete kernel artifacts and found 4 declared-only gaps (Ashby escalate-by-default, Munger latticework runtime check, Jaynes evidence-weighted update, Pearl direct causal) plus 5 orphaned derived knobs (only 2 of 7 consumed by hooks).
+
+Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens_order` + `explanation_form` in the Frame-stage template, `noise_watch_set` in the SessionStart banner, add a Pearl honest-translation note to `kernel/REFERENCES.md`, and record this Event. All four commits are additive, zero exit-code impact, soak-safe.
+
+**Phase B** (behavior-changing — `default_autonomy_class` gating, Ashby escalate-by-default prototype, `fence_check_strictness` modulation) is deferred to v1.0.1 post-soak per operator-explicit decision.
+
+**Phase C** (Jaynes/Laplace evidence-weighted schema evolution) is deferred to v1.1+ pending soak evidence that boolean assumptions are losing information.
+
+### Honest limits
+
+- Vercel production URL not recorded in this session; if retrospective audit needs it, pull from Vercel dashboard or the `vercel` CLI against the linked project.
+- The `v1.0.0-rc1` tag was created locally and is not yet pushed to `origin` as of this commit — push is an operator-gated action per AGENTS.md.
+- Cognitive-adoption measurement is manual sampling at this point; automated gate verification lands in v1.1 with the reference evaluator (NEXT_STEPS item 19, deferred).
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.
