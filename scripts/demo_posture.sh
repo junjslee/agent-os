@@ -1,296 +1,381 @@
 #!/usr/bin/env bash
-# demo_posture.sh — posture as thinking (not just blocking).
+# ═════════════════════════════════════════════════════════════════════════════
+#  scripts/demo_posture.sh — the Cognitive Cascade (A + B → C)
 #
-# Cinematic differential. Same PM prompt as demos/03_differential/, walked
-# through in four narrated beats so the viewer sees the posture in motion
-# rather than reading markdown artifacts in a folder.
+#  Four-act cinematic demo showing episteme as a thinking framework, not a
+#  blocker. All kernel output is simulated — the script runs in any clean bash
+#  environment without invoking real hooks, CLIs, or aliases.
 #
-#   Beat 1  The prompt — a real ask, posed by a PM to an engineer.
-#   Beat 2  Doxa vs episteme — fluent default vs the Reasoning Surface
-#           authored field-by-field, each field answering (a) what is
-#           shown, (b) why load-bearing, (c) what failure mode it counters.
-#   Beat 3  The specificity ladder — three disconfirmations validated
-#           live against the real Reasoning-Surface Guard: the shallowest
-#           blocks; the fluent-vacuous one passes the hot path (honest
-#           kernel limit); the concrete falsifiable one is the posture.
-#   Beat 4  The memory loop closes it — what phase 11 promotion emits,
-#           and what phase 12 (pending) audits.
+#    ACT 1 + 2 · Fence Reconstruction (Blueprint B)
+#      The agent tries to blindly remove a timeout constraint from
+#      .episteme/security-policy. The kernel blocks (exit 2). The agent
+#      rewrites its approach as a Circuit Breaker. The kernel admits.
+#      Pillar 3 synthesizes a context-fit protocol to the hash chain.
 #
-# Runs hermetically in a tempdir. Sets HOME to the tempdir so the real
-# ~/.episteme/state/ and ~/.episteme/telemetry/ are untouched.
+#    ACT 3 · Architectural Cascade (Blueprint D)
+#      The agent attempts `mv core/hooks/_network.py _circuit_breaker.py`.
+#      Blueprint D fires on two triggers (sensitive-path + refactor-lexicon
+#      + cross-ref). The agent declares a blast_radius_map + sync_plan for
+#      six downstream surfaces. Admission + three hash-chained
+#      deferred_discoveries land in the framework.
 #
-# Recording:
-#   asciinema rec -c ./scripts/demo_posture.sh docs/assets/posture_demo.cast
-#   agg docs/assets/posture_demo.cast docs/assets/posture_demo.gif \
-#     --cols 100 --rows 36 --font-size 15 --theme monokai
+#    ACT 4 · Active Guidance (Pillar 3)
+#      Later, the agent opens a new API client. The framework query matches
+#      the context signature against the protocol synthesized in Act 2 and
+#      emits a proactive [episteme guide] advisory — stderr-only, never
+#      blocking, wired to the chain entry that produced it.
+#
+#  ─── RECORDING ─────────────────────────────────────────────────────────────
+#
+#   1. Record via asciinema (requires asciinema >= 2.4):
+#
+#        asciinema rec --cols 100 --rows 32 --idle-time-limit 2 \
+#          -c ./scripts/demo_posture.sh \
+#          docs/assets/demo_posture.cast
+#
+#   2. Convert to GIF via agg at 0.8x playback (slightly slower than live):
+#
+#        agg --speed 0.8 \
+#            --cols 100 --rows 32 \
+#            --font-size 15 \
+#            --theme monokai \
+#            docs/assets/demo_posture.cast \
+#            docs/assets/demo_posture.gif
+#
+#  Authored for a 100-column by 32-row viewport. Tighter widths will wrap
+#  the kernel-block rules; widen --cols before re-rendering if needed.
+# ═════════════════════════════════════════════════════════════════════════════
 
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-GUARD="$REPO_ROOT/core/hooks/reasoning_surface_guard.py"
-
-if [[ ! -f "$GUARD" ]]; then
-  printf 'fatal: guard hook not found at %s\n' "$GUARD" >&2
-  exit 1
-fi
-
-# Colors degrade gracefully if output isn't a tty.
-#
-# DIM_RED is the visual demote on Beat 3's BLOCK rung — the script's
-# narration calls BLOCK "the shallowest thing the kernel does", so the
-# color must match the philosophical hierarchy. Bright red on an exit-2
-# was the visual climax of the GIF, which inverted the intended
-# climax (the Reasoning Surface itself). BRIGHT_GREEN is the climax
-# color for the falsifiable PASS rung — the actual posture.
+# ── colors ────────────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
-  BOLD=$'\033[1m'; DIM=$'\033[2m'
+  BOLD=$'\033[1m'; DIM=$'\033[2m'; ITAL=$'\033[3m'
   RED=$'\033[31m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'
   BLUE=$'\033[34m'; MAGENTA=$'\033[35m'; CYAN=$'\033[36m'
+  BRIGHT_RED=$'\033[91m'; BRIGHT_GREEN=$'\033[92m'
+  BRIGHT_YELLOW=$'\033[93m'; BRIGHT_BLUE=$'\033[94m'; BRIGHT_MAGENTA=$'\033[95m'
   GREY=$'\033[90m'; RESET=$'\033[0m'
-  DIM_RED=$'\033[2;31m'; BRIGHT_GREEN=$'\033[1;92m'
 else
-  BOLD=""; DIM=""; RED=""; GREEN=""; YELLOW=""; BLUE=""; MAGENTA=""; CYAN=""; GREY=""; RESET=""
-  DIM_RED=""; BRIGHT_GREEN=""
+  BOLD= DIM= ITAL= RED= GREEN= YELLOW= BLUE= MAGENTA= CYAN=
+  BRIGHT_RED= BRIGHT_GREEN= BRIGHT_YELLOW= BRIGHT_BLUE= BRIGHT_MAGENTA=
+  GREY= RESET=
 fi
 
-pause()   { sleep "${DEMO_PAUSE:-0.8}"; }
-hold()    { sleep "${DEMO_HOLD:-1.6}"; }
-narrate() { printf '%s\n' "$1"; pause; }
+# ── pacing ────────────────────────────────────────────────────────────────
+TYPE_DELAY=0.028
+PAUSE_XS=0.18
+PAUSE_S=0.4
+PAUSE_M=0.85
+PAUSE_L=1.6
+PAUSE_XL=2.4
 
-# Hermetic runtime: fake HOME so the real state/telemetry stay clean.
-TMPDIR_DEMO="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_DEMO"' EXIT
-export HOME="$TMPDIR_DEMO"
-PROJECT="$TMPDIR_DEMO/proj"
-mkdir -p "$PROJECT/.episteme"
-
-NOW_ISO="$(python3 -c 'from datetime import datetime, timezone; print(datetime.now(timezone.utc).isoformat())')"
-
-# -----------------------------------------------------------------------------
-# BEAT 0 — TITLE CARD  (the cognitive thesis, frozen for the GIF thumbnail)
-# -----------------------------------------------------------------------------
-#
-# Anchors the GIF's first-frame impression on the Reasoning Surface
-# formulation. The auto-playing thumbnail used to land on Beat 3's
-# bright-red BLOCK; now it lands here. The card holds for ~2.2 seconds —
-# long enough to read, short enough not to feel like marketing.
-printf '\n'
-printf '%s┌──────────────────────────────────────────────────────────────────────────────┐%s\n' "$BOLD$CYAN" "$RESET"
-printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s    %sepisteme%s — the rigorous formulation of a Reasoning Surface              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s    %sCore Question%s · what is this work actually trying to answer            %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s    %sUnknowns%s      · classifiable failure modes, named before the work       %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s    %sDisconfirmation%s · the falsifiable pivot, pre-committed                 %s│%s\n' "$BOLD$CYAN" "$RESET" "$DIM" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s│%s                                                                              %s│%s\n' "$BOLD$CYAN" "$RESET" "$BOLD$CYAN" "$RESET"
-printf '%s└──────────────────────────────────────────────────────────────────────────────┘%s\n\n' "$BOLD$CYAN" "$RESET"
-sleep "${DEMO_TITLE_HOLD:-2.2}"
-
-# -----------------------------------------------------------------------------
-# OPEN
-# -----------------------------------------------------------------------------
-printf '%s════════  episteme  —  posture as thinking  ════════%s\n' "$BOLD$CYAN" "$RESET"
-printf '%sFour beats: the prompt · doxa vs episteme · the specificity ladder · the memory loop.%s\n\n' "$DIM" "$RESET"
-sleep 1
-
-# =============================================================================
-# BEAT 1 — THE PROMPT
-# =============================================================================
-printf '%s───  BEAT 1  ·  THE PROMPT  ───%s\n\n' "$BOLD$BLUE" "$RESET"
-narrate "${DIM}A real PM ask, posed to a product engineer (demos/03_differential/prompt.md):${RESET}"
-printf '\n'
-printf '  %s┌──────────────────────────────────────────────────────────────────────────────┐%s\n' "$GREY" "$RESET"
-printf '  %s│%s  %sFrom:%s Priya (PM)   %sTo:%s Jun (Eng)                                              %s│%s\n' "$GREY" "$RESET" "$BOLD" "$RESET" "$BOLD" "$RESET" "$GREY" "$RESET"
-printf '  %s│%s  %sSubject:%s Semantic search on the KB — can we scope?                         %s│%s\n' "$GREY" "$RESET" "$BOLD" "$RESET" "$GREY" "$RESET"
-printf '  %s├──────────────────────────────────────────────────────────────────────────────┤%s\n' "$GREY" "$RESET"
-printf '  %s│%s  Customers cannot find stuff. I think semantic search is the answer — we   %s│%s\n' "$GREY" "$RESET" "$GREY" "$RESET"
-printf '  %s│%s  should embed the KB and use vector similarity. Can you scope a 2-sprint    %s│%s\n' "$GREY" "$RESET" "$GREY" "$RESET"
-printf '  %s│%s  build for Q3? Ship before the trade show (~6 weeks out). What do you       %s│%s\n' "$GREY" "$RESET" "$GREY" "$RESET"
-printf '  %s│%s  need from me?                                                              %s│%s\n' "$GREY" "$RESET" "$GREY" "$RESET"
-printf '  %s└──────────────────────────────────────────────────────────────────────────────┘%s\n\n' "$GREY" "$RESET"
-hold
-
-# =============================================================================
-# BEAT 2 — DOXA vs EPISTEME
-# =============================================================================
-printf '%s───  BEAT 2  ·  DOXA  vs  EPISTEME  ───%s\n\n' "$BOLD$MAGENTA" "$RESET"
-
-# --- DOXA -------------------------------------------------------------------
-printf '%s▐ DOXA · posture off · fluent default%s\n\n' "$BOLD$RED" "$RESET"
-narrate "${DIM}The engineer answers the question as asked. Specific. Actionable. Wrong.${RESET}"
-printf '\n'
-printf '  %s> pgvector on Postgres; embed with text-embedding-3-small.%s\n' "$GREY" "$RESET"
-printf '  %s> Backfill ~4,200 articles. Wire /search with cosine top-10.%s\n' "$GREY" "$RESET"
-printf '  %s> 50/50 A/B, feature flag ramp. CTR as primary metric.%s\n' "$GREY" "$RESET"
-printf '  %s> Should work before the trade show. Kicking off Monday.%s\n\n' "$GREY" "$RESET"
-
-printf '  %sFailure modes exhibited (five of nine, from kernel/FAILURE_MODES.md):%s\n' "$BOLD" "$RESET"
-printf '   %s02%s %sQuestion substitution%s  %s(a)%s scope produced   %s(b)%s real q: "should we build"   %s(c)%s needs Core Question\n' "$RED" "$RESET" "$BOLD" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s01%s %sWYSIATI%s                %s(a)%s accepts "cannot find" as diagnosis   %s(c)%s needs Unknowns field\n' "$RED" "$RESET" "$BOLD" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s03%s %sAnchoring%s              %s(a)%s "semantic" in prompt anchored plan   %s(c)%s needs Disconfirmation\n' "$RED" "$RESET" "$BOLD" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s05%s %sPlanning fallacy%s       %s(a)%s no eval, no rollback cost, no ops   %s(c)%s inversion + margin of safety\n' "$RED" "$RESET" "$BOLD" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s06%s %sOverconfidence%s         %s(a)%s no pre-stated pivot condition       %s(c)%s Disconfirmation field\n\n' "$RED" "$RESET" "$BOLD" "$RESET" "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-hold
-
-# --- EPISTEME ---------------------------------------------------------------
-printf '%s▐ EPISTEME · posture on · Reasoning Surface authored field-by-field%s\n\n' "$BOLD$CYAN" "$RESET"
-
-narrate "${DIM}Same prompt. The posture refuses to answer the asked question until it reframes it.${RESET}"
-printf '\n'
-
-printf '  %sCore Question (reframed — not the PM question):%s\n' "$BOLD" "$RESET"
-printf '  %s"Do we have evidence that keyword search is the load-bearing failure,%s\n' "$CYAN" "$RESET"
-printf '  %s before committing 2 sprints to semantic search?"%s\n' "$CYAN" "$RESET"
-printf '   %s(a)%s reframes the question            %s(b)%s fluent answer answered the wrong one\n' "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s(c)%s counters 02 Question substitution\n\n' "$YELLOW" "$RESET"
-pause
-
-printf '  %sUnknowns (classifiable, not hand-wavy):%s\n' "$BOLD" "$RESET"
-printf '  %s · What %% of failed searches are typos vs stop-word vs content-missing%s\n' "$CYAN" "$RESET"
-printf '  %s   vs discoverability-external vs genuine semantic gap?%s\n' "$CYAN" "$RESET"
-printf '  %s · Base rate: does BM25 actually lose to vectors at this scale/domain?%s\n' "$CYAN" "$RESET"
-printf '  %s · Current false-negative rate on a labelled gold set? (no gold set exists)%s\n' "$CYAN" "$RESET"
-printf '   %s(a)%s five distinct failure modes       %s(b)%s the fluent response lumped them as one\n' "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s(c)%s counters 01 WYSIATI\n\n' "$YELLOW" "$RESET"
-pause
-
-printf '  %sDisconfirmation (pre-committed pivot condition):%s\n' "$BOLD" "$RESET"
-printf '  %s"If query-log analysis shows over 50%% of failed searches are true%s\n' "$CYAN" "$RESET"
-printf '  %s semantic gaps, the semantic hypothesis survives and we build.%s\n' "$CYAN" "$RESET"
-printf '  %s If under 30%%, we do not."%s\n' "$CYAN" "$RESET"
-printf '   %s(a)%s pivot named before the work      %s(b)%s makes the plan falsifiable\n' "$YELLOW" "$RESET" "$YELLOW" "$RESET"
-printf '   %s(c)%s counters 03 Anchoring + 06 Overconfidence\n\n' "$YELLOW" "$RESET"
-hold
-
-# =============================================================================
-# BEAT 3 — THE SPECIFICITY LADDER
-# =============================================================================
-printf '%s───  BEAT 3  ·  THE SPECIFICITY LADDER  ───%s\n\n' "$BOLD$YELLOW" "$RESET"
-narrate "${DIM}Three disconfirmations, validated live against the Reasoning-Surface Guard.${RESET}"
-narrate "${DIM}The kernel catches the first. It does not catch the second. This is the kernel limit.${RESET}"
-printf '\n'
-
-PAYLOAD_PUSH="$(python3 -c "
-import json
-print(json.dumps({
-  'tool_name': 'Bash',
-  'tool_input': {'command': 'git push origin main'},
-  'cwd': '$PROJECT',
-}))
-")"
-
-_rung () {
-  local disco="$1"
-  local label="$2"
-  local expect="$3"   # 'block' | 'pass'
-  local color="$4"
-  local note="$5"
-
-  python3 - "$PROJECT" "$NOW_ISO" "$disco" <<'PY'
-import json, sys, pathlib
-project, now_iso, disco = sys.argv[1], sys.argv[2], sys.argv[3]
-surface = {
-    "timestamp": now_iso,
-    "core_question": "Should we push this change to main?",
-    "knowns": ["tests pass on the feature branch", "one reviewer approved"],
-    "unknowns": ["whether any regressions exist in rarely-hit code paths"],
-    "assumptions": ["the review caught the load-bearing risks"],
-    "disconfirmation": disco,
-}
-pathlib.Path(project, ".episteme", "reasoning-surface.json").write_text(json.dumps(surface, indent=2))
-PY
-
-  set +e
-  local response
-  response="$(printf '%s' "$PAYLOAD_PUSH" | python3 "$GUARD" 2>&1 >/dev/null)"
-  local rc=$?
-  set -e
-
-  printf '  %s┌─ %s%s%s\n' "$GREY" "$BOLD" "$label" "$RESET"
-  printf '  %s│%s  disconfirmation: %s"%s"%s\n' "$GREY" "$RESET" "$color" "$disco" "$RESET"
-  if [[ $rc -eq 0 ]]; then
-    # Visual hierarchy matches the philosophical hierarchy: a falsifiable
-    # PASS is the climax (BRIGHT_GREEN); the fluent-vacuous PASS is the
-    # honest kernel limit (yellow note, no special pass color); a BLOCK
-    # is the shallowest thing the kernel does (DIM_RED, demoted from
-    # the previous bright-red exit-code climax).
-    if [[ "$color" == "$GREEN" ]]; then
-      printf '  %s│%s  result:          %sPASS%s (exit 0)   %s%s%s\n' "$GREY" "$RESET" "$BRIGHT_GREEN" "$RESET" "$DIM" "$note" "$RESET"
-    else
-      printf '  %s│%s  result:          %sPASS%s (exit 0)   %s%s%s\n' "$GREY" "$RESET" "$GREEN" "$RESET" "$DIM" "$note" "$RESET"
-    fi
-  else
-    printf '  %s│%s  result:          %sBLOCK%s (exit %d)   %s%s%s\n' "$GREY" "$RESET" "$DIM_RED" "$RESET" "$rc" "$DIM" "$note" "$RESET"
-    if [[ -n "$response" ]]; then
-      printf '  %s│%s  %s%s%s\n' "$GREY" "$RESET" "$DIM" "$(printf '%s' "$response" | head -n 1)" "$RESET"
-    fi
-  fi
-  printf '  %s└─%s\n\n' "$GREY" "$RESET"
-
-  if [[ "$expect" == "block" && $rc -eq 0 ]]; then
-    printf '  %sFAIL: expected BLOCK, got PASS%s\n' "$RED" "$RESET"
-    exit 1
-  fi
-  if [[ "$expect" == "pass" && $rc -ne 0 ]]; then
-    printf '  %sFAIL: expected PASS, got BLOCK (exit %d)%s\n' "$RED" "$rc" "$RESET"
-    exit 1
-  fi
-  pause
+# ── helpers ───────────────────────────────────────────────────────────────
+type_out() {
+  local text="$1" delay="${2:-$TYPE_DELAY}" i
+  for (( i=0; i<${#text}; i++ )); do
+    printf '%s' "${text:$i:1}"
+    sleep "$delay"
+  done
+  printf '\n'
 }
 
-_rung 'None' \
-      '1. Placeholder token  (shallowest thing the kernel does)' \
-      'block' \
-      "$RED" \
-      '— validator catches the lazy token'
+prompt() {
+  printf '%s%sagent@episteme%s:%s~/project%s$ ' \
+    "$BOLD" "$CYAN" "$RESET" "$BLUE" "$RESET"
+}
 
-_rung 'the system could have bugs we did not find' \
-      '2. Fluent-vacuous     (43 chars, passes the hot path)' \
-      'pass' \
-      "$YELLOW" \
-      '— the honest kernel limit: structural pass, semantic emptiness'
+cmd() { prompt; type_out "$1"; sleep "$PAUSE_S"; }
 
-_rung 'if canary p95 latency on checkout exceeds 400ms within 10 minutes of deploy, roll back' \
-      '3. Concrete, falsifiable, pre-committed pivot   (what the posture is)' \
-      'pass' \
-      "$GREEN" \
-      '— passes because it names the condition under which it abandons itself'
+thinking() {
+  printf '%s  ...%s %s%s' "$DIM" "$RESET" "$ITAL" "$1"
+  local i
+  for i in 1 2 3; do sleep 0.32; printf '.'; done
+  printf '%s\n\n' "$RESET"
+  sleep "$PAUSE_S"
+}
 
-printf '  %sStructural discipline in the hot path;  semantic quality over time.%s\n\n' "$BOLD$CYAN" "$RESET"
-hold
+rule() {
+  printf '%s%s────────────────────────────────────────────────────────────────────────────────────────────────────%s\n' \
+    "$DIM" "$GREY" "$RESET"
+}
 
-# =============================================================================
-# BEAT 4 — THE MEMORY LOOP CLOSES IT
-# =============================================================================
-printf '%s───  BEAT 4  ·  THE MEMORY LOOP CLOSES IT  ───%s\n\n' "$BOLD$GREEN" "$RESET"
-narrate "${DIM}The fluent-vacuous surface (#2) is not caught at write. It is caught over time.${RESET}"
-narrate "${DIM}Phase 10 logs every high-impact action paired with its surface. Phase 11 promotes.${RESET}"
+act() {
+  echo
+  rule
+  printf '%s%s  ACT %s · %s%s\n' "$BOLD" "$MAGENTA" "$1" "$2" "$RESET"
+  rule
+  echo
+  sleep "$PAUSE_M"
+}
+
+narrate() {
+  printf '  %s%s# %s%s\n' "$DIM" "$ITAL" "$1" "$RESET"
+  sleep "$PAUSE_XS"
+}
+
+# Kernel output blocks
+block_open() {
+  local tag="$1" exit_code="$2"
+  echo
+  printf '  %s[%s]%s  %s%s%s\n' \
+    "$BRIGHT_RED" "$tag" "$RESET" "$RED" "$exit_code" "$RESET"
+  printf '  %s──────────────────────────────────────────────────────────────────────────────%s\n' \
+    "$RED" "$RESET"
+}
+
+block_close() {
+  printf '  %s──────────────────────────────────────────────────────────────────────────────%s\n' \
+    "$RED" "$RESET"
+  echo
+}
+
+pass_badge() {
+  echo
+  printf '  %s[episteme]%s  %sPASS · exit 0%s  %scorrelation_id=%s%s\n' \
+    "$BRIGHT_GREEN" "$RESET" "$GREEN" "$RESET" "$DIM" "$1" "$RESET"
+  echo
+}
+
+chain_line() {
+  printf '  %s●%s  chain %s  %s%s%s\n' \
+    "$BLUE" "$RESET" "$1" "$GREY" "$2" "$RESET"
+}
+
+synth_line() {
+  printf '  %s✦ protocol synthesized%s  %s%s%s\n' \
+    "$MAGENTA" "$RESET" "$BOLD" "$1" "$RESET"
+}
+
+guide_line() {
+  printf '  %s[episteme guide]%s  %s%s%s\n' \
+    "$BRIGHT_MAGENTA" "$RESET" "$ITAL" "$1" "$RESET"
+}
+
+# ═════════════════════════════════════════════════════════════════════════════
+
+# ── opening title ────────────────────────────────────────────────────────
+clear 2>/dev/null || printf '\033[2J\033[H'
+echo
+printf '%s%s  episteme · the sovereign cognitive kernel%s\n' "$BOLD" "$CYAN" "$RESET"
+printf '  %sv1.0 RC · CP1–CP10 · 565/565 green · three pillars shipped%s\n' "$DIM" "$RESET"
+echo
+sleep "$PAUSE_M"
+printf '  %sA four-act demo of the Cognitive Cascade:%s\n' "$ITAL" "$RESET"
+printf '    %sAct 1+2%s  fence reconstruction · remove a timeout, or rebuild it?\n' "$DIM" "$RESET"
+printf '    %sAct 3%s    architectural cascade · refactor with a blast radius\n' "$DIM" "$RESET"
+printf '    %sAct 4%s    active guidance · the protocol fires on the next decision\n' "$DIM" "$RESET"
+sleep "$PAUSE_XL"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ACT 1 + 2 · Fence Reconstruction
+# ═════════════════════════════════════════════════════════════════════════════
+
+act "1 · 2" "fence reconstruction"
+
+narrate "the agent has been asked to reduce tail latency; it looks at the timeout."
+cmd "cat .episteme/security-policy"
+printf '%s# security-policy · rev 07%s\n' "$GREY" "$RESET"
+printf '%s# constraint added 2025-11-04 · incident #412 — upstream deadlock under load%s\n' "$GREY" "$RESET"
+printf 'request_timeout: 30s\n'
+printf 'retry_policy:    exponential\n'
+printf 'max_retries:     3\n'
+sleep "$PAUSE_L"
+
+narrate "naive attempt: just strip the constraint."
+cmd "sed -i '' '/request_timeout/d' .episteme/security-policy"
+sleep "$PAUSE_XS"
+
+block_open "episteme · Blueprint B · Fence Reconstruction" "EXIT 2"
+printf '  %sconstraint removal detected%s   request_timeout\n' "$BOLD" "$RESET"
+printf '  %sfence_discipline%s              last touched 142 commits ago · incident #412\n' "$BOLD" "$RESET"
+printf '  %srule%s                          a constraint unchanged ≥ 100 commits requires a\n' "$BOLD" "$RESET"
+printf '                                 named reason for removal\n'
+echo
+printf '  write %s.episteme/reasoning-surface.json%s with:\n' "$BOLD" "$RESET"
+printf '     · knowns         — why the constraint was installed\n'
+printf '     · unknowns       — evidence the constraint is now obsolete\n'
+printf '     · assumptions    — regression coverage protecting removal\n'
+printf '     · disconfirmation — observable that would prove removal unsafe\n'
+printf '     · sync_plan      — downstream surfaces to update\n'
+echo
+printf '  %sor%s propose a non-removal resolution (wrap · replace · escalate)\n' "$ITAL" "$RESET"
+block_close
+sleep "$PAUSE_L"
+
+thinking "the kernel is right — incident #412 was a deadlock, not a latency win"
+
+narrate "the agent rethinks: don't remove the constraint — wrap it in a circuit breaker."
+cmd "cat > .episteme/reasoning-surface.json <<'EOF'"
+printf '%s' "$GREY"
+cat <<'SURFACE'
+{
+  "core_question": "Does wrapping request_timeout in a circuit breaker reduce tail latency without reopening incident #412?",
+  "knowns": [
+    "request_timeout was installed after incident #412 — upstream deadlock under sustained load",
+    "removing it would restore the exact failure mode the constraint exists to prevent"
+  ],
+  "unknowns": [
+    "the p99 latency cost of the current 30s timeout under normal operation",
+    "whether a circuit breaker with fallback preserves the anti-deadlock property"
+  ],
+  "assumptions": [
+    "half-open state probe under 5rps is safe — proven in load fixtures H/2024-Q3",
+    "fallback path has been exercised by the degraded-service integration tests"
+  ],
+  "disconfirmation": "if the staging incident-412 replay harness reports any request blocked beyond 45s after the circuit breaker lands, the change is unsafe and reverts.",
+  "posture_selected": "patch"
+}
+SURFACE
+printf '%sEOF\n%s' "$GREY" "$RESET"
+sleep "$PAUSE_M"
+
+narrate "now the real change: wrap, don't remove."
+cmd "episteme surface seal && patch core/hooks/_network.py circuit_breaker.patch"
+sleep "$PAUSE_XS"
+
+pass_badge "op-7f3a2c"
+chain_line "seq 0011" "sha256:a3c9f1b2 → e8d47f2a"
+synth_line "circuit-breaker-before-timeout-removal · conf 0.88"
+printf '  %s   context%s http_client × production × constraint_removal\n' "$DIM" "$RESET"
+printf '  %s   rule%s    in this context, wrap timeout in a circuit breaker before\n' "$DIM" "$RESET"
+printf '           considering removal. fallback path must be integration-tested.\n'
+printf '  %s   file%s    ~/.episteme/framework/protocols.jsonl\n' "$DIM" "$RESET"
+sleep "$PAUSE_XL"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ACT 3 · Architectural Cascade (Blueprint D)
+# ═════════════════════════════════════════════════════════════════════════════
+
+act "3" "architectural cascade"
+
+narrate "the circuit breaker lives in _network.py; agent decides to rename for clarity."
+cmd "mv core/hooks/_network.py core/hooks/_circuit_breaker.py"
+sleep "$PAUSE_XS"
+
+block_open "episteme · Blueprint D · Architectural Cascade" "EXIT 2"
+printf '  %sfour triggers%s\n' "$BOLD" "$RESET"
+printf '    T1 · self-escalation           %sdormant%s\n' "$GREY" "$RESET"
+printf '    T2 · sensitive-path target     %s%sARMED%s   core/hooks/_network.py\n' "$BOLD" "$YELLOW" "$RESET"
+printf '    T3 · refactor + cross-ref ≥ 2  %s%sFIRING%s  _network referenced in 4 surfaces\n' "$BOLD" "$BRIGHT_RED" "$RESET"
+printf '    T4 · generated-artifact        %sdormant%s\n' "$GREY" "$RESET"
+echo
+printf '  write %s.episteme/reasoning-surface.json%s with the six Blueprint D fields:\n' "$BOLD" "$RESET"
+printf '     · flaw_classification         %sarchitectural-rename%s\n' "$DIM" "$RESET"
+printf '     · posture_selected            patch %sor%s refactor\n' "$ITAL" "$RESET"
+printf '     · patch_vs_refactor_evaluation named rationale (≥ 20 chars, non-generic)\n'
+printf '     · blast_radius_map[]          every cross-reference enumerated\n'
+printf '     · sync_plan[]                 one concrete action per mapped surface\n'
+printf '     · deferred_discoveries[]      adjacent gaps uncovered mid-task\n'
+block_close
+sleep "$PAUSE_L"
+
+thinking "fair — a rename that leaves stale imports is exactly what D catches"
+
+narrate "the agent enumerates the blast radius."
+cmd "cat > .episteme/reasoning-surface.json <<'EOF'"
+printf '%s' "$GREY"
+cat <<'CASCADE'
+{
+  "core_question": "Does renaming _network.py → _circuit_breaker.py reflect the shipped behavior without orphaning cross-references?",
+  "flaw_classification": "architectural-rename",
+  "posture_selected": "refactor",
+  "patch_vs_refactor_evaluation": "the module now owns a circuit breaker, not generic network code. refactor is warranted because the symbol is referenced by four surfaces; patching would leave the name misleading while the file name remained _network.py.",
+  "blast_radius_map": [
+    { "surface": "core/hooks/_network.py",                    "status": "rename-source" },
+    { "surface": "core/hooks/_circuit_breaker.py",            "status": "rename-target" },
+    { "surface": "core/hooks/reasoning_surface_guard.py",     "status": "needs_update" },
+    { "surface": "tests/test_network_hook.py",                "status": "needs_update" },
+    { "surface": "docs/ARCHITECTURE.md",                      "status": "needs_update" },
+    { "surface": "kernel/MANIFEST.sha256",                    "status": "needs_update" }
+  ],
+  "sync_plan": [
+    { "surface": "reasoning_surface_guard.py", "action": "update import + symbol reference" },
+    { "surface": "tests/test_network_hook.py", "action": "rename file + update imports" },
+    { "surface": "docs/ARCHITECTURE.md",       "action": "update node annotation + cross-ref" },
+    { "surface": "kernel/MANIFEST.sha256",     "action": "regenerate after diff lands" }
+  ],
+  "deferred_discoveries": [
+    { "description": "public API symbol network.request() aliased for one release", "observable": "external imports of episteme.network still resolve", "log_only_rationale": "breaking external consumers outside the rename scope; schedule deprecation for v1.1" },
+    { "description": "log prefix `net.` still used inside the renamed module",        "observable": "grep 'net\\.' core/hooks/_circuit_breaker.py returns 3 hits",       "log_only_rationale": "log-prefix rename is cross-cutting and belongs in a separate pass" },
+    { "description": "benchmark name `bench_network_rtt` mentions the old symbol",    "observable": "benchmarks/ still references the removed name",                       "log_only_rationale": "benchmark rename affects result comparability; batch at release boundary" }
+  ]
+}
+CASCADE
+printf '%sEOF\n%s' "$GREY" "$RESET"
+sleep "$PAUSE_M"
+
+cmd "episteme surface seal && git mv core/hooks/_network.py core/hooks/_circuit_breaker.py"
+sleep "$PAUSE_XS"
+
+pass_badge "op-c4e8b1"
+chain_line "seq 0012" "sha256:e8d47f2a → 7b1d9e03"
+printf '  %s  three deferred discoveries hash-chained into the framework%s\n' "$DIM" "$RESET"
+printf '    · dd-net-alias-public-api      %sopen%s  dd-seq 0001\n' "$YELLOW" "$RESET"
+printf '    · dd-log-prefix-cross-cutting  %sopen%s  dd-seq 0002\n' "$YELLOW" "$RESET"
+printf '    · dd-bench-name-outdated       %sopen%s  dd-seq 0003\n' "$YELLOW" "$RESET"
+sleep "$PAUSE_XL"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ACT 4 · Active Guidance (Pillar 3)
+# ═════════════════════════════════════════════════════════════════════════════
+
+act "4" "active guidance · the framework fires"
+
+narrate "three weeks later — different branch, different feature."
+cmd "touch src/services/payments_client.py"
+sleep "$PAUSE_XS"
+cmd "cat > src/services/payments_client.py <<'EOF'"
+printf '%s' "$GREY"
+cat <<'CLIENT'
+import httpx
+
+class PaymentsClient:
+    def __init__(self, base_url: str, timeout: float = 10.0):
+        self.client = httpx.Client(base_url=base_url, timeout=timeout)
+
+    def charge(self, amount_cents: int, idempotency_key: str) -> dict:
+        r = self.client.post("/charge", json={"amount": amount_cents},
+                              headers={"Idempotency-Key": idempotency_key})
+        r.raise_for_status()
+        return r.json()
+CLIENT
+printf '%sEOF\n%s' "$GREY" "$RESET"
+sleep "$PAUSE_M"
+
+narrate "PreToolUse · framework query fires before the guard runs layer 2."
+sleep "$PAUSE_XS"
+
+echo
+guide_line "one protocol applicable · conf 0.92"
 printf '\n'
+printf '    %s●%s  %scircuit-breaker-before-timeout-removal%s\n' "$MAGENTA" "$RESET" "$BOLD" "$RESET"
+printf '       %srule%s     in http_client × production × constraint_removal, wrap timeout\n' "$DIM" "$RESET"
+printf '                in a circuit breaker before considering removal or relaxation.\n'
+printf '       %strigger%s  http_client pattern detected in src/services/payments_client.py\n' "$DIM" "$RESET"
+printf '                (httpx.Client · timeout parameter · production path)\n'
+printf '       %ssynth%s    chain seq 0011 · sha256:a3c9f1b2 · 3 weeks ago\n' "$DIM" "$RESET"
+printf '       %sposture%s  %sadvisory · never blocks%s — acknowledge or proceed\n' "$DIM" "$RESET" "$ITAL" "$RESET"
+echo
+sleep "$PAUSE_L"
 
-printf '  %s$ episteme memory promote --dry-run%s\n' "$DIM" "$RESET"
-printf '  %s────────────────────────────────────────────────────────────%s\n' "$GREY" "$RESET"
-printf '  %sproposal_id%s    : %sbc4f2e71%s   (deterministic · hash of signature + evidence refs)\n' "$BOLD" "$RESET" "$CYAN" "$RESET"
-printf '  %scluster%s        : (git-push, invariant-disconfirmation)\n' "$BOLD" "$RESET"
-printf '  %sevidence%s       : 14 episodic records across 6 days\n' "$BOLD" "$RESET"
-printf '  %sfire rate%s      : %s0 / 14%s  (disconfirmation condition never observed)\n' "$BOLD" "$RESET" "$YELLOW" "$RESET"
-printf '  %ssignal%s         : %sclaim fluent, outcome invariant%s  — measure-as-target drift\n' "$BOLD" "$RESET" "$YELLOW" "$RESET"
-printf '  %srecommendation%s : re-elicit disconfirmation specificity for this command class\n' "$BOLD" "$RESET"
-printf '  %sstatus%s         : proposal  (human review required before acceptance)\n' "$BOLD" "$RESET"
-printf '  %s────────────────────────────────────────────────────────────%s\n\n' "$GREY" "$RESET"
-hold
+narrate "the agent does not have to remember — the chain remembered for it."
+echo
+sleep "$PAUSE_M"
 
-printf '  %sPhase 11 ships this promotion job.%s\n' "$DIM" "$RESET"
-printf '  %sPhase 12 (pending) closes the loop:%s\n' "$DIM" "$RESET"
-printf '  %s   compares claimed profile axes  ⇄  episodic praxis;%s\n' "$DIM" "$RESET"
-printf '  %s   flags drift as re-elicitation at SessionStart;%s\n' "$DIM" "$RESET"
-printf '  %s   episteme auditing praxis to detect axes that have drifted into doxa.%s\n\n' "$DIM" "$RESET"
-hold
+# ═════════════════════════════════════════════════════════════════════════════
+# closing
+# ═════════════════════════════════════════════════════════════════════════════
 
-# =============================================================================
-# CLOSE
-# =============================================================================
-printf '%s════════  end of demo  ════════%s\n' "$BOLD$CYAN" "$RESET"
-printf '%sProse counterpart: docs/NARRATIVE.md%s\n' "$DIM" "$RESET"
-printf '%sEnforcement-of-the-surface demo: scripts/demo_strict_mode.sh  (see docs/DEMOS.md)%s\n' "$DIM" "$RESET"
-printf '%sFull differential artifacts: demos/03_differential/%s\n\n' "$DIM" "$RESET"
+rule
+printf '%s%s  the cognitive cascade%s\n' "$BOLD" "$CYAN" "$RESET"
+rule
+echo
+printf '    %sA%s  %sblueprint B%s · fence reconstruction — forced the rethink\n' "$BOLD" "$RESET" "$MAGENTA" "$RESET"
+printf '    %sB%s  %sblueprint D%s · architectural cascade — declared the blast radius\n' "$BOLD" "$RESET" "$MAGENTA" "$RESET"
+printf '    %s+%s\n' "$DIM" "$RESET"
+printf '    %sC%s  %spillar 3%s    · active guidance — protocol fires on the next matching op\n' "$BOLD" "$RESET" "$BRIGHT_MAGENTA" "$RESET"
+echo
+printf '  %snot a blocker. a thinking framework.%s\n' "$ITAL" "$RESET"
+echo
+sleep "$PAUSE_XL"
