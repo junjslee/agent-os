@@ -129,20 +129,40 @@ def _write_telemetry(record: dict) -> None:
         pass
 
 
+def _hook_log(msg: str) -> None:
+    """Persistent per-invocation log (Path-A Event 39 follow-up to
+    Event 36's loud-failure-mode pattern). Writes to
+    ~/.episteme/state/hooks.log; never raises."""
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        from pathlib import Path as _Path
+        path = _Path.home() / ".episteme" / "state" / "hooks.log"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{_dt.now(_tz.utc).isoformat()} calibration_telemetry {msg}\n")
+    except OSError:
+        pass
+
+
 def main() -> int:
     try:
         raw = sys.stdin.read().strip()
         if not raw:
+            _hook_log("invocation: stdin empty")
             return 0
         payload = json.loads(raw)
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as exc:
+        _hook_log(f"invocation: payload parse failed — {type(exc).__name__}: {exc}")
         return 0
 
     try:
-        if _tool_name(payload) != "Bash":
+        tool = _tool_name(payload)
+        if tool != "Bash":
+            _hook_log(f"skipped: tool={tool!r}")
             return 0
         cmd = _bash_command(payload)
         if not cmd:
+            _hook_log("skipped: empty cmd")
             return 0
         ts = datetime.now(timezone.utc).isoformat()
         correlation = _correlation_id(payload, cmd, ts)
@@ -157,6 +177,7 @@ def main() -> int:
             "status": _extract_status(payload),
         }
         _write_telemetry(record)
+        _hook_log(f"wrote outcome: correlation={correlation[:16]} exit={record['exit_code']} status={record['status']}")
         # CP8 — spot-check sampling at PostToolUse. Idempotent-by-
         # correlation-id: if `fence_synthesis.py` already queued an
         # entry for this id (with richer synthesis_produced signal),
@@ -182,10 +203,10 @@ def main() -> int:
                     synthesis_produced=False,
                     cwd=ctx["cwd"],
                 )
-        except Exception:
-            pass  # Spot-check failure never blocks telemetry.
-    except Exception:
-        pass  # Never block on telemetry failure
+        except Exception as spot_exc:
+            _hook_log(f"spot-check EXCEPTION: {type(spot_exc).__name__}: {spot_exc}")
+    except Exception as exc:
+        _hook_log(f"EXCEPTION: {type(exc).__name__}: {exc}")
     return 0
 
 

@@ -238,23 +238,44 @@ def _record_bash(payload: dict) -> None:
     _update_state(adds)
 
 
+def _hook_log(msg: str) -> None:
+    """Persistent per-invocation log (Path-A Event 39 follow-up to
+    Event 36's loud-failure-mode pattern). Writes to
+    ~/.episteme/state/hooks.log; never raises."""
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        from pathlib import Path as _Path
+        path = _Path.home() / ".episteme" / "state" / "hooks.log"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{_dt.now(_tz.utc).isoformat()} state_tracker {msg}\n")
+    except OSError:
+        pass
+
+
 def main() -> int:
     try:
         raw = sys.stdin.read().strip()
         if not raw:
+            _hook_log("invocation: stdin empty")
             return 0
         payload = json.loads(raw)
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as exc:
+        _hook_log(f"invocation: payload parse failed — {type(exc).__name__}: {exc}")
         return 0
 
     try:
         tool = _tool_name(payload)
         if tool in {"Write", "Edit", "MultiEdit"}:
             _record_write(tool, payload)
+            _hook_log(f"recorded write: tool={tool}")
         elif tool == "Bash":
             _record_bash(payload)
-    except Exception:
-        pass  # never block on tracker failure
+            _hook_log("recorded bash")
+        else:
+            _hook_log(f"skipped: tool={tool!r} (not tracked)")
+    except Exception as exc:
+        _hook_log(f"EXCEPTION: {type(exc).__name__}: {exc}")
     return 0
 
 
