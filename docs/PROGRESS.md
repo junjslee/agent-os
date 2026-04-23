@@ -1279,6 +1279,51 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 40 — 2026-04-23 — Distribution expansion: Korean README storytelling rewrite + Spanish + Chinese READMEs + `/readme/es` + `/readme/zh` routes + 4-locale header switcher
+
+**Scope.** Marketing-surface distribution work. Five file changes: `README.ko.md` rewritten in storytelling voice; new `README.es.md` (Spanish); new `README.zh.md` (Chinese); `README.md` locale-switcher expanded from 2 locales to 4; new `web/src/app/readme/es/page.tsx` + `web/src/app/readme/zh/page.tsx` routes mirroring the Event 34 `/readme/ko` pattern. Zero edits to `core/hooks/`, `kernel/*`, `src/episteme/`, or governance-surface docs. Fresh 7-day soak clock (opened Event 38 verification at 2026-04-23T21:23:36Z) unaffected.
+
+**Korean README rewrite — storytelling voice, English technical terms preserved.** Prior `README.ko.md` was a ~220-line mostly-literal translation of `README.md` — faithful but flat. New version opens with a concrete 11pm-migration-bug scenario that dramatizes the core failure mode (confident-wrong auto-regressive output that doesn't know the team's 3-month-old constraint), walks through why-prompts-don't-solve-it, introduces the solution narratively, then flows into the four-blueprint overview. All load-bearing English terms preserved (Thinking Framework, Reasoning Surface, Core Question, Knowns, Unknowns, Assumptions, Disconfirmation, Cognitive Blueprint, Axiomatic Judgment, Fence Reconstruction, Consequence Chain, Architectural Cascade, Chesterton's fence, Pillar 3, Active Guidance, tamper-evident hash chain, Context-signature, `flaw_classification`, WYSIATI, Kahneman, doxa / episteme / praxis, Sovereign Cognitive Kernel). Korean flow preserves the 결 (gyeol) root metaphor for the Reasoning Surface field order.
+
+**Spanish + Chinese READMEs — focused-scope translations.** Not line-by-line copies of the English README (that would be overkill at this stage and drift-prone). Instead each carries: (a) same opening hook (scenario-based, dramatizes the confident-wrong failure), (b) why-prompts-don't-solve, (c) Reasoning Surface four-field table, (d) ABCD Cognitive Blueprints overview, (e) Pillar 3 / protocol synthesis flow, (f) quick-start (install Option A + B), (g) doxa/episteme/praxis/결 philosophy anchor, (h) "read next" pointers into the English docs tree for depth, (i) "Note on translation" footer flagging focused-scope intent + English-term preservation rationale. Each ~150 lines vs. the English canonical ~454 — enough to give a Spanish/Chinese reader complete standalone value-proposition + onboarding path without requiring English. Deeper docs (DESIGN_V1_0_SEMANTIC_GOVERNANCE, ARCHITECTURE, HOOKS, NARRATIVE) stay English-only per kernel-tone-discipline — LLM-facing governance surface, not marketing surface.
+
+**Language-choice rationale.** rtk-ai/rtk (referenced earlier this session for distribution-ergonomics learnings) ships en/fr/es/ja/ko/zh. We ship en/ko/es/zh today because: (a) Korean audience is native to operator + Korean AI-tools community propagation is high; (b) Spanish audience is the largest non-English dev-community population globally by developer counts; (c) Chinese audience is among the largest AI-tool markets with significant domestic LLM-dev ecosystem. Japanese deferred — credible audience but without operator language fluency for review, ship-quality lower until a native-speaker reviewer found. French deferred similarly.
+
+**Routes shipped (Event 29 pipeline reused for 3rd + 4th time).** `/readme/es` and `/readme/zh` sibling routes created under `web/src/app/readme/<locale>/page.tsx`. Each is a direct clone of `/readme/ko/page.tsx` with two surgical swaps: the `readReadmeXx()` function targets `README.es.md` or `README.zh.md` respectively; metadata retitled + locale-tagged (`title: "README (Español) — episteme"` / `"README (中文) — episteme"`; `<main lang="es"|"zh">` for screen-reader + CSS locale handling). Rehype pipeline identical. Zero new dependencies. The enumeration-over-generalization pattern (positive-system rule in `core/memory/global/agent_feedback.md`) is still correct at 4 locales — each locale is its own audience/review decision; a dynamic `/readme/[lang]` route is explicitly not adopted.
+
+**Header locale-switcher.** Updated `README.md` top-of-file center-aligned locale row from 2 entries (English · 한국어) to 4 entries (**English** · 한국어 · Español · 中文) with bold on the current language and bullet separators. Operator's own commit `f966f63` added the 2-locale scaffold; this commit extends it in-place without disrupting structure.
+
+**Verification.** `pnpm build` green: **8 prerendered routes** static (`/`, `/commands`, `/dashboard`, `/icon.svg`, `/readme`, `/readme/es`, `/readme/ko`, `/readme/zh`) + 3 dynamic API routes preserved. TypeScript clean. No component-tree structural change at the Header / Footer level.
+
+**Translation-quality disclosure.** First-pass Spanish + Chinese translations are AI-drafted with the load-bearing-term-preservation rule applied consistently; not native-speaker-reviewed. Operator posture: ship draft-quality now, iterate with native reviewers before v1.0 GA. If by GA no reviewer found, consider machine-translation disclaimer at top of README.es.md + README.zh.md. Korean storytelling rewrite was operator-directed and operator-native-reviewable (Korean-native operator directly chose the voice).
+
+**Soak safety.** Zero kernel/hook/episodic/chain-schema impact. `mode.ts` production default keeps the deployed site on bundled fixtures. Cognitive-adoption gate 21-28 measurement unaffected. Fresh 7-day soak clock continues running against the Event 38 post-verification state.
+
+**Commit (to-be):** `feat(web,readme): Korean storytelling rewrite + Spanish + Chinese READMEs + /readme/{es,zh} routes (Event 40)` — SHA at commit.
+
+---
+
+## Event 39 — 2026-04-23 — Follow-up loud-failure-mode logging: `state_tracker.py` + `calibration_telemetry.py` (completes Event 36's coverage across all 4 PostToolUse Bash hooks)
+
+**Scope.** Diagnostic instrumentation follow-up to Event 36. Two file edits: `core/hooks/state_tracker.py` + `core/hooks/calibration_telemetry.py`. Each gets a self-contained `_hook_log()` helper that writes to `~/.episteme/state/hooks.log` mirroring the episodic_writer / fence_synthesis pattern Event 36 established. `except Exception: pass` at the top of `main()` in each file is replaced with structured diagnostic calls. No other behavior change.
+
+**Why necessary.** Event 38 registered all 4 PostToolUse Bash hooks (state_tracker, calibration_telemetry, episodic_writer, fence_synthesis) in `build_settings()` via `adapters/claude.py`. Post-Event-38 push verification confirmed `episodic_writer.py` fires (real record at `~/.episteme/memory/episodic/2026-04-23.jsonl`, `hooks.log` entry captured). However: `state_tracker.py` still had no `~/.episteme/state/session_context.json` written, and `calibration_telemetry.py` still had zero `"event":"outcome"` records in the telemetry file. Those two weren't instrumented with the loud-failure-mode pattern back in Event 36 (only episodic_writer + fence_synthesis got that treatment) so their silent-failure mode was still in place — any exception at their main() top was still swallowed by `except Exception: pass`.
+
+**Shipped.**
+
+- `core/hooks/state_tracker.py` — `_hook_log()` helper added. `main()` now emits: `"invocation: stdin empty"` / `"invocation: payload parse failed — <type>: <msg>"` / `"skipped: tool=<name> (not tracked)"` / `"recorded write: tool=<name>"` / `"recorded bash"` / `"EXCEPTION: <type>: <msg>"`. Every invocation writes exactly one line to `~/.episteme/state/hooks.log`.
+- `core/hooks/calibration_telemetry.py` — same pattern. Additional state logged: `"wrote outcome: correlation=<id> exit=<code> status=<status>"` on successful outcome-event write; `"spot-check EXCEPTION: <type>: <msg>"` on the nested spot-check sampling failure path (separate from the outer exception handler).
+
+**Diagnostic expected on next push.** If these hooks are actually being invoked by Claude Code on PostToolUse Bash events (per the Event 38 registration), `hooks.log` gains new lines prefixed `state_tracker` + `calibration_telemetry` right after any high-impact Bash op completes. If they STILL don't appear after the next push, the root cause is something Event 38's registration didn't fix — possibly a matcher-pattern mismatch at Claude Code's runtime (despite settings.json clearly listing `matcher: "Bash"`) or a tool-name-vs-event-name discrimination we haven't caught. Either way, Event 39's instrumentation surfaces the next layer.
+
+**Soak safety.** Pure observability / diagnostic instrumentation. No behavior change on writing logic. No schema change. No chain mutation. Fresh 7-day soak clock (Event 38 verification 21:23:36Z) unaffected.
+
+**Out of scope.** The actual fix for any newly-surfaced exception — that lands in Event 41+ once the exception is named.
+
+**Commit (to-be):** `fix(hooks): loud-failure-mode logging on state_tracker + calibration_telemetry (Event 39)` — SHA at commit.
+
+---
+
 ## Event 38 — 2026-04-23 — TRUE ROOT CAUSE: `adapters/claude.py` `build_settings()` never registered the 4 PostToolUse Bash hooks with Claude Code (fix + fresh 7-day soak opens)
 
 **Scope.** Adapter + hook-wiring alignment. Two file edits: `src/episteme/adapters/claude.py` `build_settings()` gets 4 new `posttool_entries` for the Bash matcher; `hooks/hooks.json` updated to match (all 4 PostToolUse Bash hooks set `async: false` for consistency). `episteme sync` regenerates `~/.claude/settings.json` with the new entries. **No core/hooks/ or kernel/ edits in this commit** — this is pure manifest-wiring.

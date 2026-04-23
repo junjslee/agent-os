@@ -12,8 +12,10 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> &bull;
+  <a href="README.md"><b>English</b></a> &bull;
   <a href="README.ko.md">한국어</a> &bull;
+  <a href="README.es.md">Español</a> &bull;
+  <a href="README.zh.md">中文</a>
 </p>
 
 <p align="center"><a href="https://epistemekernel.com"><b>epistemekernel.com</b></a></p>
