@@ -7,10 +7,15 @@ export function Header() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 md:px-12">
         <Link
           href="/"
-          className="flex shrink-0 items-baseline gap-3 font-display text-[1.125rem] lowercase tracking-tight text-bone"
+          className="flex shrink-0 items-center gap-3 font-display text-[1.125rem] lowercase tracking-tight text-bone"
         >
-          <span aria-hidden className="inline-block size-2 bg-chain" />
-          episteme
+          <img
+            src="/logo-mark-dark.svg"
+            alt=""
+            aria-hidden
+            className="size-7 shrink-0"
+          />
+          <span className="leading-none">episteme</span>
           <span className="hidden sm:inline font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-muted">
             rc · v1.0
           </span>

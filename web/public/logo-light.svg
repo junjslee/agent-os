@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456 96" role="img" aria-label="episteme" shape-rendering="crispEdges">
-  <title>episteme — candidate B · sage with dragonling</title>
+  <title>episteme</title>
 
-  <!-- Hat (dark indigo) — same stepped pyramid as A, rightward tilt at tip -->
+  <!-- Hat (dark indigo) — stepped pyramid with a slight rightward tilt at the tip -->
   <g fill="#1A1740">
     <rect x="54" y="4"  width="4"  height="4"/>
     <rect x="50" y="8"  width="8"  height="4"/>
@@ -40,45 +40,32 @@
     <rect x="60" y="50" width="4" height="4"/>
   </g>
 
-  <!--
-    Dragonling, summoned — floats at the sage's right.
-    Replaces the staff. Coiled S-curve descent.
-    Two-tone (dark body + mid-indigo belly) so the coil reads at thumbnail.
-  -->
+  <!-- Summoned dragonling -->
   <g fill="#1A1740">
-    <!-- Head: cols 22-24, rows 7-9 (SVG x=88-100, y=28-40) -->
-    <rect x="88"  y="28" width="12" height="4"/>  <!-- top of head -->
-    <rect x="84"  y="32" width="16" height="4"/>  <!-- full head -->
-    <rect x="84"  y="36" width="8"  height="4"/>  <!-- jaw left -->
-    <rect x="96"  y="36" width="4"  height="4"/>  <!-- jaw right (eye gap) -->
-    <!-- Neck curving right then down -->
+    <rect x="88"  y="28" width="12" height="4"/>
+    <rect x="84"  y="32" width="16" height="4"/>
+    <rect x="84"  y="36" width="8"  height="4"/>
+    <rect x="96"  y="36" width="4"  height="4"/>
     <rect x="92"  y="40" width="12" height="4"/>
     <rect x="96"  y="44" width="12" height="4"/>
-    <!-- Body coil: rightward peak -->
     <rect x="96"  y="48" width="12" height="4"/>
     <rect x="92"  y="52" width="16" height="4"/>
-    <!-- Curl back left -->
     <rect x="88"  y="56" width="16" height="4"/>
     <rect x="84"  y="60" width="16" height="4"/>
     <rect x="82"  y="64" width="12" height="4"/>
-    <!-- Tail curling right -->
     <rect x="86"  y="68" width="12" height="4"/>
     <rect x="92"  y="72" width="12" height="4"/>
     <rect x="96"  y="76" width="8"  height="4"/>
     <rect x="100" y="80" width="4"  height="4"/>
   </g>
-
-  <!-- Dragonling mid-tone belly highlight, gives it form -->
   <g fill="#6B5FB8">
-    <rect x="92" y="36" width="4" height="4"/>   <!-- chin mid -->
-    <rect x="96" y="52" width="8" height="4"/>   <!-- coil belly right -->
-    <rect x="84" y="64" width="6" height="4"/>   <!-- coil belly left -->
+    <rect x="92" y="36" width="4" height="4"/>
+    <rect x="96" y="52" width="8" height="4"/>
+    <rect x="84" y="64" width="6" height="4"/>
   </g>
-
-  <!-- Dragonling eye (warm accent) -->
   <rect x="94" y="32" width="3" height="3" fill="#F8E7A3"/>
 
-  <!-- Sage's outstretched hand summoning the dragonling -->
+  <!-- Sage's outstretched hand -->
   <rect x="76" y="58" width="8" height="4" fill="#D4CEEF"/>
 
   <!-- Wordmark -->

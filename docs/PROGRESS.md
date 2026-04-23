@@ -1279,6 +1279,54 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 26 — 2026-04-22 — Visual brand mark shipped: pixel sage + summoned dragonling, deep indigo, composed with wordmark
+
+**Session scope.** Additive, soak-safe brand-asset work — zero hook edits, zero episodic-record-shape changes, zero `core/hooks/` or `kernel/*` touched. v1.0.0-rc1 soak window (target close 2026-04-29) unaffected.
+
+**Core question (reasoning-surface, `cascade:architectural`).** What visual identity for episteme signals "systematic knowledge / System 2 discipline" consistently across README, website, and CLI surfaces — and what irreducible silhouette survives at the smallest surface (terminal cells / 24px favicon)?
+
+**Hypothesis (disconfirmation at 24×24 favicon).** A wizard/sage pixel character in deep indigo serves the brand better than a Dratini-like pixel baby (reads juvenile) or a bare dragon silhouette (power without thought), because sage-with-staff is the most literal mapping of "reasoning discipline gates action." Disconfirmation clause: if the proposed mark reads as "game mascot" at favicon scale, OR if the silhouette collapses at ~14 terminal cells, pivot to an abstract glyph.
+
+**Decision.** Operator picked **candidate B — Sage + Dragonling.** Semantically the richest of the three (sage *governs* the powerful instinct = episteme governing the LLM's defaults). Mixes all three operator-supplied references: pixel wizard (body), Dratini (pixel-discrete scale), dragon silhouette (coil). Deep-indigo palette:
+
+- `#1A1740` — dark anchor (hat, dragonling body, eyes)
+- `#2E2A6B` — mid (hood, robe)
+- `#6B5FB8` — light mid (dragonling belly highlight)
+- `#D4CEEF` — pale (face, beard, summoning hand)
+- `#F8E7A3` — warm accent (dragonling eye, one pixel)
+- Wordmark `#0a0a0a` (light mode) / `#fafafa` (dark mode) — existing type treatment preserved
+
+Dark variant derivation: dark-anchor `#1A1740` → `#A89BE8`; mid `#2E2A6B` → `#7B6EC8`; light-mid `#6B5FB8` → `#9B8EDB`; pale `#D4CEEF` → `#F5F0FF`; warm unchanged; wordmark `#fafafa`.
+
+**Shipped.**
+
+| Surface | Change | Status |
+|---|---|---|
+| `docs/assets/logo-light.svg` | Was wordmark-only (`#0a0a0a` text in 360×88 viewBox). Now composed mark+wordmark in 456×96 viewBox. | Replaced |
+| `docs/assets/logo-dark.svg` | Was wordmark-only (`#fafafa` text, 360×88). Now composed dark variant, 456×96. | Replaced |
+| `docs/assets/logo-mark-light.svg` | Character mark only in 96×96 viewBox (favicon / compact use). | New |
+| `docs/assets/logo-mark-dark.svg` | Character mark only dark variant. | New |
+| `README.md` `<picture>` block | `width="360"` → `width="456"` to match new composed viewBox. Filenames unchanged (`logo-{light,dark}.svg`), so prefers-color-scheme swap still works. | Edited |
+| `web/public/logo-{light,dark}.svg` + `logo-mark-{light,dark}.svg` | Copies of the four SVGs so the Next.js app can serve them from `/` without cross-workspace imports. | New |
+| `web/src/components/site/Header.tsx` | Replaced the 2px `bg-chain` color-dot accent next to the wordmark with `<img src="/logo-mark-dark.svg">` at `size-7`. Nav styling unchanged otherwise. | Edited |
+
+**Candidate archival.** Three candidates were drafted at `docs/assets/logo-candidates/{A-wizard-sage,B-sage-dragonling,C-dragon-sigil}.svg` plus a pick-sheet README. After operator selection, `git rm -r docs/assets/logo-candidates/` removed all four files; commit history preserves the non-picked directions for any future reference.
+
+**Deferred (logged to NEXT_STEPS, not blocking this ship).**
+
+- **24×24 favicon visual test.** Operator to confirm the sage+dragonling silhouette still reads as the intended archetype at `docs/assets/logo-mark-light.svg` rendered at 24×24. If identity collapses (mascot-fuzz at thumbnail, the disconfirmation clause above), pivot to a reduced silhouette — stripped-down candidate C (dragon sigil) is the named fallback.
+- **`web/src/app/favicon.ico` regeneration.** Current favicon is the Next.js template default; replacement from `logo-mark-light.svg` requires SVG→multi-size-ICO tooling (not in-session). Next.js App Router also supports `app/icon.svg` as a metadata file convention; evaluate that path alongside ICO regen.
+- **CLI half-block render.** Optional: convert the 24×24 pixel grid to Unicode `▀▄` + ANSI truecolor for `episteme init` banner at ~14 cells wide. Truecolor works on iTerm2 / WezTerm / Kitty / Alacritty; plain ASCII fallback for non-truecolor terminals.
+- **Q1 — website auto-renders README content.** Separate initiative logged as NEXT_STEPS item 8. Three candidate implementations scoped (`.mdx` rename, server-component `fs.readFileSync` + remark pipeline, build-time snapshot); operator hint from prior session was "change the extension of something" but specific approach was lost to `/clear` and needs re-confirmation before implementation. Scope: `web/` only; soak-safe.
+
+**Blueprint-D self-dogfood notes.** The reasoning surface for this session required four iterations to satisfy the guard's `architectural_cascade` blueprint validator: `flaw_classification` rejected `missing-asset` (enum-bound), `posture_selected` rejected `propose` (enum-bound to `patch|refactor`), `blast_radius_map` initially marked post-approval surfaces as `needs_update` without matching `sync_plan` entries (flipped to `not-applicable` during investigate phase, then back to `needs_update` after operator picked direction), `deferred_discoveries[]` rejected string-shaped entries (schema requires `{description, observable, log_only_rationale}` dicts). All four are real v1.0.1+ schema-evolution candidates per NEXT_STEPS "Phase B audit-cleanup rider" line 52–55 — this session's iteration cost is evidence the documented gaps are load-bearing at the operator level, not just theoretical. No dogfood failure: every iteration resolved by compliance, not opt-out.
+
+**Tests.** None added — no code change touched a tested surface. Pre-existing 587/587 suite unchanged.
+
+**Commit state at end of session.** Uncommitted: `docs/assets/logo-{light,dark,mark-light,mark-dark}.svg`, `web/public/logo-*.svg`, `web/src/components/site/Header.tsx`, `README.md`, `docs/NEXT_STEPS.md`, `docs/PROGRESS.md` (this entry), `.episteme/reasoning-surface.json`. Operator-gated commit per AGENTS.md.
+
+---
+
 ## 0.11.0-rc-track — 2026-04-20 — Framing shift + RC-gate fixes + Phase 12 CP1 scaffolding
 
 One long session. Five commits. Repository's narrative posture and engineering posture realigned around the same thesis the code has always been enforcing: **the cognitive framework is the product; the file-system blocker is the uncompromising enforcer, not the pitch.** Engineering fixes close concrete v1.0.0 RC-blockers; Phase 12 foundation lands so Checkpoint 2 (first real cognitive-drift signature) can start from a scaffolded, tested base.
