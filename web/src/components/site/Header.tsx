@@ -68,6 +68,26 @@ export function Header() {
               dashboard →
             </Link>
           </li>
+          <li
+            aria-label="locale"
+            className="hidden lg:flex items-center gap-1.5 pl-4 ml-1 border-l border-hairline/40 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-muted"
+          >
+            <Link href="/readme" className="transition-colors hover:text-ash" aria-label="English README">
+              EN
+            </Link>
+            <span aria-hidden className="text-whisper">·</span>
+            <Link href="/readme/ko" className="transition-colors hover:text-ash" aria-label="한국어 README">
+              한
+            </Link>
+            <span aria-hidden className="text-whisper">·</span>
+            <Link href="/readme/es" className="transition-colors hover:text-ash" aria-label="Español README">
+              ES
+            </Link>
+            <span aria-hidden className="text-whisper">·</span>
+            <Link href="/readme/zh" className="transition-colors hover:text-ash" aria-label="中文 README">
+              中
+            </Link>
+          </li>
         </ul>
       </nav>
     </header>

@@ -1279,6 +1279,36 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 41 — 2026-04-23 — Web polish: Header locale switcher + OG image + GitHub issue housekeeping audit
+
+**Scope.** Three additions, one operator-gated audit, one commit. Header gains a compact locale switcher; `web/src/app/opengraph-image.tsx` generates the social-share card at `/opengraph-image`; GitHub issue state audited and confirmed clean (zero open issues; #1 already closed). All three tasks are soak-safe distribution-surface work; zero `core/hooks/` or `kernel/*` touch; fresh 7-day soak clock (opened Event 38 verification, 2026-04-23T21:23:36Z) continues.
+
+**Task 1 — Locale switcher in Header (Next.js).** Operator flag from Event 40: the 4 locale READMEs shipped but web users had no nav-level path to discover them (only direct-URL share). Added a compact new `<li aria-label="locale">` at the end of Header.tsx's nav `<ul>`, separated from the primary nav by a thin `border-l border-hairline/40` + `pl-4 ml-1`. Content: `EN · 한 · ES · 中` with each as `<Link>` to `/readme`, `/readme/ko`, `/readme/es`, `/readme/zh` respectively. Styling matches the nav's minimalist aesthetic but one size smaller (`text-[0.625rem]` vs. the primary nav's `0.75rem`), muted color (`text-muted`) with `hover:text-ash` to indicate interactivity. `aria-label` per link for screen-reader accessibility (e.g., *"English README"*, *"한국어 README"*). Hidden below `lg:` breakpoint (same gate as the anchor tabs) to prevent header overflow on smaller screens — mobile discovery deferred to future nav-toggle work.
+
+**Task 2 — OG image at `/opengraph-image`.** Event 33 deferred this; now shipped. New `web/src/app/opengraph-image.tsx` uses Next.js 16's `app/opengraph-image.tsx` convention + `ImageResponse` from `next/og`. Card design: 1200×630 `image/png`, dark operator-console palette (`#0a0a0b` substrate, `#f2efe8` bone, `#c9c5ba` ash, `#4ea6ff` chain accent, `#9dc7ff` chain-light), ambient radial-gradient glow in top-left + bottom-right corners. Content: substrate-pill + `causal-consequence scaffolding` meta row at top; primary wordmark `episteme` at 128px weight-300 with tight letter-spacing; tagline `Semantic Governance for Agentic Memory` at 42px (operator-chosen); bottom signature row `Sovereign Cognitive Kernel · 생각의 틀` (left) + `epistemekernel.com` (right, chain-light). System sans-serif only — no Satoshi/Fraunces font-loading in the build-time image pipeline because the marginal brand-recall gain doesn't justify the added complexity; can iterate post-GA if OG recall becomes a measurable signal.
+
+**Satori constraint notes (captured for future OG work).** `ImageResponse` under the hood uses Vercel's Satori renderer, which enforces stricter CSS than browser-style JSX: `z-index` is unsupported; `display: "inline-flex"` is unsupported (must use `"flex" | "block" | "contents" | "none" | "-webkit-box"`). First build attempt failed on both; fixed by removing all `zIndex` entries and switching the substrate-pill's display to `"flex"`. Document these in any future OG-card variants.
+
+**Task 3 — GitHub issue housekeeping audit.** Operator noted issue #1 was already closed with courtesy comment posted. Ran `gh issue list -R junjslee/episteme --state open`: **zero open issues**. Ran `gh issue list --state closed --limit 10`: only #1 ever filed; closed 2026-04-23T20:46:12Z. `gh issue view 1` confirms the courtesy-comment thread (3 operator comments documenting the agents-field fix + retry instructions; 1 cheuk-cheng follow-up after the duplicate-hooks bug that became Event 30). No additional issues warranted comment-and-close treatment. Docs audit: `docs/PROGRESS.md` Events 27 + 30 already describe the fix and tag-immutability constraint correctly; no stale "open #1" references anywhere in `docs/` that need updating. Housekeeping complete.
+
+**Verification.**
+
+- `pnpm build` green: **9 prerendered routes** (`/`, `/commands`, `/dashboard`, `/icon.svg`, `/opengraph-image`, `/readme`, `/readme/es`, `/readme/ko`, `/readme/zh`) + 3 dynamic API routes preserved. TypeScript clean. OG image prerenders at build time so social crawlers get an instant PNG with no runtime dependency.
+- Header locale switcher renders in-flow at `lg:` breakpoints without causing the primary nav to wrap or the `dashboard →` button to overflow (visual inspection pending operator confirmation).
+- GitHub issue #1 confirmed CLOSED via `gh issue view`; zero open issues.
+
+**Soak safety.** Marketing-surface + distribution-surface only. Zero kernel/hook/episodic/chain-schema impact. Fresh 7-day soak clock unaffected.
+
+**Deferred (non-blocking, optional future polish).**
+
+1. **Mobile nav toggle.** Locale switcher (and the entire nav) are hidden below `lg:` breakpoint. A mobile hamburger toggle would expose them on phones/tablets. Post-GA candidate if mobile traffic warrants it.
+2. **OG image variants per locale.** Currently one global card. Spanish / Chinese / Korean readers see the English tagline. Per-locale OG (`app/readme/ko/opengraph-image.tsx`, etc.) would generate locale-matched cards; straightforward but +4 files. Defer until social traffic differentiates.
+3. **Custom font-loading in OG image.** Satoshi + Fraunces would match the site's typographic identity. Requires fetching the font file at build time and passing to ImageResponse's `fonts` prop. Iterate post-GA.
+
+**Commit (to-be):** `chore(web/github): locale switcher, OG image, and issue housekeeping (Event 41)` — SHA at commit.
+
+---
+
 ## Event 40 — 2026-04-23 — Distribution expansion: Korean README storytelling rewrite + Spanish + Chinese READMEs + `/readme/es` + `/readme/zh` routes + 4-locale header switcher
 
 **Scope.** Marketing-surface distribution work. Five file changes: `README.ko.md` rewritten in storytelling voice; new `README.es.md` (Spanish); new `README.zh.md` (Chinese); `README.md` locale-switcher expanded from 2 locales to 4; new `web/src/app/readme/es/page.tsx` + `web/src/app/readme/zh/page.tsx` routes mirroring the Event 34 `/readme/ko` pattern. Zero edits to `core/hooks/`, `kernel/*`, `src/episteme/`, or governance-surface docs. Fresh 7-day soak clock (opened Event 38 verification at 2026-04-23T21:23:36Z) unaffected.
