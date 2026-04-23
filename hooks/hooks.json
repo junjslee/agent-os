@@ -61,22 +61,22 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/state_tracker.py",
-            "async": true
+            "async": false
           },
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/calibration_telemetry.py",
-            "async": true
+            "async": false
           },
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/episodic_writer.py",
-            "async": true
+            "async": false
           },
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/core/hooks/fence_synthesis.py",
-            "async": true
+            "async": false
           }
         ]
       }

@@ -53,6 +53,19 @@ def build_settings(governance_mode: str = "balanced") -> dict:
     posttool_entries = [
         {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("format.py", async_=True)]},
         {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("test_runner.py")]},
+        # PostToolUse Bash writers (Path-A Event 38 — 2026-04-23).
+        # These existed in hooks/hooks.json since CP7/CP8 but were never
+        # added to build_settings(), so `episteme sync` never registered
+        # them with Claude Code. 3 days of Day-2-Gate-Grading evidence
+        # pointed at an async-hook bug; the actual cause was this manifest
+        # gap. All 4 ship with async=False per operator's conservative
+        # workaround — they complete in ≤ 50ms direct-invocation so the
+        # sync latency on the hot path is negligible; flipping back to
+        # async after soak-close verification is a trivial revert.
+        {"matcher": "Bash", "hooks": [hook_cmd("state_tracker.py")]},
+        {"matcher": "Bash", "hooks": [hook_cmd("calibration_telemetry.py")]},
+        {"matcher": "Bash", "hooks": [hook_cmd("episodic_writer.py")]},
+        {"matcher": "Bash", "hooks": [hook_cmd("fence_synthesis.py")]},
     ]
 
     mode = (governance_mode or "balanced").strip().lower()

@@ -1279,6 +1279,43 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 38 — 2026-04-23 — TRUE ROOT CAUSE: `adapters/claude.py` `build_settings()` never registered the 4 PostToolUse Bash hooks with Claude Code (fix + fresh 7-day soak opens)
+
+**Scope.** Adapter + hook-wiring alignment. Two file edits: `src/episteme/adapters/claude.py` `build_settings()` gets 4 new `posttool_entries` for the Bash matcher; `hooks/hooks.json` updated to match (all 4 PostToolUse Bash hooks set `async: false` for consistency). `episteme sync` regenerates `~/.claude/settings.json` with the new entries. **No core/hooks/ or kernel/ edits in this commit** — this is pure manifest-wiring.
+
+**The discovery.** Operator's hypothesis #2 framing was "if we change `async: true` → `async: false`, will Claude Code invoke the hooks?" Executing that test surfaced a different, simpler root cause:
+
+- `~/.claude/settings.json` (the file Claude Code actually reads for hook registration) was inspected post-`episteme sync` for PostToolUse Bash entries. Result: **zero entries for `state_tracker.py` / `calibration_telemetry.py` / `episodic_writer.py` / `fence_synthesis.py`.** Only `format.py` (Write|Edit|MultiEdit) and `test_runner.py` (Write|Edit|MultiEdit) and `context_guard.py` (Bash|Edit|Write|MultiEdit|Agent|Task) were present.
+- `~/.claude/plugins/installed_plugins.json` inspected — zero occurrences of "episteme." The repo was added as a marketplace (`/plugin marketplace add junjslee/episteme`) but episteme was **never actually installed** as a plugin. So the plugin-install flow's hooks.json also never registered.
+- Traced to `src/episteme/adapters/claude.py` `build_settings()` (line 53). Function constructs a **hardcoded list** of `posttool_entries` that only had 2 entries for Write|Edit|MultiEdit + 1 conditional for context_guard. The 4 PostToolUse Bash writers added during CP7/CP8 (state_tracker for the stateful interceptor, calibration_telemetry for outcome-record pairing with prediction, episodic_writer for the episodic tier, fence_synthesis for the Pillar 3 protocol emit path) were **added to `hooks/hooks.json` but never mirrored into `build_settings()`**.
+
+**Why this wasn't caught earlier.** `hooks/hooks.json` is the source-of-truth for the plugin-install flow (`/plugin install episteme@episteme` via Claude Code marketplace). `build_settings()` is the source-of-truth for `episteme sync`-driven settings.json generation. The adapter originally had fewer hooks, and as CP7/CP8 added PostToolUse writers, the developer added them to `hooks/hooks.json` (for future plugin-install compatibility) but didn't update `build_settings()`. Since this installation was configured via `episteme sync` + marketplace-add (not `/plugin install`), `settings.json` was the authoritative hook source — and it never heard about the 4 writers.
+
+**The 3-day diagnostic arc (summary).** Day-2 Gate Grading found the episodic tier empty (1 pre-tag smoke record, 0 post-tag). Initial hypothesis: `except Exception: pass` in `episodic_writer.main()` swallowed a runtime exception. Event 36 shipped loud-failure logging to ~/.episteme/state/hooks.log. Post-push: `hooks.log` file did not exist at all — decisive evidence the writer was never invoked. Initial conclusion: Claude Code async-hook bug. **Corrected conclusion (this Event):** hooks were never registered; neither async nor sync would fire because Claude Code had no entry for them.
+
+**Fix shipped.**
+
+- `src/episteme/adapters/claude.py` `build_settings()` gains 4 new entries in `posttool_entries` for the Bash matcher — `state_tracker.py`, `calibration_telemetry.py`, `episodic_writer.py`, `fence_synthesis.py`. All 4 registered with `async=False` per operator's conservative workaround direction. The 50ms hot-path-latency cost of synchronous PostToolUse invocation is negligible at observed direct-invocation latencies (~40ms for episodic_writer). If post-fix soak reveals problematic latency, flipping any or all back to `async=True` is a one-line revert.
+- `hooks/hooks.json` updated to match — all 4 PostToolUse Bash hooks set `async: false` for consistency. Source-of-truth alignment: `hooks/hooks.json` now agrees with what `build_settings()` emits. Future `/plugin install`-based deployments will inherit the same correct registration.
+- `episteme sync` re-run post-edit. Verified `~/.claude/settings.json` PostToolUse list now has all 4 Bash entries alongside the existing 3.
+
+**Verification (post-fix, in-session).**
+
+- `~/.claude/settings.json` PostToolUse matcher-block dump confirms all 7 expected hooks (format.py, test_runner.py, context_guard.py, state_tracker.py, calibration_telemetry.py, episodic_writer.py, fence_synthesis.py) with correct async flags.
+- The push for THIS commit will be the real runtime test: Claude Code should now invoke all 4 PostToolUse Bash writers on the `git push`. Expected post-push evidence: `~/.episteme/state/hooks.log` has entries from episodic_writer + fence_synthesis (the two with loud-failure logging from Event 36); `~/.episteme/memory/episodic/2026-04-23.jsonl` gains a real record for the `git push` op; `~/.episteme/framework/protocols.jsonl` may or may not gain an entry depending on whether any Fence Reconstruction has rollback-free completed.
+
+**Fresh 7-day soak timer OFFICIALLY OPENS at verification success.** Previous soak (v1.0.0-rc1 tagged 2026-04-22) aborted Day-2 (2026-04-23) upon pipeline-breakage discovery. If this Event's push confirms hooks fire + episodic records resume writing, **a fresh 7-day soak clock opens from the verification timestamp** against the current state. Target close: **~2026-04-30**. Cognitive-adoption gates 21-28 re-gradeable at that point with real evidence.
+
+**Out of scope for this Event.**
+
+- `calibration_telemetry.py` + `state_tracker.py` still have `except Exception: pass` (the loud-failure treatment only landed on episodic_writer + fence_synthesis in Event 36). Post-verification, if they still silent-fail despite being registered, same treatment applies as a follow-up.
+- The Claude Code async-hook question remains untested (never actually exercised because the hooks were never registered). After some real-use data accumulates, flipping one hook back to `async=True` tests Claude Code's async path empirically.
+- Upstream bug report to anthropics/claude-code — no longer needed since root cause was ours, not theirs.
+
+**Commit (to-be):** `fix(adapter): register 4 PostToolUse Bash hooks in build_settings() — opens fresh soak (Path-A Event 38)` — SHA at commit.
+
+---
+
 ## Event 37 — 2026-04-23 — Gate 27 resolution via Path 4A: "Two-vocabulary distinction" section added to `kernel/FAILURE_MODES.md` (reclassifies the apparent Gate 27 clear-fail as a measurement-dimension mismatch; preserves both vocabularies; MANIFEST regenerated + verified)
 
 **Scope.** Kernel documentation surface only. One file edit: `kernel/FAILURE_MODES.md` gains a ~80-line "Two-vocabulary distinction" section inserted between cascade-theater mode (#11) and the "Using this as a pre-execution checklist" operational section. Companion: `kernel/MANIFEST.sha256` regenerated via `episteme kernel update` and verified in sync via `episteme kernel verify`.
