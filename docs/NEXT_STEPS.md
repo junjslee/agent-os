@@ -4,7 +4,9 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ---
 
-## Resume here — v1.0.0 RC · Causal-Consequence Scaffolding, Protocol Synthesis & Continuous Self-Maintenance (2026-04-21)
+## Resume here — v1.0.0 RC · Causal-Consequence Scaffolding, Protocol Synthesis & Continuous Self-Maintenance (last touched 2026-04-23)
+
+**So-What Now?** Soak window through ~2026-04-29 — generate real-use evidence for cognitive-adoption gates 21-28, do not start Phase B, do not edit `core/hooks/` or `kernel/`. Soak-safe distribution / web / docs work permitted. Recently shipped: Event 27 (issue #1 plugin install fix + GitHub Releases), Event 28 (clone-count badge + license/release shields), Event 29 (README auto-render at `/readme` + Header anchor-tab visual distinction). Two pushed commits today: `ad78979` (auto-chkpt for `/readme` route + deps) and `cdd548c` (Header fix + Event 29 docs).
 
 **State.** v0.11.0 has been tagged and shipped. The v1.0 RC cycle is open. The approved spec is `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` — titled *Design — Causal-Consequence Scaffolding & Protocol Synthesis — v1.0 RC*, status `approved (reframed, third pass)`. Three successive reframes on 2026-04-21 re-anchored the spec:
 
