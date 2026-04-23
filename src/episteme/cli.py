@@ -1244,14 +1244,22 @@ def _resolve_memory_file(name: str) -> Path:
 def _init_memory() -> int:
     """Bootstrap personal memory files from examples/*.example.md templates.
 
+    Scope: this command seeds the kernel's own global memory at
+    REPO_ROOT/core/memory/global/ from example templates. It is a one-shot
+    setup step for a fresh clone of the episteme kernel repo; it does NOT
+    scaffold the current working directory. For project scaffolding, use
+    `episteme bootstrap`.
+
     If the personal files already exist (e.g. the repo ships with the author's
     real profiles), init skips them so forks start from those real profiles.
-    Only python_runtime_policy.md is always regenerated from the template because
-    it contains machine-specific paths that differ per user.
     """
+    cwd = Path.cwd().resolve()
     memory_dir = REPO_ROOT / "core" / "memory" / "global"
     examples_dir = memory_dir / "examples"
     names = ["overview", "operator_profile", "workflow_policy", "python_runtime_policy", "cognitive_profile"]
+
+    print(f"Seeding kernel global memory at {memory_dir}")
+    print("(this command always targets the kernel install, not your current directory)")
 
     created: list[str] = []
     skipped: list[str] = []
@@ -1269,14 +1277,21 @@ def _init_memory() -> int:
         created.append(f"{name}.md")
 
     if created:
-        print("Created personal memory files:")
+        print("\nCreated personal memory files:")
         for f in created:
             print(f"  core/memory/global/{f}")
         print("\nEdit these files with your personal context, then run `episteme sync`.")
     if skipped:
-        print(f"Already present (not overwritten): {', '.join(skipped)}")
+        print(f"\nAlready present (not overwritten): {', '.join(skipped)}")
+        print("To re-seed an individual file, copy its .example.md template by hand —")
+        print("this guard protects your real profile from accidental overwrite.")
     if not created and not skipped:
-        print("Nothing to do.")
+        print("\nNothing to do.")
+
+    if cwd != REPO_ROOT:
+        print(f"\nNote: you ran `episteme init` from {cwd}, which is not the kernel repo.")
+        print("If you meant to scaffold this project, run `episteme bootstrap` instead.")
+
     return 0
 
 
