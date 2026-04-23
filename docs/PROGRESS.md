@@ -1279,6 +1279,48 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 30 — 2026-04-23 — Issue #1 follow-up: `plugin.json` `hooks` field removed (duplicate-load install failure on clean cache)
+
+**External report (second one from `@cheuk-cheng` on `v1.0.0-rc1`).** After Event 27's agents-field fix landed on master and cheuk-cheng retried `/plugin install episteme@episteme`, a different install-time error surfaced:
+
+```
+Failed to load hooks from /Users/me/.claude/plugins/cache/episteme/episteme/1.0.0-rc1/hooks/hooks.json:
+Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file
+/Users/me/.claude/plugins/cache/episteme/episteme/1.0.0-rc1/hooks/hooks.json.
+The standard hooks/hooks.json is loaded automatically, so manifest.hooks should only
+reference additional hook files.
+```
+
+Reporter's local Claude Code applied a one-line patch (removed the `"hooks"` key from the cached `plugin.json`) and confirmed the install then succeeded — functional confirmation of the fix direction before this session began.
+
+**Root cause (causal-chain).** `.claude-plugin/plugin.json` line 39 carried a legacy single-string field `"hooks": "./hooks/hooks.json"`. Claude Code's plugin runtime **auto-loads** `hooks/hooks.json` by convention and then *also* honors any entry under `manifest.hooks`; with both pointing at the same file, the loader resolves the second load to an already-loaded path and aborts the install with the duplicate-detection error. The error message is explicit: `manifest.hooks should only reference additional hook files`. Same class of drift as Event 27's `"agents": "./core/agents"` — legacy single-string fields that a directory-convention-aware loader no longer tolerates; Event 27's fence-check on the manifest normalized the `agents` field but did not audit sibling fields of the same class (`hooks`, `skills`), and this regression slipped through.
+
+**Fix.**
+
+- `.claude-plugin/plugin.json` — removed the `"hooks": "./hooks/hooks.json"` line 39 entry (and the preceding trailing comma on the `skills` array). Manifest now carries 10 fields (`name`, `description`, `version`, `author`, `homepage`, `repository`, `license`, `keywords`, `agents`, `skills`) with the `hooks` field intentionally absent. Auto-discovery at `${plugin_root}/hooks/hooks.json` handles registration.
+
+**Verification.**
+
+- `python3 -c 'import json; json.load(open(".claude-plugin/plugin.json"))'` — clean parse; confirmed `hooks` key absent from resulting dict.
+- `hooks/hooks.json` contents unchanged: 5 trigger entries (`SessionStart`, `PreToolUse`, `PostToolUse`, `PreCompact`, `Stop`) intact — the installer UI was already reporting all 5 as the expected registration set when it hit the duplicate error, so auto-discovery will register the same surface without the explicit manifest reference.
+- `hooks/` directory has exactly one file (`hooks.json`) — no additional hook sources that would legitimately need an explicit `manifest.hooks` reference after the canonical one is removed.
+- Full reporter-flow reproduction (`/plugin install episteme@episteme` against the patched tree on a cleared Claude Code plugin cache) is operator-gated — cannot be run inside this session's live Claude Code instance without refreshing the plugin cache.
+
+**Soak safety.** Manifest-only edit, same class as Event 27. Zero touch on `core/hooks/`, `core/blueprints/`, `kernel/*`, `src/episteme/`, `tests/`, or any file participating in episodic-record shape / hash-chained streams / hot-path behavior. v1.0.0-rc1 soak window (target close ~2026-04-29) unaffected; cognitive-adoption gates 21–28 measurement continues against the tagged RC state without conflation.
+
+**Tag posture.** Same as Event 27. `v1.0.0-rc1` tag is immutable. Fix lands on master; external testers retrying `/plugin install` pull default-branch HEAD and pick up the patched manifest on next plugin-cache refresh. Users pinned to the `v1.0.0-rc1` tag remain on the broken manifest until the next tag (`v1.0.0-rc2` or `v1.0.0`).
+
+**Gap closed for real this time — the RC engineering gate is now blood-proven insufficient.** Event 27 § "Gap named and logged" item 1 (RC engineering gate missing an installable-plugin-smoke-test) is no longer speculative; two external-tester reports in two install attempts is the observational proof that the pre-tag checklist needs a `/plugin install` smoke step AND a manifest-field-shape validator that rejects any single-string value for fields spec'd as arrays-or-absent. Both items soak-safe (distribution-surface edits) and land as a second commit on this master branch after the fix — tracked in NEXT_STEPS as the RC-gate hardening rider.
+
+**Deferred discoveries.**
+
+1. **Manifest-field drift audit.** Fence-check on Event 27 normalized `agents` but did not audit sibling fields for the same single-string-vs-array-vs-absent drift class. The RC-gate hardening rider (above) should ship a manifest-field-shape validator that enumerates every field the Claude Code plugin-manifest schema specifies and asserts the on-disk shape matches — soak-safe, distribution-only.
+2. **Post-soak `/plugin install` smoke in CI.** Running the install-path smoke inside the same session that made the manifest edit requires refreshing the plugin cache, which is operator-gated. A post-soak CI job on a clean Claude Code cache (or a docker-pinned Claude Code version) would close the loop without operator intervention. Candidate for v1.0.1 infra work.
+
+**Commit (to-be):** `fix(plugin): remove hooks field — resolves duplicate-load on /plugin install` — SHA assigned at commit time; pushed to origin/master per operator authorization.
+
+---
+
 ## Event 29 — 2026-04-23 — README auto-render route at `/readme` + Header anchor-tab visual distinction (NEXT_STEPS item 8 closed, item 9 partially closed)
 
 **Scope.** Web-only soak-safe work. Zero edits to `core/hooks/`, `core/blueprints/`, `kernel/*`, `src/episteme/`, `tests/`, or any file participating in episodic-record shape / hash-chained streams. v1.0.0-rc1 soak window (target close ~2026-04-29) unaffected.

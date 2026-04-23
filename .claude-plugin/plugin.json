@@ -35,6 +35,5 @@
   "skills": [
     "./skills/custom",
     "./skills/vendor"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
