@@ -11,6 +11,11 @@
   <a href="https://github.com/junjslee/episteme"><img alt="Unique Clones" src="https://img.shields.io/badge/dynamic/json?color=success&label=Unique%20Clones&query=uniques&url=https://gist.githubusercontent.com/junjslee/0a171c9a54b11948bbd1562f4f040465/raw/clone.json&logo=github"></a>
 </p>
 
+<p align="center">
+  <a href="README.md">English</a> &bull;
+  <a href="README.ko.md">한국어</a> &bull;
+</p>
+
 <p align="center"><a href="https://epistemekernel.com"><b>epistemekernel.com</b></a></p>
 
 > **A thinking framework for the AI coding agent you already ship.** Before any high-impact move — the task, not just the shell command — the agent has to state its reasoning on disk: core question, knowns, unknowns, what would prove the plan wrong. A file-system hook refuses to proceed if that surface is missing or vapor, even when the operator is the one who asked for the move. Every resolved conflict becomes a reusable protocol, chained tamper-evidently and surfaced back at the next matching decision. Built as a **Sovereign Cognitive Kernel** — **생각의 틀**, posture over prompt.
