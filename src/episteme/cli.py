@@ -1280,7 +1280,7 @@ def _init_memory() -> int:
         print("\nCreated personal memory files:")
         for f in created:
             print(f"  core/memory/global/{f}")
-        print("\nEdit these files with your personal context, then run `episteme sync`.")
+        print("\nNext: edit these files with your personal context, then run `episteme sync`.")
     if skipped:
         print(f"\nAlready present (not overwritten): {', '.join(skipped)}")
         print("To re-seed an individual file, copy its .example.md template by hand —")
@@ -3664,11 +3664,11 @@ def _bootstrap_project(project_root: Path, *, harness_name: str | None = None) -
 
     print(f"Bootstrapped project scaffold in {project_root}")
     if created:
-        print("Created:")
+        print("\nCreated:")
         for item in created:
             print(f"  - {item}")
     if preserved:
-        print("Preserved existing:")
+        print("\nPreserved existing:")
         for item in preserved:
             print(f"  - {item}")
 
@@ -3685,6 +3685,11 @@ def _bootstrap_project(project_root: Path, *, harness_name: str | None = None) -
                 print("\nNo strong harness signal detected — applying generic.")
         print()
         _apply_harness(resolved, project_root)
+
+    print("\nNext:")
+    print("  1. edit docs/REQUIREMENTS.md and docs/PLAN.md to describe this project")
+    print("  2. `episteme sync` if you haven't already (propagates kernel memory to Claude/Hermes)")
+    print("  3. `episteme start claude` to launch the agent surface in this project")
 
 
 # ---------------------------------------------------------------------------
@@ -4284,8 +4289,52 @@ def _audit(fix: bool = False) -> int:
     return 0 if all_passed else 1
 
 
+_EPILOG_GROUPED = """\
+command map (grouped by lifecycle phase):
+
+  daily
+    bootstrap, new-project   scaffold a project in the current directory
+    sync                     propagate kernel memory + policies into Claude Code / Hermes
+    start                    launch the preferred agent surface for this project
+    doctor                   verify runtime wiring (Conda, core tools, optional tools)
+    audit                    check whether the current session addressed its unknowns
+    memory                   record, list, search, promote memory records
+
+  setup & admin
+    init                     seed kernel global memory from examples (one-shot after clone)
+    setup                    interactive profile + cognition wizard
+    profile, cognition       edit operator-profile and cognitive-style axes
+    update                   pull the latest episteme from git
+    list, validate           inventory installed agents/skills/plugins; check manifest
+
+  project tools
+    detect, harness          score and apply a harness to a project
+    worktree                 create a git worktree for a bounded task
+    viewer                   local read-only dashboard over this repo
+    capture                  draft a reasoning-surface.json skeleton from text
+
+  framework internals
+    kernel                   manifest verify/update
+    chain                    hash-chain verify/reset/upgrade
+    guide                    list synthesized protocols and deferred discoveries
+    inject, log              deploy enforcement, show audit log
+    review                   spot-check sampled reasoning-surface entries
+    evolve                   gated self-evolution episodes
+    bridge                   external runtime event-log bridges
+    private-skill            toggle experimental private skills
+
+Run `episteme <command> --help` for flags and arguments on any command.
+Cheatsheet with one-line explanations: docs/COMMANDS.md
+"""
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="🧠 episteme: The Identity and Context Layer for Autonomous Agents.")
+    parser = argparse.ArgumentParser(
+        prog="episteme",
+        description="🧠 episteme: the identity and context layer for autonomous agents.",
+        epilog=_EPILOG_GROUPED,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("init", help="Bootstrap personal memory files from *.example.md templates")
@@ -4773,6 +4822,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         print("🛸 Transitioning Soul to all available vessels...")
         _sync_user_runtime(getattr(args, "governance_pack", "balanced"))
         print("✅ Transition complete. Your agents are now aware.")
+        print("\nNext: `episteme doctor` to verify wiring, or `episteme start claude` in a project.")
         return 0
     if args.command == "update":
         return _update()
