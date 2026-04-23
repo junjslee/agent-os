@@ -63,10 +63,13 @@ export function Hero() {
                 animation: "mask-word-rise 900ms var(--ease-enter) 700ms forwards",
               }}
             >
-              <span className="text-bone">episteme</span> is a sovereign cognitive kernel that
-              extracts context-fit protocols from conflicting information, records every
-              decision on a tamper-evident hash chain, and actively guides execution when
-              the reasoning surface goes thin.
+              Before any high-impact move — the task, not just the shell command — the agent
+              has to state its reasoning on disk: core question, knowns, unknowns, what
+              would prove the plan wrong. A file-system hook refuses to proceed if that
+              surface goes thin, even when the operator is the one who asked for the move.
+              Every conflict resolved becomes a reusable protocol, chained tamper-evidently,
+              surfaced back at the next matching decision. A sovereign cognitive kernel;{" "}
+              <span className="text-bone">posture over prompt.</span>
             </p>
 
             <div

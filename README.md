@@ -11,7 +11,7 @@
   <a href="https://github.com/junjslee/episteme"><img alt="Unique Clones" src="https://img.shields.io/badge/dynamic/json?color=success&label=Unique%20Clones&query=uniques&url=https://gist.githubusercontent.com/junjslee/0a171c9a54b11948bbd1562f4f040465/raw/clone.json&logo=github"></a>
 </p>
 
-> A **Sovereign Cognitive Kernel** that installs a mandatory **Thinking Framework (생각의 틀)** into every AI coding agent you use. Turns context-blind "average" answers into context-fit protocols, and turns every resolved conflict into permanent, proactively-surfaced know-how.
+> **A thinking framework for the AI coding agent you already ship.** Before any high-impact move — the task, not just the shell command — the agent has to state its reasoning on disk: core question, knowns, unknowns, what would prove the plan wrong. A file-system hook refuses to proceed if that surface is missing or vapor, even when the operator is the one who asked for the move. Every resolved conflict becomes a reusable protocol, chained tamper-evidently and surfaced back at the next matching decision. Built as a **Sovereign Cognitive Kernel** — **생각의 틀**, posture over prompt.
 
 **[See it in 60 seconds ↓](#see-it-in-60-seconds)** · **[Install ↓](#quick-start)** · **[Why the file-system, not the prompt ↓](#the-problem--the-solution)** · **[Architecture & philosophy ↓](#architecture--philosophy)**
 

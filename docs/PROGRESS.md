@@ -1279,6 +1279,39 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 32 — 2026-04-23 — README blockquote + web Hero subparagraph softened (dev-anchor front-loaded; `high-impact command` broadened to `high-impact move — the task, not just the shell command`; agent-validates-request clause added; governance surface untouched)
+
+**Scope.** Marketing-surface tone work only. Two edits: `README.md` line 14 blockquote + `web/src/components/site/Hero.tsx` subparagraph (line 66-70). Zero edits to governance surface (kernel/, DESIGN_*, PLAN, PROGRESS, NEXT_STEPS, HOOKS, COGNITIVE_SYSTEM_PLAYBOOK, AGENTS) per the kernel-tone-discipline rule. Zero edits to `core/hooks/`, `core/blueprints/`, `src/episteme/`, `tests/`, or any hash-chained / episodic-record-shape surface. v1.0.0-rc1 soak window (target close ~2026-04-29) unaffected.
+
+**Why.** Operator named the pain point: the README blockquote tagline (first thing a tired dev sees scrolling through GitHub) front-loaded academic terminology — *"Sovereign Cognitive Kernel," "Thinking Framework (생각의 틀)," "context-blind average answers," "permanent, proactively-surfaced know-how"* — before the reader had any dev-practical anchor for why the project matters. The TL;DR one screen below was well-sequenced (opens with "Modern AI agents are incredibly capable… What they lack is context-awareness") but the blockquote above it was denser than the paragraph beneath, creating a bounce risk in the first 30 seconds. The web Hero was closer to the right shape — title already read "A thinking framework for the agents you already ship" (dev-anchored) — but the subparagraph opened with "episteme is a sovereign cognitive kernel" and went dense from there.
+
+**Operator's additional sharpening (incorporated).** *"Isn't the high-impact command just the 'high-impact' or 'big' task? And the agent validates the user's opinion (user can be misled or wrong due to misunderstanding or lack of depth in knowledge), so consider that when you say 'high-impact' or else."* Two insights absorbed: (1) *"high-impact command"* is too narrow — means the task/work, not just the mechanical shell command; refactoring an auth system is high-impact work even if no single shell command in isolation is dangerous. (2) The episteme gate isn't just the agent rubber-stamping the user's request — the gate validates the request itself because users can be wrong, misled, or lack depth in a specific domain. Both edits now say **"high-impact move — the task, not just the shell command"** AND include **"even when the operator is the one who asked for the move"** to encode the bidirectional validation.
+
+**Shipped.**
+
+- `README.md` line 14 blockquote — single-sentence academic-front-loaded tagline replaced with a five-beat sequence: (1) dev-anchor (*"A thinking framework for the AI coding agent you already ship."*); (2) concrete mechanic (*"state its reasoning on disk: core question, knowns, unknowns, what would prove the plan wrong"*) with broadened scope (*"high-impact move — the task, not just the shell command"*); (3) enforcement punchline (*"A file-system hook refuses to proceed if that surface is missing or vapor, even when the operator is the one who asked for the move"*); (4) compounding value (*"Every resolved conflict becomes a reusable protocol, chained tamper-evidently and surfaced back at the next matching decision"*); (5) academic-framing-as-signature (*"Built as a Sovereign Cognitive Kernel — 생각의 틀, posture over prompt"*). All load-bearing terms preserved: Sovereign Cognitive Kernel, 생각의 틀, tamper-evident, surfaced back, posture over prompt.
+- `web/src/components/site/Hero.tsx` subparagraph — opening "episteme is a sovereign cognitive kernel" dropped (redundant with the Hero title "A thinking framework for the agents you already ship." which already anchors the brand + category). Subparagraph now opens with the concrete mechanic (same sentence shape as the README) and closes with "A sovereign cognitive kernel; *posture over prompt.*" where "posture over prompt." is bone-colored — mirrors the bone-color treatment the original used on "episteme" and preserves the page's one-word visual emphasis at the same place in the reading cadence. The evocative phrase *"surface goes thin"* (operator-preferred language) is preserved.
+
+**Posture discipline preserved.** The kernel-tone-discipline rule (now in `core/memory/global/agent_feedback.md` as a Universal-principled rule) explicitly forbids softening governance-surface files. This Event edits *only* marketing-surface files (README.md + web/src/components/site/Hero.tsx). The following files were considered and explicitly left untouched per the rule:
+
+- `kernel/*` (CONSTITUTION, FAILURE_MODES, REFERENCES, MEMORY_ARCHITECTURE, etc.) — technical precision is load-bearing for LLM posture control
+- `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` + prior design specs — same
+- `docs/PLAN.md` / `docs/PROGRESS.md` / `docs/NEXT_STEPS.md` — authoritative handoff docs for the next agent session
+- `docs/COGNITIVE_SYSTEM_PLAYBOOK.md`, `docs/HOOKS.md`, `AGENTS.md` — LLM-facing
+
+**Verification.**
+
+- `pnpm build` in `web/` — green: 5 prerendered routes static (`/`, `/commands`, `/dashboard`, `/icon.svg`, `/readme`), 3 dynamic API routes preserved, TypeScript clean, 8/8 static pages generated in 399 ms. No layout regression at any breakpoint (no component-tree structural change — pure text content revision inside an existing `<p>` block).
+- `README.md` renders clean on GitHub preview (checked: the blockquote markup, the bold emphasis on lead + Sovereign Cognitive Kernel, the Korean 생각의 틀, and the internal anchor links on the next line all render correctly).
+
+**Soak safety.** Distribution-surface text-only edits. Zero kernel/hook/episodic-record/hash-chain touch. `mode.ts` production default keeps the deployed site on bundled fixtures so cognitive-adoption gate 21–28 measurement is unaffected.
+
+**Companion change (not an Event, meta-operational).** This session also added a third rule to `core/memory/global/agent_feedback.md` — *"Rule shape — positive vs. negative system must be a conscious choice."* Causal root quoted verbatim from the operator's monologue: *"A Positive System dictates that you can only do what is explicitly allowed, banning everything else by default. A Negative System lists only what you cannot do, meaning you are free to do anything else. These divergent frameworks don't just govern laws; they fundamentally shape how people within those societies think and act."* Ties to the existing `cognitive_profile.md` Governance Core principle that *"hidden constraints become hidden objectives."* The rule's how-to-apply decision tree defaults: case-by-case-judgment + bounded scope → positive-system enumeration; mechanical pattern-match + unbounded scope → negative-system enumeration. Three prior data points cited (Events 27, 29, 31). Memory rule landed in its own commit (`feat(memory): append rule-shape rule to agent_feedback.md`) separate from this Event's marketing-surface commit.
+
+**Commit (to-be):** `feat(web,readme): soften top-of-page tone — broaden high-impact scope + acknowledge agent-validates-request` — SHA assigned at commit time; pending operator push authorization.
+
+---
+
 ## Event 31 — 2026-04-23 — `/commands` route: auto-render `docs/COMMANDS.md` on the site (single-file audience-match exception to Event 29's docs/\*.md-as-a-class rejection)
 
 **Scope.** Web-only soak-safe work. Zero edits to `core/hooks/`, `core/blueprints/`, `kernel/*`, `src/episteme/`, `tests/`, or any file participating in episodic-record shape / hash-chained streams. v1.0.0-rc1 soak window (target close ~2026-04-29) unaffected.
