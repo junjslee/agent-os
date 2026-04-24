@@ -633,6 +633,48 @@ fabrication, not understanding.
 
 ---
 
+# Positioning anchors
+
+A distinct class of reference: academic work that does not feed the
+kernel's design (the kernel existed before these were read) but provides
+*vocabulary for what the kernel already does*. Cited here so that anyone
+auditing the repository can cross-walk between this kernel's concrete
+artifacts and adjacent academic framings. Load-bearing test differs from
+Primary/Secondary — the question is not "would removing this concept
+collapse a principle?" but "does this work name, in academic register,
+the failure mode or mechanism the kernel mechanically enforces?"
+
+**"Architecting Trust in Artificial Epistemic Agents" (2026 preprint;
+authors + venue + full citation to be confirmed by operator).** Names
+three primitives the episteme kernel mechanically enforces: *Epistemic
+Drift* (the failure class the whole kernel is a feedforward counter to;
+mapped to Modes 1 + 4 in `kernel/FAILURE_MODES.md` as the specific
+reasoning shapes through which drift enters), *Robust Falsifiability*
+(enforced at file-system boundary by the Disconfirmation field of the
+Reasoning Surface; Strict Mode validator rejects conditional-but-
+observable-less phrasing), *Knowledge Sanctuaries* (implemented by the
+Pillar 3 protocol stream at `~/.episteme/framework/protocols.jsonl` —
+tamper-evident + context-scoped + supersession-respecting). Two
+adjacent concepts from the same framework — *Cognitive Deskilling*
+(countered by the kernel's Human-prompt-debugging property) and
+*Technical Provenance System* (Pillar 2 hash-chain across all four
+framework streams) — are cited at the positioning level without a
+direct failure-mode mapping. Full cross-walk: `kernel/FAILURE_MODES.md`
+§ "Mapping to the epistemic-trust framework". Positioning claim the
+cross-walk supports: *episteme is a socio-epistemic infrastructure for
+Claude Code (and any future agent runtime), not a memory tool and not
+a prompt wrapper.*
+
+Body-text citation surfaces as of Event 43–44: `README.md` TL;DR section
+(Epistemic Drift introduction); `README.md` § "The solution" (Robust
+Falsifiability after the 5-field table); `README.md` § "Protocol
+Synthesis" (Knowledge Sanctuaries reframe); `README.ko.md` at matching
+three insertion points; `web/src/components/site/Hero.tsx` subparagraph;
+`web/src/app/layout.tsx` metadata description; `kernel/FAILURE_MODES.md`
+dedicated mapping section.
+
+---
+
 # How to read this
 
 The kernel does not require familiarity with any of the source material

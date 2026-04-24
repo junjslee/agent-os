@@ -1292,7 +1292,7 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 - **`.github/workflows/clone.yml`** — `cron: "0 */24 * * *"` → `cron: "7 3 * * *"`. 03:07 UTC daily is off-peak with an explicit single-value minute, matching community-reported reliable-schedule patterns. `actions/checkout@v2` → `@v4` bump bundled in the same edit (v2 uses Node.js 16 which is scheduled for runner removal 2026-09-16 per Event 28 deprecation note; v4 runs on Node.js 20 with forward compat to v24). Inputs/outputs backward-compatible with this workflow's usage (no ref, no submodules, default fetch-depth) — drop-in bump.
 - **`docs/NEXT_STEPS.md` Resume-here rewrite.** Header collapsed to *"FRESH 7-DAY SOAK ACTIVE · pipeline verified healthy · next session resumes cold"*. Stale *"So-What Now? — 2026-04-23 late-session pivot"* + *"All today's 8 commits..."* paragraphs replaced with a compact session recap covering Events 36-45 grouped by arc (Path A pipeline fix · Gate 27 resolution · Distribution + CI ergonomics · Epistemic-trust positioning · this Event 45). PR queue at session close recorded (PR #2 release-please HELD until post-soak; PR #3 merged; PR #4 merged; PR #5 this Event). Soak posture rules restated in structured-list form. Day-2 Gate Grading section retained below but prefixed with *"HISTORICAL · resolved via Path A (Events 36-38)"* banner so evidence trail is preserved without misrepresenting current state.
-- **`docs/PROGRESS.md`** — Event 45 entry (this entry) inserted above Event 43. PR #4 hadn't merged at the moment this branch was cut, so Event 44's entry is not yet on master from this branch's perspective; if PR #4 merges first, the rebase drops Event 45 above Event 44 above Event 43 cleanly.
+- **`docs/PROGRESS.md`** — Event 45 entry (this entry) inserted above Event 44. Merge-commit resolution of the conflict produced by PR #4 landing first: both PRs inserted entries at the same line position above Event 43; the conflict was symmetric and unavoidable (not a "second-to-merge" problem, as initially mis-diagnosed). Session-learning: when two feature branches branching from the same point both insert at the same file position, rebase-or-merge conflict on the second is inevitable regardless of merge order.
 
 **Verification expected post-merge.** Next scheduled trigger should fire at 03:07 UTC on the day following PR merge, with a ≤ 2-hour delay observed empirically per GitHub's best-effort scheduling. Measurable via `gh run list -R junjslee/episteme --workflow=clone.yml` — first row with `event: schedule` instead of `workflow_dispatch` / `push`. Estimated probability of cron-slot being the only factor: ~85% per community reports; ~15% probability that deeper investigation (external cron, Vercel-cron, or serverless polling via a Cloudflare Worker) is warranted. Plan B deferred until evidence justifies it.
 
@@ -1300,7 +1300,30 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 **Soak safety.** Three-file text-layer edits. Zero `core/hooks/`, `src/episteme/`, `kernel/*`, `tests/`, or episodic-record-shape touches. Cognitive-adoption gate 21-28 measurement unaffected.
 
-**Commit + PR:** feature branch `event-45-clone-yml-and-nextsteps-drift` pushed; PR opened against master.
+**Commit + PR:** feature branch `event-45-clone-yml-and-nextsteps-drift` pushed; PR opened against master; conflict with PR #4's merged Event 44 entry resolved via merge-commit rather than rebase-and-force-push (force-push blocked by `core/hooks/block_dangerous.py` regex pattern match on `git push --force(-with-lease)?`).
+
+---
+
+## Event 44 — 2026-04-24 — English README + REFERENCES.md catch-up on epistemic-trust vocabulary (Event 43 follow-through)
+
+**Scope.** Three file edits: `README.md` (English canonical) gains the same three storytelling-section inserts that Event 43 added to `README.ko.md` (Epistemic Drift, Robust Falsifiability, Knowledge Sanctuaries) plus the socio-epistemic infrastructure positioning claim + Cognitive Deskilling reference linking to Human prompt debugging; `kernel/REFERENCES.md` gains a new top-level "Positioning anchors" section citing the paper alongside the existing Primary/Secondary sections; `kernel/MANIFEST.sha256` regenerated.
+
+**Why this follows Event 43.** Event 43's explicit operator checklist named `README.ko.md` + `FAILURE_MODES.md` + Hero + layout metadata — but not `README.md` (English) or `kernel/REFERENCES.md`. On session review, operator flagged the gap: (a) English README is the first surface most external visitors hit via GitHub, so the storytelling inserts + positioning vocabulary should propagate there; (b) using the paper's vocabulary without citing it in REFERENCES.md is a small scholarly debt by the existing attribution discipline. Event 44 closes both gaps and codifies the cross-walk as a permanent audit artifact.
+
+**Shipped.**
+
+- **`README.md`** — three storytelling inserts matching the Korean structure. TL;DR section gains an *Epistemic Drift* paragraph + socio-epistemic infrastructure + technical provenance system positioning claim. "The solution" section gains a *Robust Falsifiability* paragraph after the 5-field table with concrete accepted/rejected examples. "Protocol Synthesis" section gains a *Knowledge Sanctuaries* paragraph + inline Cognitive Deskilling reference linking to Human prompt debugging.
+- **`kernel/REFERENCES.md`** — new top-level "Positioning anchors" section between Secondary sources and How to read this. Names the class: *academic work that does not feed the kernel's design but provides vocabulary for what the kernel already does*. Paper cited with full cross-walk to kernel artifacts + enumerated body-text citation surfaces. Bibliographic details (authors, venue, exact year) pending operator confirmation.
+- **`kernel/MANIFEST.sha256`** regenerated via `episteme kernel update`; verified clean via `episteme kernel verify`.
+
+**Operator's two open questions answered.**
+
+- *Should ES/ZH READMEs match English content parity?* — recommended keeping focused-scope for now; revisit when native-speaker reviewers join in those languages. Deferred to post-v1.0 GA.
+- *Should references separate design-inputs from positioning anchors into two files?* — recommended one `kernel/REFERENCES.md` with sectional separation (Primary / Secondary / Positioning anchors). Decision codified by this Event's section-add rather than file-split.
+
+**Soak safety.** Text-layer + MANIFEST regen only. Zero `core/hooks/`, `src/episteme/`, or hot-path behavior change. Fresh 7-day soak clock (opened 2026-04-23T21:23:36Z per Event 38) unaffected.
+
+**PR:** feature branch `event-44-english-epistemic-vocab` → PR #4 merged to master 2026-04-24 after operator force-push to rebase on top of Event 43's merge (d02a17f).
 
 ---
 
@@ -1328,7 +1351,7 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 **Soak safety.** Text-layer edits across marketing (Hero, layout metadata, README.ko) + governance (FAILURE_MODES) surfaces. Zero changes to `core/hooks/`, `src/episteme/`, `tests/`, or any file participating in episodic-record shape / hash-chained stream writing / hot-path behavior. Fresh 7-day soak clock (opened Event 38 verification at 2026-04-23T21:23:36Z) unaffected.
 
-**PR (to-be):** feature branch `event-43-epistemic-vocab` pushed; `gh pr create` opens PR against master with this entry's summary as body. Operator reviews + merges. Once merged, the canonical vocabulary lives on master and propagates through the deployed web site + GitHub README surfaces on next Vercel build.
+**PR:** feature branch `event-43-epistemic-vocab` → PR #3 merged to master (d02a17f / merge 479d6ca) by operator 2026-04-23.
 
 ---
 

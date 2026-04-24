@@ -34,7 +34,9 @@ Modern AI agents are **incredibly capable** — they write production code, navi
 
 When two credible sources disagree — *Source A says do it this way, Source B says do it that way* — an auto-regressive engine cannot tell which answer fits **your** project, **your** team's constraints, **your** op-class's history. So it defaults to the statistically average answer: fluent, confident, and fit for no specific context.
 
-`episteme` closes that gap. Before any high-impact command runs, the agent is forced onto a four-field **Thinking Framework** on disk — **Knowns · Unknowns · Assumptions · Disconfirmation** — under a **Core Question**. Every conflict the framework resolves is extracted as a reusable protocol, committed to a tamper-evident knowledge base, and surfaced proactively at the next matching decision.
+Recent academic work calls this phenomenon **Epistemic Drift** — the cumulative divergence between (a) what the agent actually knows in context, (b) what the operator actually intends, and (c) what the artifact-level state of the system is, produced by repeated human-AI interaction without a verification layer. Drift is not a single error but a thousand small misalignments, each too small to detect alone, that together push the joint human-AI cognitive system off its target without anyone noticing the moment it happened.
+
+`episteme` closes that gap. It is not a memory tool and not a prompt wrapper; it is a **socio-epistemic infrastructure** between you and your AI coding agent. Before any high-impact command runs, the agent is forced onto a four-field **Thinking Framework** on disk — **Knowns · Unknowns · Assumptions · Disconfirmation** — under a **Core Question**. Every conflict the framework resolves is extracted as a reusable protocol, committed to a tamper-evident knowledge base — a **technical provenance system** for agentic reasoning — and surfaced proactively at the next matching decision.
 
 Enforcement is **structural**, not advisory. Prompts can be skipped; a file-system hook that exits non-zero cannot.
 
@@ -81,6 +83,8 @@ Prompts cannot fix this:
 
 Validity is checked **structurally**: minimum content length, no lazy-token placeholders (`none`, `n/a`, `tbd`, `해당 없음`), normalized command scanning so bypass shapes like `subprocess.run(['git','push'])` and `os.system('git push')` are caught. Agent-written shell scripts are deep-scanned via a stateful interceptor across calls. If the surface is absent or invalid, the op is refused (`exit 2`). Default is strict; advisory mode (warn-don't-block) is opt-in per-project: `touch .episteme/advisory-surface`.
 
+The Disconfirmation field in particular is not a risk checklist — it is the mechanical enforcement of **Robust Falsifiability**: the requirement that a plan commit, *in advance*, to a concrete observable event that would prove it wrong. Strict Mode rejects conditional-but-observable-less phrasing (*"if issues arise"*) and admits only specific falsification conditions (*"p95 latency > 500ms for 5 consecutive minutes, Grafana dashboard api-latency"*). A plan that cannot be falsified is not episteme; it is doxa wearing episteme's vocabulary.
+
 This is the difference between a prompt reminder and a compiler: one asks nicely, the other refuses to proceed.
 
 ---
@@ -97,7 +101,11 @@ Here is the loop (v1.0 RC shipped · CP1–CP10 · 565 / 565 green — see [`doc
 4. **Guide actively.** At the next matching decision — even weeks later, even across sessions or tools — the kernel surfaces the protocol **proactively**. You don't have to remember to ask.
 5. **Self-maintain.** When the agent discovers drift (stale config, deprecated API, core-logic mismatch), it is forced to evaluate *patch vs. refactor* honestly and synchronize the cascade across the full blast radius — CLI, config, schemas, docs, tests, external surfaces — before moving on.
 
-The knowledge base is not a vector store pretending to be memory. It is a **structural, human-readable, version-controlled artifact** you can read, edit, fork, and migrate between adapters (Claude Code, Cursor, Hermes, future tools). The kernel outlives the tooling.
+The knowledge base is not a vector store pretending to be memory. It is a **structural, human-readable, version-controlled artifact** you can read, edit, fork, and migrate between adapters (Claude Code, Cursor, Hermes, future tools).
+
+Synthesized protocols are not cache entries — they are **Knowledge Sanctuaries**: tamper-evident (Pillar 2 hash-chained), context-scoped (each protocol carries a context signature so it only reactivates in matching situations), and supersession-respecting (a newer chain entry can override an older one, but cannot silently rewrite it). "Sanctuary" because the space is protected from the entropic LLM-average that surrounds it: only rules locally validated against *this project's* evidence occupy the space. The kernel outlives the tooling; the sanctuaries are how it carries know-how forward.
+
+This architecture also counters **Cognitive Deskilling** — the erosion of the human operator's own reasoning capacity that follows from uncritical reliance on AI output. Because the Reasoning Surface forces declaration of Unknowns and Disconfirmation on *every* high-impact move, the operator cannot outsource thinking without the gaps being surfaced. See [Human prompt debugging](#human-prompt-debugging) below for the specific mechanism.
 
 ---
 
