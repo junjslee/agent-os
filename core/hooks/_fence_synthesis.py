@@ -115,6 +115,45 @@ def correlation_id(payload: dict, cmd: str, ts: str) -> str:
     return "h_" + hashlib.sha1(seed).hexdigest()[:16]
 
 
+def candidate_correlation_ids(payload: dict, cmd: str, ts: str) -> list[str]:
+    """Return all candidate correlation ids for a tool call.
+
+    Event 50 · CP-FENCE-02 fix. `correlation_id()` returns ONE id
+    (tool_use_id if present, else SHA-1 fallback). But Claude Code's
+    PreToolUse payload may lack `tool_use_id` while PostToolUse always
+    has it — so the two hooks compute *different* single ids for the
+    same logical call and the fence marker handoff breaks.
+
+    This helper returns the complete set of candidate ids. PreToolUse
+    writes a marker under EACH candidate so PostToolUse — which tries
+    all candidates on read — always finds the match regardless of
+    which side had the richer payload.
+
+    Returned list is deduplicated, order-stable (explicit runtime ids
+    first, SHA-1 fallback second).
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    rid = (
+        payload.get("tool_use_id")
+        or payload.get("toolUseId")
+        or payload.get("request_id")
+    )
+    if isinstance(rid, str) and rid.strip():
+        c = rid.strip()
+        if c not in seen:
+            out.append(c)
+            seen.add(c)
+    cwd = str(payload.get("cwd") or os.getcwd())
+    bucket = ts.split(".")[0]
+    seed = f"{bucket}|{cwd}|{cmd}".encode("utf-8", errors="replace")
+    h = "h_" + hashlib.sha1(seed).hexdigest()[:16]
+    if h not in seen:
+        out.append(h)
+        seen.add(h)
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Context signature — CP5 minimal inline computation
 #
@@ -331,6 +370,56 @@ def finalize_on_success(correlation: str, exit_code: int | None) -> dict | None:
         return None
     finally:
         delete_pending_marker(correlation)
+
+
+def finalize_on_success_with_fallback(
+    candidates: list[str],
+    exit_code: int | None,
+) -> dict | None:
+    """Event 50 · CP-FENCE-02 — try multiple correlation candidates.
+
+    Called from PostToolUse with the full candidate list for the
+    current tool call (as computed by ``candidate_correlation_ids``).
+    The pairing works even when the PreToolUse marker was written
+    under a different id than the PostToolUse-computed correlation
+    (the Claude Code PreToolUse-lacks-tool_use_id case).
+
+    Behavior:
+      - Walk candidates in order, read the first marker that exists.
+      - If exit_code == 0, synthesize + write protocol (same as
+        ``finalize_on_success``).
+      - Regardless of synthesis outcome, delete ALL candidate markers
+        so stale siblings don't pile up.
+      - Returns the envelope on synthesis write, else None.
+    """
+    found_marker: dict | None = None
+    for cid in candidates:
+        candidate_marker = read_pending_marker(cid)
+        if candidate_marker is not None:
+            found_marker = candidate_marker
+            break
+    try:
+        if found_marker is None:
+            return None
+        if exit_code != 0:
+            return None
+        payload = _build_protocol(found_marker, exit_code)
+        _hooks_dir = Path(__file__).resolve().parent
+        if str(_hooks_dir) not in sys.path:
+            sys.path.insert(0, str(_hooks_dir))
+        try:
+            from _framework import (  # type: ignore  # pyright: ignore[reportMissingImports]
+                write_protocol as _write_protocol,
+            )
+        except ImportError:
+            return None
+        try:
+            return _write_protocol(payload)
+        except OSError:
+            return None
+    finally:
+        for cid in candidates:
+            delete_pending_marker(cid)
 
 
 # ---------------------------------------------------------------------------

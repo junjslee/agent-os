@@ -73,17 +73,29 @@ def _valid_fence_surface(
     }
 
 
-def _run_guard(surface: dict, cwd: Path, command: str) -> tuple[int, str, str]:
+def _run_guard(
+    surface: dict,
+    cwd: Path,
+    command: str,
+    tool_use_id: str | None = "test-use-id-fence-cp5",
+) -> tuple[int, str, str]:
+    """Run the PreToolUse guard with the given surface + command.
+
+    Pass `tool_use_id=None` to simulate the Claude Code PreToolUse
+    shape (CP-FENCE-02) where runtime id is absent — forces SHA-1
+    fallback on PreToolUse.
+    """
     (cwd / ".episteme").mkdir(exist_ok=True)
     (cwd / ".episteme" / "reasoning-surface.json").write_text(
         json.dumps(surface), encoding="utf-8"
     )
-    payload = {
+    payload: dict = {
         "tool_name": "Bash",
         "tool_input": {"command": command},
         "cwd": str(cwd),
-        "tool_use_id": "test-use-id-fence-cp5",
     }
+    if tool_use_id is not None:
+        payload["tool_use_id"] = tool_use_id
     raw = json.dumps(payload)
     with patch("sys.stdin", new=io.StringIO(raw)), \
          patch("sys.stdout", new=io.StringIO()) as fake_out, \
@@ -93,15 +105,17 @@ def _run_guard(surface: dict, cwd: Path, command: str) -> tuple[int, str, str]:
 
 
 def _run_post_hook(
-    command: str, exit_code: int, cwd: Path
+    command: str, exit_code: int, cwd: Path,
+    tool_use_id: str | None = "test-use-id-fence-cp5",
 ) -> tuple[int, str, str]:
-    payload = {
+    payload: dict = {
         "tool_name": "Bash",
         "tool_input": {"command": command},
         "cwd": str(cwd),
-        "tool_use_id": "test-use-id-fence-cp5",
         "tool_response": {"exit_code": exit_code},
     }
+    if tool_use_id is not None:
+        payload["tool_use_id"] = tool_use_id
     raw = json.dumps(payload)
     with patch("sys.stdin", new=io.StringIO(raw)), \
          patch("sys.stdout", new=io.StringIO()) as fake_out, \
@@ -432,9 +446,17 @@ class TestPillar3SynthesisEndToEnd(unittest.TestCase):
                 self.assertEqual(rc, 0, f"PreToolUse should admit: {_err}")
                 pending_dir = home / "state" / "fence_pending"
                 pending_files = list(pending_dir.glob("*.json")) if pending_dir.is_dir() else []
-                self.assertEqual(
+                # Event 50 · CP-FENCE-02 — PreToolUse now writes a
+                # marker under each candidate correlation id (primary
+                # tool_use_id + SHA-1 fallback). Two markers expected
+                # when both candidates differ; PostToolUse cleans both.
+                self.assertGreaterEqual(
                     len(pending_files), 1,
-                    f"expected 1 pending marker, got {len(pending_files)}"
+                    f"expected >= 1 pending marker, got {len(pending_files)}"
+                )
+                self.assertLessEqual(
+                    len(pending_files), 2,
+                    f"expected <= 2 pending markers, got {len(pending_files)}"
                 )
 
                 # Post: exit 0 → protocol written.
@@ -609,6 +631,119 @@ class TestFenceGracefulDegrade(unittest.TestCase):
             len(protocol["synthesized_protocol"]), 2000,
             "protocol text should be bounded even with oversize inputs"
         )
+
+
+# ---------- CP-FENCE-02: correlation-id mismatch regression -------------
+
+class TestCPFence02CorrelationMismatch(unittest.TestCase):
+    """Event 50 · CP-FENCE-02 — PreToolUse may lack tool_use_id while
+    PostToolUse has it (observed in Claude Code). Pre-fix: PostToolUse
+    couldn't find the marker → no protocol synthesized. Post-fix:
+    PreToolUse writes under all candidate correlation ids + PostToolUse
+    tries all candidates → synthesis works regardless of which side has
+    the richer payload."""
+
+    def test_pre_lacks_tool_use_id_post_has_it_still_synthesizes(self):
+        """Reproduces the CP-FENCE-02 root cause scenario."""
+        with _EphemeralEpistemeHome() as home:
+            with tempfile.TemporaryDirectory() as td:
+                cwd = Path(td)
+                (cwd / "core" / "hooks").mkdir(parents=True, exist_ok=True)
+                (cwd / "core" / "hooks" / "_grounding.py").write_text(
+                    "# grounding\n", encoding="utf-8"
+                )
+                (cwd / "docs").mkdir(exist_ok=True)
+                (cwd / "docs" / "PLAN.md").write_text("# plan\n")
+                surface = _valid_fence_surface(
+                    constraint="core/hooks/_grounding.py:32",
+                )
+                # PreToolUse WITHOUT tool_use_id → uses SHA-1 fallback
+                rc, _out, _err = _run_guard(
+                    surface, cwd, "rm .episteme/advisory-surface",
+                    tool_use_id=None,
+                )
+                self.assertEqual(rc, 0, f"PreToolUse should admit: {_err}")
+                pending_dir = home / "state" / "fence_pending"
+                pending_files = list(pending_dir.glob("*.json"))
+                # Only SHA-1 fallback marker (no tool_use_id to dual-write)
+                self.assertEqual(len(pending_files), 1)
+                pre_marker_name = pending_files[0].stem
+                self.assertTrue(pre_marker_name.startswith("h_"),
+                                f"expected h_* marker, got {pre_marker_name}")
+
+                # PostToolUse WITH tool_use_id → correlation is toolu_*,
+                # but our fallback logic tries the SHA-1 candidate too.
+                rc_post, _out_p, _err_p = _run_post_hook(
+                    "rm .episteme/advisory-surface",
+                    exit_code=0,
+                    cwd=cwd,
+                    tool_use_id="toolu_01ABCDEFG",
+                )
+                self.assertEqual(rc_post, 0)
+                # Protocol MUST be written despite id mismatch
+                framework = home / "framework" / "protocols.jsonl"
+                self.assertTrue(
+                    framework.is_file(),
+                    "CP-FENCE-02: PostToolUse must pair across id mismatch"
+                )
+                lines = [
+                    ln for ln in framework.read_text(encoding="utf-8").splitlines()
+                    if ln.strip()
+                ]
+                self.assertEqual(len(lines), 1, "expected exactly 1 protocol")
+                # And ALL pending markers must be cleaned up
+                remaining = list(pending_dir.glob("*.json")) if pending_dir.is_dir() else []
+                self.assertEqual(
+                    len(remaining), 0,
+                    f"all candidate markers should be cleaned, got {remaining}"
+                )
+
+    def test_pre_with_tool_use_id_writes_dual_markers(self):
+        """When both candidates are distinct, PreToolUse writes 2 markers."""
+        with _EphemeralEpistemeHome() as home:
+            with tempfile.TemporaryDirectory() as td:
+                cwd = Path(td)
+                (cwd / "core" / "hooks").mkdir(parents=True, exist_ok=True)
+                (cwd / "core" / "hooks" / "_grounding.py").write_text(
+                    "# grounding\n", encoding="utf-8"
+                )
+                (cwd / "docs").mkdir(exist_ok=True)
+                (cwd / "docs" / "PLAN.md").write_text("# plan\n")
+                surface = _valid_fence_surface(
+                    constraint="core/hooks/_grounding.py:32",
+                )
+                rc, _out, _err = _run_guard(
+                    surface, cwd, "rm .episteme/advisory-surface",
+                    tool_use_id="toolu_01DualWriteTest",
+                )
+                self.assertEqual(rc, 0)
+                pending = home / "state" / "fence_pending"
+                files = list(pending.glob("*.json"))
+                self.assertEqual(len(files), 2, f"expected 2 markers, got {files}")
+                stems = sorted(f.stem for f in files)
+                self.assertTrue(any(s.startswith("toolu_") for s in stems))
+                self.assertTrue(any(s.startswith("h_") for s in stems))
+
+    def test_candidate_correlation_ids_helper(self):
+        """Unit test for the helper itself — deduplication + ordering."""
+        payload_with_id = {
+            "tool_use_id": "toolu_XYZ",
+            "cwd": "/tmp",
+        }
+        payload_without_id = {"cwd": "/tmp"}
+        c1 = fence_synth.candidate_correlation_ids(
+            payload_with_id, "ls -la", "2026-04-24T10:00:00+00:00"
+        )
+        self.assertEqual(len(c1), 2)
+        self.assertEqual(c1[0], "toolu_XYZ")
+        self.assertTrue(c1[1].startswith("h_"))
+        c2 = fence_synth.candidate_correlation_ids(
+            payload_without_id, "ls -la", "2026-04-24T10:00:00+00:00"
+        )
+        self.assertEqual(len(c2), 1)
+        self.assertTrue(c2[0].startswith("h_"))
+        # SHA-1 fallbacks must match between the two (same cwd+cmd+ts)
+        self.assertEqual(c1[1], c2[0])
 
 
 if __name__ == "__main__":

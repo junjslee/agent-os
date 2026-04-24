@@ -1259,17 +1259,25 @@ def main() -> int:
                                 _bash_command(payload)
                                 if tool_name == "Bash" else ""
                             )
-                            correlation = _fence_synthesis.correlation_id(
+                            marker_ts = datetime.now(timezone.utc).isoformat()
+                            # Event 50 · CP-FENCE-02 — write the marker
+                            # under every candidate correlation id so
+                            # PostToolUse pairs reliably even when
+                            # PreToolUse and PostToolUse payloads
+                            # disagree on which id is available
+                            # (Claude Code's Pre payload typically
+                            # lacks tool_use_id).
+                            for correlation in _fence_synthesis.candidate_correlation_ids(
                                 payload,
                                 cmd_for_marker,
-                                datetime.now(timezone.utc).isoformat(),
-                            )
-                            _fence_synthesis.write_pending_marker(
-                                layer2_surface,
-                                correlation,
-                                cwd,
-                                cmd_for_marker,
-                            )
+                                marker_ts,
+                            ):
+                                _fence_synthesis.write_pending_marker(
+                                    layer2_surface,
+                                    correlation,
+                                    cwd,
+                                    cmd_for_marker,
+                                )
                         except Exception:
                             # Synthesis bookkeeping failure must never
                             # block the admitted op. Layers 1-3 +

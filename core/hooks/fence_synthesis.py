@@ -34,8 +34,9 @@ if str(_HOOKS_DIR) not in sys.path:
     sys.path.insert(0, str(_HOOKS_DIR))
 
 from _fence_synthesis import (  # noqa: E402  # pyright: ignore[reportMissingImports]
+    candidate_correlation_ids as _candidate_correlation_ids,
     correlation_id as _correlation_id,
-    finalize_on_success as _finalize_on_success,
+    finalize_on_success_with_fallback as _finalize_with_fallback,
 )
 import _spot_check  # noqa: E402  # pyright: ignore[reportMissingImports]
 
@@ -157,11 +158,16 @@ def main() -> int:
         from datetime import datetime, timezone
         ts = datetime.now(timezone.utc).isoformat()
         correlation = _correlation_id(payload, cmd, ts)
+        # Event 50 · CP-FENCE-02 — try all candidate correlation ids,
+        # not just the one computed for PostToolUse. PreToolUse may
+        # have written the marker under a different id (Claude Code
+        # PreToolUse lacks tool_use_id while PostToolUse has it).
+        candidates = _candidate_correlation_ids(payload, cmd, ts)
         # Finalize synthesis first so we know whether a protocol was
         # produced. CP8: pass the synthesis signal into the spot-check
         # sampler; the multiplier lands before the sample roll.
-        envelope = _finalize_on_success(
-            correlation, _extract_exit_code(payload)
+        envelope = _finalize_with_fallback(
+            candidates, _extract_exit_code(payload)
         )
         if envelope is not None:
             _hook_log(f"synthesized protocol: correlation={correlation[:16]}")

@@ -4,7 +4,7 @@ Exact next actions, in priority order. Update this file at every handoff.
 
 ---
 
-## Resume here — v1.0.0 RC · **FRESH 7-DAY SOAK ACTIVE** · pipeline healthy · **Path Y applied: CP-TEL-01 + CP-DEDUP-01 live (Event 49)** · next session resumes cold (last touched 2026-04-24)
+## Resume here — v1.0.0 RC · **FRESH 7-DAY SOAK ACTIVE** · pipeline healthy · **All 6 pre-soak infrastructure CPs landed (Events 47-50)** · next session resumes cold (last touched 2026-04-24)
 
 > **🟢 Fresh 7-day soak clock ACTIVE** since `2026-04-23T21:23:36Z` (Event 38 verification confirmed episodic writer + 3 sibling PostToolUse Bash hooks all firing on real ops). Target close **`~2026-04-30`**; extension to `~2026-05-07` acceptable per operator-availability window (7-day minimum is statistical validity, not calendar deadline).
 >
@@ -23,7 +23,7 @@ Exact next actions, in priority order. Update this file at every handoff.
 >
 > **Baseline as of Event 48:** **3 PASS** (Gate 21 reasoning-surface quality · Gate 25 audit detected `asymmetry_posture` drift · Gate 27 failure-mode citations) · 1 FAIL (Gate 26 — CP-FENCE-01 deferred) · 3 MANUAL (Gate 22, 23, 24, 28) · **weighted 3.0/4.0**. One favorable MANUAL resolution (most likely Gate 28 dogfood audit on Events 36-48 kernel/doc commits) lifts weighted to 4.0 → **GA threshold hit**. Path Y (apply CP-TEL-01 + CP-FENCE-01) lifts Gate 22 + 26 into PASS/PARTIAL range → **GA candidate strong**.
 >
-> **Session of 2026-04-23 → 2026-04-24 shipped Events 36 through 49** across five arcs — Path A pipeline resurrection (Events 36-38), soak-safe diagnostic follow-through (Event 39), distribution + positioning polish (Events 40-45), post-soak triage rubric + Gate-25-PASS (Events 46-48), and Path Y mid-soak hook fix (Event 49). Compact recap:
+> **Session of 2026-04-23 → 2026-04-24 shipped Events 36 through 50** across five arcs — Path A pipeline resurrection (Events 36-38), soak-safe diagnostic follow-through (Event 39), distribution + positioning polish (Events 40-45), post-soak triage rubric + Gate-25-PASS (Events 46-48), and Path Y mid-soak hook fixes (Events 49-50). Compact recap:
 >
 > - **Events 36-38 (Path A pipeline fix).** Day-2 Gate Grading on fresh soak surfaced that 6 of 8 cognitive gates were ungradeable due to a silent `except Exception: pass` in `episodic_writer.py` + `fence_synthesis.py`. Root cause surprisingly **was not** a writer bug — it was that `src/episteme/adapters/claude.py` `build_settings()` never registered the 4 PostToolUse Bash writers with Claude Code's settings.json since CP7/CP8. Writers were invocable but never invoked. Event 38 registered all 4; post-push verification in `~/.episteme/state/hooks.log` confirmed all writers now fire on real ops. Fresh soak clock opened at that verification timestamp.
 > - **Event 37 (Gate 27 resolution via Path 4A).** Separate finding: the apparent "failure-modes taxonomy not cited in real work" gate result was a measurement-dimension mismatch, not fragmentation. `flaw_classification` enum and FAILURE_MODES taxonomy are **orthogonal axes** (artifact-state vs cognitive-mode), both load-bearing. Resolution: kernel/FAILURE_MODES.md gained a "Two-vocabulary distinction" section explaining the axes; no merge.
@@ -34,9 +34,10 @@ Exact next actions, in priority order. Update this file at every handoff.
 > - **Event 46 (POST_SOAK_TRIAGE.md).** New 483-line governance artifact codifying the 4-phase GA decision protocol. Merged via PR #6 (2026-04-24).
 > - **Event 47 (pre-soak-close grading infra).** Three Python tools in new `tools/` directory + four new docs. Rubric becomes executable at Day 7. CP-DISC-01 + CP-PHASE12-01 resolved. CP-TEL-01 + CP-FENCE-01 + CP-DEDUP-01 (new) root-caused with prepared patches; deferred. Phase 2 re-scoped: 1,294 → 40 unique findings (32× ratio). Merged via PR #7 (2026-04-24).
 > - **Event 48 (audit execution + corrections).** Ran `episteme profile audit --write`; Phase 12 detected drift on `asymmetry_posture` axis. **Gate 25 moved FAIL → PASS.** Grader schema fix + 2 Phase 2 classification corrections. Zero hook/kernel/schema commits. Opened PR #8.
-> - **Event 49 (this PR — Path Y mid-soak hook fix).** Operator authorized. Applied CP-TEL-01 (exit_code extraction — Claude Code uses `returnCodeInterpretation`/`interrupted`, NOT `isError`; three-variant extractor) + CP-DEDUP-01 (pre-write tail-scan-200 dedup in `_framework.write_deferred_discovery`) + CP-FENCE-01 orphan cleanup (88 markers retired via new `tools/fence_marker_cleanup.py`) + `tools/gate28_preaudit.py` (4 commits → 1 PASS / 3 PARTIAL / 0 FAIL = overall PARTIAL, not HARD BLOCK). 11 new regression tests. 597/597 passing. Surfaced new CP-FENCE-02 (PreToolUse/PostToolUse correlation-id mismatch) as v1.0.1 candidate. **Soak clock NOT reset** (patches additive to evidence).
+> - **Event 49 (Path Y mid-soak hook fix).** Applied CP-TEL-01 (exit_code extraction — Claude Code uses `returnCodeInterpretation`/`interrupted`, not `isError`) + CP-DEDUP-01 (pre-write tail-scan-200 dedup) + CP-FENCE-01 orphan cleanup (88 markers retired) + `tools/gate28_preaudit.py` (Gate 28 verdict PARTIAL not HARD BLOCK). 11 new regression tests. Merged via PR #9.
+> - **Event 50 (this PR — CP-FENCE-02).** Operator authorized "Option B" for completeness. Fixed PreToolUse/PostToolUse correlation-id mismatch via dual-write + fallback-read strategy. New `candidate_correlation_ids()` helper + `finalize_on_success_with_fallback()` in `_fence_synthesis.py`; guard loops over candidates when writing markers; PostToolUse tries all candidates on read. 3 new regression tests; 600/600 total passing. First real fence_reconstruction op during remaining soak will materialize `~/.episteme/framework/protocols.jsonl` and lift Gate 26 FAIL → PASS. **Soak clock NOT reset** (still evidence-recording semantics, no behavior change).
 >
-> **PR queue at session close (2026-04-24).** PR #2 — `chore(master): release episteme 1.1.0-rc1` (release-please auto-gen) — **HELD open intentionally** per operator decision to defer the next release tag until post-soak when the "big improvement" batch (v1.0.1 Chain Hygiene CP: Stop-hook-async maintenance worker + zero-LLM entity extraction + deferred-discoveries dedup + resolution-record type) is ready to bundle. release-please auto-updates PR #2 on each master push; no action needed until post-soak. PR #5 — Event 45 — merged 2026-04-24. PR #6 — Event 46 — merged 2026-04-24. PR #7 — Event 47 — merged 2026-04-24. PR #8 — Event 48 — awaits operator merge. PR #9 — Event 49 — opened by this commit; includes Event 48 commits if PR #8 hasn't merged first.
+> **PR queue at session close (2026-04-24).** PR #2 — `chore(master): release episteme 1.1.0-rc1` (release-please auto-gen) — **HELD open intentionally** per operator decision to defer the next release tag until post-soak when the "big improvement" batch (v1.0.1 Chain Hygiene CP: Stop-hook-async maintenance worker + zero-LLM entity extraction + deferred-discoveries dedup + resolution-record type) is ready to bundle. release-please auto-updates PR #2 on each master push; no action needed until post-soak. PRs #5-9 (Events 45-49) all merged 2026-04-24. PR #10 — Event 50 — opened by this commit; awaits operator review + merge.
 >
 > **Operator availability note.** Operator is busy 2026-04-29 → early May. Soak extension to ~2026-05-07 or later is acceptable; the clock doesn't need to close on 2026-04-30.
 >
@@ -48,11 +49,19 @@ Exact next actions, in priority order. Update this file at every handoff.
 >
 > **Gate-grading at soak close.** **Run `docs/POST_SOAK_TRIAGE.md` Phase 1-4 end-to-end** — the legacy "sample 50+ episodic records and score ≥ 4/8" criterion is superseded by the explicit PASS/PARTIAL/FAIL rubric in that document (Gate 28 is now a hard block; PARTIAL counts as 0.5 of a PASS for the 4.0 threshold). Next-session agent that reads this should confirm pipeline still healthy (`wc -l ~/.episteme/state/hooks.log`, `ls ~/.episteme/memory/episodic/`) before trusting the soak clock.
 >
-> **Path Y APPLIED Event 49.** CP-TEL-01 + CP-DEDUP-01 + CP-FENCE-01 orphan cleanup landed on event-49 branch. Hooks now capture real exit codes, dedup-on-log prevents further deferred-discovery accumulation, 88 orphan fence markers retired. 597/597 tests passing. Soak clock **not reset** (fixes are additive to evidence, not behavioral). **Residual CP-FENCE-02 surfaced**: PreToolUse/PostToolUse correlation-id mismatch still blocks most fence protocol synthesis; documented in `docs/PREPARED_PATCHES.md` as HIGH-priority v1.0.1. Gate 26 remains FAIL at current grader baseline until CP-FENCE-02 resolves.
+> **All pre-soak infrastructure CPs landed (Events 47-50):**
+> - ✓ CP-DISC-01 (discriminator calibration) · Event 47
+> - ✓ CP-PHASE12-01 (Phase 12 audit path + initial run) · Events 47-48
+> - ✓ CP-TEL-01 (exit_code extraction) · Event 49
+> - ✓ CP-FENCE-01 (orphan cleanup) · Event 49
+> - ✓ CP-DEDUP-01 (framework dedup) · Event 49
+> - ✓ CP-FENCE-02 (correlation-id mismatch) · Event 50
 >
-> **Day-7 Option A (recommended)**: let soak continue, collect fresh-patch evidence for ~6 days, grade at Day-7 with real calibration + dedup-clean framework + (hopefully) at least 1 protocol emission. Expected outcome: 3-4 PASS, 1-2 PARTIAL, 1-2 MANUAL → **v1.0 GA candidate**.
+> **600/600 tests passing. Soak clock NOT reset across any of the 4 events — all fixes are evidence-recording semantics, zero change to agent reasoning behavior.**
 >
-> **Day-7 Option B (if operator wants stronger Gate 26)**: apply CP-FENCE-02 fix (~2-3 hours) at any point before Day 7. The fix is even more surgical than CP-TEL-01 (change correlation-id computation). Would lift Gate 26 to PASS on the first fence_reconstruction op with matching ids.
+> **Expected Day-7 trajectory.** Gate 21 + 25 + 27 are PASS-confirmed. Gate 26 flips FAIL → PASS/PARTIAL on the first fence_reconstruction op that fires with exit_code == 0 during remaining ~6 days of soak (organic — every constraint-removal triggers the blueprint). Gates 22, 23, 24, 28 are MANUAL at grading — their infrastructure blockers are resolved; they now just need operator judgment during the grading session. Gate 28 pre-audit reports PARTIAL (not HARD BLOCK). **Weighted pass projection: 4.0-5.5 → GA candidate strong.**
+>
+> **Remaining Day-7 work is pure operator judgment.** No infrastructure blockers left.
 
 ### Day-2 Gate Grading — HISTORICAL · resolved via Path A (Events 36-38)
 

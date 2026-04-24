@@ -483,12 +483,12 @@ minimum is statistical-validity, not calendar-deadline.
   in live hook log). Gate 22 remains MANUAL at grading time (inherently requires
   human verification of disconfirmation-triggering-action-change) but no longer
   blocked on infrastructure.
-- Gate 26 baseline: fence pipeline — **Event 49 partial progress**. CP-TEL-01 is fixed
-  so exit_code extraction works; CP-FENCE-01 orphan cleanup ran once (88 retired).
-  `protocols.jsonl` still does not exist because of a residual PreToolUse/PostToolUse
-  correlation-id mismatch (CP-FENCE-02 — see `docs/PREPARED_PATCHES.md`). Gate 26 =
-  FAIL unless CP-FENCE-02 lands or a fence_reconstruction op happens to produce
-  matching correlation ids.
+- Gate 26 baseline: fence pipeline — **Event 49 + Event 50 both applied**. CP-TEL-01
+  fixed exit_code extraction; CP-FENCE-01 orphan cleanup ran once (88 retired);
+  CP-FENCE-02 (correlation-id dual-write + fallback-read) landed Event 50 with 3
+  regression tests. `protocols.jsonl` will materialize on the first real
+  fence_reconstruction op that fires during remaining soak. Gate 26 = PASS on that
+  first firing; until then automated grader reports FAIL but the pipeline is ready.
 - ~~Form-filling discriminator: not yet implemented (script); CP-DISC-01.~~ **Resolved
   Event 47.** See `docs/DISCRIMINATOR_CALIBRATION.md` and `tools/discriminator_calibration.py`.
 - ~~Phase 2 dedup-on-log: CP-DEDUP-01.~~ **Resolved Event 49.** `_framework.write_deferred_discovery`

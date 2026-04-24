@@ -1279,6 +1279,59 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 50 — 2026-04-24 — CP-FENCE-02 correlation-id mismatch fix (Option B of Day-7 plan)
+
+**Scope.** Targeted follow-up to Event 49 applying Option B of the Day-7 plan. Three file edits on feature branch `event-50-cp-fence-02`: (1) `core/hooks/_fence_synthesis.py` adds `candidate_correlation_ids()` + `finalize_on_success_with_fallback()`; (2) `core/hooks/reasoning_surface_guard.py` loops over candidates when writing pending markers; (3) `core/hooks/fence_synthesis.py` PostToolUse uses the fallback finalizer. 3 new regression tests + 1 existing test updated for new dual-write expectation. **600/600 tests passing** (597 baseline + 3 new CP-FENCE-02 pins).
+
+**Why.** Event 49 surfaced CP-FENCE-02 as a NEW v1.0.1 CP candidate after applying CP-TEL-01 unblocked exit_code extraction but fence synthesis still wasn't producing protocols. Operator said "Option B is better since it will be more complete" — authorizing this session to close the last infrastructure gap before Day-7 grading.
+
+**Root cause confirmed.** `reasoning_surface_guard.py` PreToolUse computes correlation via `_fence_synthesis.correlation_id(payload, cmd, ts)`. That helper tries `payload["tool_use_id"]` first, falls back to SHA-1 hash over `(bucket|cwd|cmd)`. Claude Code's PreToolUse payload **does NOT populate tool_use_id** (verified against `h_*` prefix in accumulated pending markers — SHA-1 fallback was hit). But PostToolUse DOES populate tool_use_id (verified against `toolu_*` correlation prefix in hooks.log). So the two hooks compute different ids for the same logical call; `read_pending_marker()` returns None; synthesis skipped.
+
+**Strategy B (dual-write) selected over Strategy A (unify on SHA-1).** Rationale: if a future Claude Code release populates tool_use_id on PreToolUse, Strategy B still works without regression. Strategy A would discard the stronger-uniqueness signal permanently.
+
+**Shipped.**
+
+- **`core/hooks/_fence_synthesis.py`**
+  - New `candidate_correlation_ids(payload, cmd, ts) -> list[str]`: returns deduplicated, order-stable list of all candidate ids (tool_use_id first if present, SHA-1 fallback always included).
+  - New `finalize_on_success_with_fallback(candidates, exit_code) -> dict | None`: walks candidates to find the first marker, synthesizes if exit_code == 0, deletes ALL candidate markers in finally (so no orphans from the dual-write survive).
+- **`core/hooks/reasoning_surface_guard.py`** — PreToolUse Fence-admitted op now loops: `for correlation in _fence_synthesis.candidate_correlation_ids(...): write_pending_marker(...)`. Produces two marker files per fence_reconstruction call (one under tool_use_id, one under SHA-1) when both candidates differ.
+- **`core/hooks/fence_synthesis.py`** — PostToolUse main() uses `_finalize_with_fallback(candidates, exit_code)` instead of single-id `_finalize_on_success(correlation, exit_code)`. Removed the unused `_finalize_on_success` import.
+- **`tests/test_fence_reconstruction_end_to_end.py`**
+  - `_run_guard()` and `_run_post_hook()` accept `tool_use_id: str | None` param so tests can simulate Pre-lacks / Post-has scenarios.
+  - Existing `test_reversible_fence_writes_protocol_on_exit_zero` updated to expect 1-2 pending markers (was: exactly 1) because dual-write now produces 2 when both candidates are distinct.
+  - New `TestCPFence02CorrelationMismatch` class with 3 tests:
+    - `test_pre_lacks_tool_use_id_post_has_it_still_synthesizes` — reproduces the exact CP-FENCE-02 scenario: PreToolUse without tool_use_id writes h_* marker, PostToolUse with tool_use_id tries both candidates, finds h_* marker, synthesizes protocol, cleans ALL candidate markers.
+    - `test_pre_with_tool_use_id_writes_dual_markers` — pins that both toolu_* and h_* markers are written when candidates differ.
+    - `test_candidate_correlation_ids_helper` — unit-tests the helper's dedup + order + cross-payload consistency of SHA-1 fallback.
+
+**Baseline post-Event-50.** Automated grader reports unchanged since protocols.jsonl materializes only on the next real fence_reconstruction op:
+
+```
+Gate 21 PASS · Gate 22 MANUAL · Gate 23 MANUAL · Gate 24 MANUAL
+Gate 25 PASS · Gate 26 FAIL (pending first op) · Gate 27 PASS · Gate 28 MANUAL
+Weighted: 3.0/4.0
+```
+
+Expected trajectory: the soak collects fence ops organically (every constraint-removal op the agent executes during remaining ~6 days fires the blueprint). The first one with exit_code == 0 produces `~/.episteme/framework/protocols.jsonl`. Gate 26 flips FAIL → PARTIAL (≥1 protocol) → PASS (≥1 reasoning-shape protocol). Combined with Gate 28 manual resolution (pre-audit says PARTIAL not HARD BLOCK), weighted climbs toward 4.0-5.0 → **GA candidate viable by Day 7**.
+
+**Soak safety.** All hook edits are evidence-recording semantics only. Agent reasoning path unchanged. 600/600 tests green. Fresh 7-day soak clock (Event 38 anchor 2026-04-23T21:23:36Z) continues unchanged.
+
+**Residual items for Day-7.** All hard infrastructure resolved:
+- ✓ CP-DISC-01 · discriminator calibrated (Event 47)
+- ✓ CP-PHASE12-01 · audit path confirmed + run (Event 48)
+- ✓ CP-TEL-01 · exit_code extraction fixed (Event 49)
+- ✓ CP-FENCE-01 · orphan cleanup (Event 49)
+- ✓ CP-DEDUP-01 · framework dedup (Event 49)
+- ✓ CP-FENCE-02 · correlation mismatch fixed (Event 50 — THIS)
+
+Remaining Day-7 work is pure operator judgment: manual Gate 22/23/24/28 classifications, spot-check queue drain, grading execution. No infrastructure blockers left.
+
+**PR queue.** PR #10 opens against master. PR #2 (release-please) still held. PRs #5-9 all merged.
+
+**Commit (to-be):** `fix(hooks): CP-FENCE-02 correlation-id dual-write + fallback (Event 50)` — SHA at commit.
+
+---
+
 ## Event 49 — 2026-04-24 — Path Y mid-soak hook fix (CP-TEL-01 + CP-DEDUP-01 applied; CP-FENCE-01 orphan cleanup; CP-FENCE-02 surfaced) — soak clock preserved
 
 **Scope.** Operator authorized Path Y (mid-soak targeted hotfix per soak rule b). Five patches on feature branch `event-49-path-y-hook-fixes`: (1) `core/hooks/calibration_telemetry.py` exit_code + status extraction expanded to handle Claude Code's actual payload shape; (2) `core/hooks/fence_synthesis.py` same extraction; (3) `core/hooks/_framework.py` pre-write dedup on `write_deferred_discovery`; (4) `tools/fence_marker_cleanup.py` new tool + executed once; (5) `tools/gate28_preaudit.py` new tool. 11 new regression tests pinning the extraction + dedup behavior. Full test suite: **597/597 passing** (baseline 593 + 11 new tests; some old tests consolidated into new variants).

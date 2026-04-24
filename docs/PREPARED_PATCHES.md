@@ -295,7 +295,20 @@ write-path behavior, not a chain-level change.
 
 ---
 
-## CP-FENCE-02 — correlation-id PreToolUse/PostToolUse mismatch (NEW — Event 49)
+## CP-FENCE-02 — **APPLIED Event 50** · correlation-id PreToolUse/PostToolUse mismatch
+
+**Status**: ✓ **APPLIED** in `core/hooks/_fence_synthesis.py` (new
+`candidate_correlation_ids` + `finalize_on_success_with_fallback` helpers),
+`core/hooks/reasoning_surface_guard.py` (loop writes markers under all
+candidates), `core/hooks/fence_synthesis.py` (postToolUse uses fallback
+finalizer). 3 new regression tests; 600/600 test suite passing.
+
+**Strategy B selected** (dual-write + fallback-read rather than unify on
+SHA-1). Rationale: degrades gracefully if Claude Code populates
+tool_use_id on PreToolUse in a future version — dual-write still works;
+single-unify-on-SHA-1 would discard the stronger uniqueness signal.
+
+### Original diagnosis (pre-Event-50)
 
 **Observation (Event 49 diagnostic)**. Even after CP-TEL-01 patch
 unblocks exit_code extraction, the fence synthesis pipeline still
