@@ -2,7 +2,14 @@ name: GitHub Clone Count Update Everyday
 
 on:
   schedule:
-    - cron: "0 */24 * * *"
+    # 03:07 UTC daily. Event 45 switch from the prior `0 */24 * * *` which
+    # functionally resolved to 00:00 UTC — the most contended slot on
+    # GitHub Actions' scheduled-trigger dispatcher (per GitHub's docs,
+    # "scheduled workflows may be delayed during periods of high loads...
+    # high load times include the start of every hour"). Zero scheduled
+    # runs fired across 20+ hours on the prior cron. `7 3 * * *` puts
+    # the run on an off-peak hour with an explicit single-value minute.
+    - cron: "7 3 * * *"
   workflow_dispatch:
 
 jobs:
@@ -10,7 +17,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      # actions/checkout@v2 → @v4 (Event 45). v2 uses Node.js 16 which is
+      # removed from GitHub runners 2026-09-16; v4 uses Node.js 20 with
+      # forward compat to Node.js 24. Inputs/outputs backward-compatible
+      # with this workflow's usage (no ref, no submodules, default
+      # fetch-depth). See Event 28 deprecation note for the runway.
+      - uses: actions/checkout@v4
 
       - name: gh login
         run: echo "${{ secrets.SECRET_TOKEN }}" | gh auth login --with-token
