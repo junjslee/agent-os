@@ -1279,6 +1279,39 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 46 — 2026-04-24 — Post-soak triage rubric drafted (`docs/POST_SOAK_TRIAGE.md`) — Phase 1 gate-grading rubric + form-filling discriminator + v1.0 GA decision rule
+
+**Scope.** One new doc artifact on feature branch `event-46-post-soak-triage`. Governance-layer addition only — zero code / schema / hook / kernel-prose edits. Soak-safe; fresh 7-day soak clock (opened 2026-04-23T21:23:36Z per Event 38 verification) unaffected. Branch cut off master tip `845f7e6` (post-Event-45 merge).
+
+**Why.** Soak close (~2026-04-30) arrives in ~6 days. Without an explicit grading rubric, the v1.0 GA / no-GA decision defaults to operator judgment-under-deadline — the exact failure mode the product exists to counter. Prior planning documents referenced Gates 21-28 as "the cognitive-adoption gates" but did not specify PASS/PARTIAL/FAIL bands per gate, did not specify a data source per gate, and did not provide a discriminator for distinguishing real reasoning from form-filling (the failure mode where a reasoning-surface passes structural checks — 4 fields populated, 15+ chars each — but carries no actual reasoning, only plausible-looking boilerplate). The operator identified this gap during the Path-A soak resumption review and explicitly requested both a draft of the triage rubric AND an honest evaluation of Phase 1 implementation thoroughness.
+
+**Phase 1 thoroughness evaluation (honest assessment pre-draft).** 40% thorough on Phase 1 readiness, identified 8 gaps:
+
+1. No automated grading script; grading would run by ad-hoc grep.
+2. No PASS/PARTIAL/FAIL bands per gate — bands were collapsed to "pass vs fail" binaries.
+3. No form-filling discriminator — the most load-bearing gap, because without it Gate 21 ("reasoning-surface snapshot quality") degenerates into "does the JSON have 4 fields" which is exactly the failure mode the kernel claims to detect.
+4. Gate 25 data source path unverified (Phase 12 profile-audit emissions not grep-able until path is confirmed).
+5. Gate 22 (disconfirmation fires) has no procedure for cross-referencing episodic records against git log to prove a downstream action change.
+6. Gate 26 (semantic-tier promotion) does not distinguish outcome-regularity from reasoning-shape-regularity — the distinction is load-bearing because only the latter supports the product's cognitive-adoption claim.
+7. Calibration telemetry asymmetry (3,357 predictions vs 80 outcomes, 42× gap; 80/80 outcomes with `exit_code: null`, 100% ungradeable) was surfaced during philosophy-question response but not formalized as a CP candidate. Without acknowledgment, Gate 22 has no objective substrate to grade against.
+8. Fence synthesis empty-emit pattern observed during Path-A debugging not formalized as CP-FENCE-01; Gate 26 at risk of FAIL simply because `protocols.jsonl` is empty rather than because the synthesis logic is wrong.
+
+Event 46's `POST_SOAK_TRIAGE.md` closes all 8 gaps explicitly. The draft is 483 lines (well under the 600-line disconfirmation threshold declared in the Event-46 reasoning-surface — prevents rubric drift into spec).
+
+**Shipped.**
+
+- **`docs/POST_SOAK_TRIAGE.md`** — 6-section governance artifact. Section 0: core principle (*"measurement IS the gradient"*) with explicit dogfood framing — if the grading report itself reads like form-filling, the product has failed by its own criterion. Section 1: per-gate rubric for Gates 21-28 with data source, measurement procedure, PASS/PARTIAL/FAIL bands, and a **counter-example question** per gate (*"show me one record where..."*) that forces the grader to name specific evidence instead of eyeballing. Section 1.9: **form-filling discriminator** — three sub-metrics: (a) lazy-token regex screen in English+Korean; (b) proper-noun density target (≥ 1 file/SHA/gate/command per 80 chars of surface content); (c) observable-verb density in disconfirmation fields (100% required). Section 2: deferred-discovery triage procedure for the 1,294 records currently in `~/.episteme/framework/deferred_discoveries.jsonl` — sample-and-extrapolate to avoid the impossible full-review scale. Section 3: four pre-seeded v1.0.1 CP candidates — **CP-TEL-01** (telemetry asymmetry, HIGH), **CP-FENCE-01** (fence empty-emit, MEDIUM), **CP-DISC-01** (discriminator threshold calibration, HIGH), **CP-PHASE12-01** (Gate 25 path verification, MEDIUM). Section 4: GA decision rule — *Gate 28 at anything worse than PARTIAL → hard block regardless of other gates*; of the remaining 7 gates, ≥ 4 clear-PASS → GA, 2-3 → v1.0.1-rc cycle, ≤ 1 → scope retreat (demote cognitive-adoption from v1.0 headline to v1.1 roadmap). Section 4.4: honest-disclosure requirement — release notes must name each gate's band + evidence, not summarize as "looks good." Section 5: execution timeline Day-7/+1/+2/+3 with concrete artifact outputs. Appendix A: data source cheat sheet. Appendix B: known evidence gaps at draft time.
+
+**Form-filling discriminator — why it is the sharpest gap.** Gate 21's original criterion (*"zero lazy placeholders and zero disconfirmations without observable outcomes"*) is a structural check: it verifies shape (are the fields populated, are the placeholders absent?) but not content (does the text demonstrate actual engagement with the problem?). A reasoning-surface that says `knowns: ["the codebase has been analyzed"]` passes every structural check in the existing guard — 15+ chars, no lazy tokens, non-empty — but carries zero information. The proper-noun density metric (file paths, SHAs, gate numbers, command names) converts the structural check into a semantic one: a surface that claims engagement but cannot name a single specific artifact fails the density threshold. Calibration thresholds are deliberately deferred to CP-DISC-01 (run the discriminator against the current corpus, tune for < 20% false-positive and < 20% false-negative) — shipping un-calibrated thresholds would reproduce the form-filling pattern at the rubric level.
+
+**Soak safety.** Single-file new artifact under `docs/`. Zero `core/hooks/`, `src/episteme/`, `kernel/`, `tests/`, or episodic-record-shape touches. Cognitive-adoption gate 21-28 measurement unaffected (the rubric is the *grading method* for those gates, not a change to the gates themselves). Fresh 7-day soak clock continues against the Event 38 post-verification state.
+
+**PR queue impact.** Event 46 opens PR #6 against master. PR #2 (release-please 1.1.0-rc1) remains on operator hold until post-soak GA decision per Event 33 + Event 38 standing order. No interaction between Event 46 and release-please; Event 46 is a governance doc not wired into release-please's extra-files manifest.
+
+**Commit (to-be):** `docs: post-soak triage rubric (Event 46)` — SHA at commit.
+
+---
+
 ## Event 45 — 2026-04-24 — clone.yml scheduler fix + NEXT_STEPS drift cleanup
 
 **Scope.** Three file edits on feature branch `event-45-clone-yml-and-nextsteps-drift`. One cron-schedule change + one action-version bump + one doc-section rewrite. Zero code / schema / hot-path touches. Soak-safe; fresh 7-day soak clock (opened 2026-04-23T21:23:36Z per Event 38 verification) unaffected.
