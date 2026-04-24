@@ -3,10 +3,13 @@
 Goal-backward roadmap for episteme beyond the v1.0.0 soak close. Three
 execution branches anchored to Day-7 gate-grading outcomes + five
 milestone themes + explicit non-goals per milestone + dependency graph
-+ lessons-from-adjacent-ecosystems (Hermes v2026.4.23) appendix.
++ lessons-from-adjacent-ecosystems appendix (Hermes v2026.4.23 + Langfuse
+v3.170.0) + Event-53 audit log of items considered and removed on
+governance-mandate grounds.
 
-Drafted Event 51 (2026-04-24) while all 6 pre-soak infrastructure CPs
-landed (Events 47-50) and soak clock runs toward ~2026-04-30 close.
+Drafted Event 51 (2026-04-24), extended with Langfuse analysis Event 52,
+audited + trimmed Event 53. All 6 pre-soak infrastructure CPs landed
+(Events 47-50); soak clock runs toward ~2026-04-30 close.
 
 ---
 
@@ -158,7 +161,8 @@ CPs in execution-priority order:
 - Do NOT add new cognitive-adoption gates (Theme 5 territory).
 - Do NOT add new blueprints (Theme 4 territory; current A/B/C/D is
   load-bearing and proven).
-- Do NOT introduce new CLI UX features (Theme 6 territory).
+- Do NOT introduce new CLI UX features (cross-cutting §3.6
+  territory — v1.1 scope).
 
 **Acceptance criteria for v1.0.1**:
 - All CPs above applied + tested.
@@ -284,9 +288,8 @@ Phase 12 drift + gate-grading state in real-time.
 
 | CP | Scope | Effort | Milestone |
 |---|---|---:|---|
-| CP-TUI-01 | `episteme tui` — Textual-based (Python-native; avoid Node/Ink dep) dashboard showing current reasoning-surface status, episodic-record stream, recent framework protocols, Gate 21-28 live grading | 5-7 days | v1.1 |
-| CP-TUI-02 | subagent-spawn observability overlay (map Task-tool invocations to surface + outcome per spawn) | 3 days | v1.1 |
-| CP-WEB-01 | web dashboard parity — `/dashboard` route showing Hermes-style observability but web-native | 4 days | v1.1 |
+| CP-TUI-01 | `episteme tui` — Textual-based (Python-native; avoid Node/Ink dep) read-only dashboard surfacing EXISTING `~/.episteme/*.jsonl` streams: current reasoning-surface status, episodic-record stream, recent framework protocols, Gate 21-28 live grading. No new data model; the TUI reads what grade_gates.py / discriminator_calibration.py already produce. | 5-7 days | v1.1 |
+| CP-TUI-02 | subagent-spawn observability overlay (map Task-tool invocations to Blueprint-D surface + outcome per spawn). Lower priority — UI polish atop existing cascade detector. | 3 days | v1.2 (optional) |
 
 **Non-goals**:
 - Do NOT build a TUI that tries to REPLACE the Claude Code / Hermes
@@ -294,6 +297,13 @@ Phase 12 drift + gate-grading state in real-time.
   observability into our layer, not an agent chat UI.
 - Do NOT introduce a Node/Ink dependency for core CLI. TUI is
   optional, Python-native (Textual library), installable as extra.
+- Do NOT build a parallel web dashboard that mirrors TUI
+  functionality (CP-WEB-01 was considered Event 51 and REMOVED
+  Event 53 — see §7 Audit log). TUI is the operator's observability
+  surface; `web/` remains marketing + small fixtures only.
+- Do NOT add new measurement semantics in the TUI layer. If the TUI
+  surfaces a metric, grade_gates.py must already compute it. TUI ≠
+  analytics product.
 
 **Acceptance criteria**:
 - TUI runs against live `~/.episteme/*.jsonl` streams without
@@ -401,18 +411,12 @@ patterns are directly relevant to our v1.1 roadmap.
   Theme 4 as CP-GUIDE-02 (not yet in §3.4 — to be added if
   roadmap progresses past v1.0.1).
 
-- **Plugin surface patterns (`transform_tool_result`,
-  `dispatch_tool`, hook-veto)** — our hooks already do veto
-  (block_dangerous.py) and transform (episodic_writer.py captures
-  outcomes). Hermes's more general `transform_tool_result` +
-  `dispatch_tool` APIs could inform how we expose Pillar 3
-  advisory-injection to future adapters. v1.1 scope consideration;
-  don't force premature abstraction.
-
 - **Observability overlay — subagent spawn tracing** — tracing
   Task-tool invocations as their own mini-sessions with surface
   + outcome per spawn is a natural fit for the Blueprint-D
-  cascade detector. CP-TUI-02 in §3.6.
+  cascade detector. CP-TUI-02 in §3.6 (downgraded to v1.2-optional
+  Event 53 — UI polish atop existing detector, not
+  v1.1-load-bearing).
 
 ### 5.2 Consciously NOT adopt
 
@@ -444,14 +448,14 @@ patterns are directly relevant to our v1.1 roadmap.
 | Hermes v0.11 feature | episteme decision | Milestone |
 |---|---|---|
 | Ink TUI | Adopt (Textual, Python-native) | v1.1 CP-TUI-01 |
-| Subagent spawn overlay | Adopt | v1.1 CP-TUI-02 |
+| Subagent spawn overlay | Adopt (downgraded to optional Event 53) | v1.2 CP-TUI-02 |
 | `/steer` mid-run nudge | Adopt (as `episteme guide --inject`) | v1.1 candidate |
-| Plugin: `transform_tool_result`, `dispatch_tool` | Study for Pillar 3 advisory API; defer commitment | v1.1 review |
 | Transport ABC (multi-provider) | Explicit non-goal | — |
 | Messaging platform expansion | Explicit non-goal | — |
 | Shell-script hooks | Explicit non-goal | — |
 | Provider-catalog live discovery | Explicit non-goal | — |
 | Bundled image_gen / TTS plugins | Explicit non-goal | — |
+| Plugin `transform_tool_result` / `dispatch_tool` | ~~Considered "study"~~ REMOVED Event 53 — vague, no CP id, no acceptance criteria. Positive-system rule: revisit only if a specific Pillar-3 advisory-injection pain-point surfaces. | — |
 
 ### 5.4 Counter-positioning observation
 
@@ -503,6 +507,15 @@ That shapes every adopt/decline call below.
   own records). Candidate **v1.2 scope as CP-OTEL-01** (effort
   ~3 days; standardization not feature-expansion).
 
+  **Scope discipline (added Event 53)**: export-only, one-way.
+  No consumer UI. No Langfuse-specific integration code in the
+  kernel. No new data model — map existing JSONL records to OTel
+  spans. If OTel LLM semantic conventions change, the mapping
+  layer is the only thing that updates. The moment this CP
+  grows beyond "emit OTel spans on an `--otel-endpoint` flag,"
+  it's scope creep and must be re-audited against the governance
+  mandate.
+
 - **Dataset-from-traces primitive** — Langfuse lets an operator
   promote selected traces into a dataset used for regression
   testing prompts. Episteme's analog: an `episteme dataset build`
@@ -514,20 +527,6 @@ That shapes every adopt/decline call below.
   against larger corpus — §3.5 prerequisite). Candidate **v1.1
   scope as CP-DATASET-01** (effort ~2 days; operator-triggered
   workflow, not automatic).
-
-- **LLM-as-judge scoring pattern (study, not adopt wholesale)** —
-  Langfuse's programmatic eval framework uses an LLM to score
-  trace quality against a rubric. For episteme: the form-filling
-  discriminator (§1.9 POST_SOAK_TRIAGE) is deliberately
-  deterministic (regex + density). LLM-as-judge is NOT a
-  replacement because it reintroduces the exact failure mode
-  (confidently-fluent-output) the kernel exists to detect.
-  BUT: LLM-as-judge could be a **secondary cross-check** on a
-  small sample — if the regex discriminator and an LLM judge
-  disagree on the same record, that's a threshold-calibration
-  signal. Candidate **v1.2 as CP-DISC-03 — LLM-cross-check
-  audit** (effort ~2 days; advisory-only, never replaces the
-  deterministic path).
 
 - **Self-hostable + sovereignty stance** — Langfuse's self-host-
   first model aligns with episteme's Pillar 2 tamper-evident
@@ -576,7 +575,7 @@ That shapes every adopt/decline call below.
 |---|---|---|
 | OpenTelemetry export | Adopt (portability, standardization) | v1.2 CP-OTEL-01 |
 | Dataset-from-traces | Adopt (operator-triggered) | v1.1 CP-DATASET-01 |
-| LLM-as-judge eval | Adopt as secondary cross-check, not replacement | v1.2 CP-DISC-03 |
+| LLM-as-judge eval | ~~Adopt as secondary cross-check~~ REMOVED Event 53 — places an LLM inside the measurement apparatus; reintroduces confident-wrongness at the audit layer. Deterministic discriminator + human spot-check is the disciplined path. | — |
 | Self-host-first sovereignty | Parallel design — already shipped | — |
 | Prompt management | Explicit non-goal (would break governance contract) | — |
 | Playground UI | Explicit non-goal | — |
@@ -652,3 +651,126 @@ the right cadence.
 If the operator intent (§0) shifts, this whole doc is deprecated and
 rewritten goal-backward. The governing intent is the anchor; the
 milestones are the implementation.
+
+---
+
+## 7. Audit log
+
+This section records items that were considered for the roadmap but
+removed on governance-mandate grounds. Preserves the reasoning so
+future readers see the discipline, not a silent deletion. Every
+removal must cite (a) which failure-mode / scope boundary it
+conflicted with and (b) why a scoped-down variant wouldn't have
+worked either.
+
+### Event 53 audit (2026-04-24) — adjacent-ecosystem imports trimmed
+
+Triggered by operator ask: *"is everything on
+`docs/ROADMAP_POST_V1.md` really applicable to our product episteme?
+If not delete, but yes since we got the ideas off from external
+services, audit to make sure."*
+
+Two removals, two scope tightenings, one vague-item deletion.
+
+#### REMOVED · CP-DISC-03 (LLM-as-judge as secondary cross-check)
+
+- **Source**: Langfuse §5.6 Event 52 adopt list.
+- **Original rationale**: deterministic discriminator + LLM-judge
+  disagreement as a threshold-calibration signal; framed as
+  advisory-only, never replacing the deterministic path.
+- **Why removed**: **places an LLM inside the measurement
+  apparatus**. The kernel's mandate is anti-confident-wrongness;
+  putting an LLM at the audit layer — even "advisory only" —
+  means when the two signals disagree the operator has a fresh
+  confident-wrongness-vs-deterministic adjudication on their
+  hands instead of just reviewing flagged records themselves.
+  The cognitive cost shifts from human-review-of-discriminator-
+  output to human-review-of-LLM-review-of-discriminator-output,
+  which is strictly worse.
+- **Scoped-down variant wouldn't work**: any LLM participation in
+  the measurement apparatus — even "audit 5 records per week" —
+  reintroduces the failure mode. The correct path is:
+  (i) operator manually reviews a sample of discriminator-flagged
+  records; (ii) CP-DISC-02 recalibrates thresholds against that
+  manual review. Human is already the judge; adding an LLM is
+  subtractive.
+- **Counter-factual preserved**: if post-v1.2 soak data reveals
+  the deterministic discriminator has a FP/FN rate that human
+  review cannot catch at scale, revisit with a specific failure-
+  mode that would be countered — not with a speculative "might
+  help."
+
+#### REMOVED · CP-WEB-01 (Web dashboard parity)
+
+- **Source**: Event 51 §3.6 cross-cutting TUI stream (I extrapolated
+  from Hermes web-dashboard + subagent-overlay into a web-parity CP;
+  it was my addition, not Hermes's).
+- **Original rationale**: web dashboard for operator / team / external-
+  reviewer audit of gate grading, framework protocols, fence pending
+  state.
+- **Why removed**: **soft-conflicts with our own §5.7 Langfuse non-
+  adopt** ("analytics-dashboard-as-primary-product"). The TUI
+  (CP-TUI-01) already covers the operator's observability use case on
+  their own machine. Duplicating the surface on web starts us down
+  the path of becoming a Langfuse-competitor — exactly the positioning
+  we declined. External-reviewer audit as a *real* operator ask has
+  never surfaced; building for a hypothetical is scope creep.
+- **Scoped-down variant wouldn't work**: a minimal "one new route"
+  addition still opens the slippery slope (first the route, then the
+  filters, then the charts, then per-org auth...). Drawing the line
+  at "TUI only" keeps the scope discrete.
+- **Counter-factual preserved**: if external-reviewer audit becomes a
+  real operator ask post-GA — cited by a specific operator or team —
+  revisit as a standalone initiative with explicit "this is
+  Langfuse-adjacent, here's the boundary" framing. Not as a
+  sub-row in a TUI CP table.
+
+#### DOWNGRADED · CP-TUI-02 (subagent-spawn observability overlay)
+
+- **Source**: Hermes §5.1 Event 51 adopt (UI polish atop existing
+  Blueprint D cascade detector).
+- **Change**: v1.1 → **v1.2 optional**. Scope language tightened
+  from "UI polish atop existing cascade detector" to an explicit
+  lower-priority note.
+- **Rationale**: CP-TUI-01 already surfaces the cascade detector's
+  emissions in the TUI via existing streams. A dedicated subagent-
+  spawn overlay is a visualization feature, not a measurement
+  feature — shouldn't compete for v1.1 priority with Framework
+  Consolidation (Theme 4) work that raises Gate 26 + 31 evidence
+  quality.
+
+#### TIGHTENED · CP-OTEL-01 (OpenTelemetry export)
+
+- **Source**: Langfuse §5.6 Event 52 adopt.
+- **Change**: explicit scope-discipline paragraph added in §5.6
+  requiring export-only / one-way / no consumer UI / no Langfuse-
+  specific integration / no new data model.
+- **Rationale**: OTel export is strategically sound (portability,
+  standardization) but the surface it opens — "episteme talks to
+  observability tools" — can grow without discipline. Naming the
+  boundary now prevents future scope drift.
+
+#### REMOVED (vague-item) · Plugin `transform_tool_result` / `dispatch_tool` study
+
+- **Source**: Hermes §5.1 Event 51 adopt ("study for Pillar 3
+  advisory API").
+- **Why removed**: no CP id, no effort, no acceptance criteria —
+  violates the positive-system rule on rule-shape (every roadmap
+  entry is a specific, enumerable commitment). "Study" items
+  expand silently if not retired.
+- **Counter-factual preserved**: if a specific Pillar 3 advisory-
+  injection pain-point surfaces (e.g., adapter-layer needs
+  `transform_tool_result` semantics for a concrete use case), open
+  a CP then with named scope and effort.
+
+### Cadence rule (Event 53 observation)
+
+Two ecosystem scans in (Hermes Event 51 + Langfuse Event 52) + one
+audit (Event 53) reveals a useful pattern: **the audit removes more
+items than the scans add when the discipline is strict**. Event 52
+added 3 adopts from Langfuse; Event 53 removed 1 + tightened 1 = 2
+net changes against Event 52's additions. That ratio is healthy;
+if future audits remove ≤ 25% of the prior scan's adopts, the
+ecosystem scan methodology is over-permissive and the quarterly
+cadence (§6) needs a tighter add-item bar. Track this ratio in
+future Audit log entries.

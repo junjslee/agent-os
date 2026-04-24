@@ -1279,6 +1279,40 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 53 — 2026-04-24 — Roadmap audit: two removals + one downgrade + one tightening + one vague-item deletion + §7 Audit log added
+
+**Scope.** Audit pass on `docs/ROADMAP_POST_V1.md` in response to operator ask: *"is everything on docs/ROADMAP_POST_V1.md really applicable to our product episteme? if not delete, but yes since we got the ideas off from external services, audit to make sure."* Pure docs; zero code/hook/schema touches; soak-safe.
+
+**Why.** The roadmap accumulated items across Events 51 (Hermes scan) and 52 (Langfuse scan) without a formal audit pass. Operator's governance discipline (positive-system rule: every item is a conscious choice, not silently inherited) demanded a strict re-read of each adopt entry against the kernel mandate. Two items failed the audit.
+
+**Shipped.**
+
+- **REMOVED · CP-DISC-03** (LLM-as-judge as secondary cross-check, Langfuse §5.6 Event 52 adopt). Root conflict: **places an LLM inside the measurement apparatus**. The kernel's anti-confident-wrongness mandate means putting an LLM at the audit layer — even "advisory only" — reintroduces the failure mode: when the deterministic discriminator and LLM-judge disagree, the operator has a fresh confident-wrongness adjudication burden instead of just reviewing flagged records themselves. Cognitive cost shifts from human-review-of-discriminator to human-review-of-LLM-review-of-discriminator — strictly worse. No scoped-down variant survives the audit (any LLM participation in measurement reintroduces the failure mode). Counter-factual preserved: revisit only if post-v1.2 soak reveals a FP/FN rate human review can't handle at scale.
+
+- **REMOVED · CP-WEB-01** (Web dashboard parity, Event 51 §3.6). Root conflict: **soft-contradicts our own §5.7 Langfuse non-adopt** ("analytics-dashboard-as-primary-product"). CP-TUI-01 already covers operator observability; duplicating on web slides toward Langfuse-competitor positioning we explicitly declined. External-reviewer-audit-as-real-operator-ask has never surfaced. Scoped-down variant ("one new route") still opens the slippery slope (route → filters → charts → per-org auth). Counter-factual preserved: revisit if external-reviewer audit becomes a cited real operator ask post-GA.
+
+- **DOWNGRADED · CP-TUI-02** (subagent-spawn observability overlay, Hermes §5.1 Event 51 adopt): v1.1 → **v1.2 optional**. CP-TUI-01 already surfaces cascade detector emissions via existing streams. A dedicated overlay is visualization polish, not measurement — shouldn't compete for v1.1 priority with Framework Consolidation (Theme 4) work that raises Gate 26+31 evidence quality.
+
+- **TIGHTENED · CP-OTEL-01** (OpenTelemetry export, Langfuse §5.6 Event 52 adopt). Added explicit scope-discipline paragraph: export-only, one-way, no consumer UI, no Langfuse-specific integration code, no new data model. Naming the boundary NOW prevents future scope drift. Moment CP-OTEL-01 grows beyond "emit OTel spans on `--otel-endpoint` flag" → re-audit against the governance mandate.
+
+- **REMOVED (vague-item) · Plugin `transform_tool_result` / `dispatch_tool` study** (Hermes §5.1 Event 51 adopt). No CP id, no effort, no acceptance criteria — violated the positive-system rule on rule-shape. "Study" items expand silently if not retired. Counter-factual preserved.
+
+- **TIGHTENED · CP-TUI-01 scope language**: acceptance criteria reinforced ("read-only dashboard surfacing EXISTING `~/.episteme/*.jsonl` streams; no new data model; TUI reads what grade_gates.py / discriminator_calibration.py already produce"). Added explicit new non-goal: "Do NOT build a parallel web dashboard that mirrors TUI functionality (CP-WEB-01 was considered Event 51 and REMOVED Event 53)."
+
+- **NEW · §7 Audit log**. Six new paragraphs documenting the three removals + two tightenings + cadence-rule observation. Preserves reasoning so future readers see the discipline, not a silent deletion. **Cadence rule baked in**: *"if future audits remove ≤ 25% of the prior scan's adopts, the ecosystem scan methodology is over-permissive and quarterly cadence (§6) needs a tighter add-item bar."* Event 53 removed 1 / tightened 1 against Event 52's 3 additions = 66% adjustment ratio; healthy.
+
+- **Bug-fix bonus**: §3.1 non-goals referenced "Theme 6 territory" which doesn't exist (themes are 1-5; §3.6 is cross-cutting). Corrected to "cross-cutting §3.6 territory — v1.1 scope."
+
+**Cross-ecosystem pattern emerging (third data point).** Events 51 + 52 surfaced the pattern "every adjacent ecosystem expands its surface; episteme's opposite move is to deepen governance." Event 53 adds: **when an adjacent-ecosystem scan produces adopts, those adopts bear audit scrutiny disproportionately because they came from a product with a different mandate.** The non-adopts from §5.2 and §5.7 were immediately obvious; the adopts are where scope creep hides. Expect future audits to continue trimming adopts more than adding them — that's the discipline working.
+
+**Soak safety.** Pure docs layer; three files edited (ROADMAP_POST_V1.md + PROGRESS.md + NEXT_STEPS.md). Zero `core/hooks/`, `src/episteme/`, `kernel/`, `tests/`, or mode.ts touches. Fresh 7-day soak clock (Event 38 anchor 2026-04-23T21:23:36Z) unaffected.
+
+**PR queue.** PR #13 opens. PR #12 (Event 52) and PR #11 (Event 51) both merged. Event 53 branch included the event-52 merge locally so the audit could see the full Langfuse content; merging PR #13 is a clean path whether or not PR #12 had merged first.
+
+**Commit (to-be):** `docs: roadmap audit — remove LLM-as-judge + web-dashboard; add §7 audit log (Event 53)` — SHA at commit.
+
+---
+
 ## Event 52 — 2026-04-24 — Langfuse v3.170.0 adjacent-ecosystem appendix (§5.5-§5.10 of ROADMAP_POST_V1.md)
 
 **Scope.** Single doc extension to `docs/ROADMAP_POST_V1.md` on feature branch `event-52-langfuse-appendix` + PROGRESS Event 52 entry + NEXT_STEPS touch. Zero code / hook / schema / test touches. Pure docs; soak-safe.
