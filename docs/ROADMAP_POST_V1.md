@@ -464,6 +464,176 @@ Hermes grows the surface; episteme grows the governance
 underneath. The roadmap above should not chase Hermes's surface-
 expansion tempo; stay true to the governance mandate.
 
+### 5.5 Langfuse v3.170.0 — context
+
+Langfuse (`langfuse/langfuse` · YC W23 · ~26k stars · TypeScript ·
+self-hostable) describes itself as *"Open source LLM engineering
+platform: LLM Observability, metrics, evals, prompt management,
+playground, datasets."* v3.170.0 shipped 2026-04-23 (same day as
+the Hermes release and our Event 38 soak anchor — which is
+coincidental, but convenient: one clean reference date for all
+three adjacent-ecosystem scans).
+
+Langfuse's primary loop: app-developer instruments their LLM
+integration → traces flow into Langfuse → scoring (manual or
+programmatic LLM-as-judge) attaches to traces → datasets get
+built from high-signal traces → prompt templates get versioned
+against dataset benchmarks → playground lets operators compare
+side-by-side.
+
+Episteme's primary loop is **one layer up the stack**: an agent
+(not a single LLM call) runs under governance; reasoning-surfaces
++ episodic records capture the decision substrate, not just the
+prompt-completion pair; gate-grading is cognitive-adoption
+measurement, not response-quality eval.
+
+So the overlap is at **evidence-shape**, not at product category.
+That shapes every adopt/decline call below.
+
+### 5.6 Adopt (from Langfuse)
+
+- **OpenTelemetry-compatible export for the evidence stream** —
+  Langfuse integrates natively with OpenTelemetry's LLM semantic
+  conventions. Episteme's episodic + framework + telemetry streams
+  could emit OTel-compatible spans as an optional export format.
+  Value: portability + interop with any OTel-compatible tool
+  (Grafana, Jaeger, Datadog, Langfuse itself) without becoming an
+  observability product ourselves. Maps to Job 4 (continuous
+  self-maintenance: the ecosystem's tooling audits the kernel's
+  own records). Candidate **v1.2 scope as CP-OTEL-01** (effort
+  ~3 days; standardization not feature-expansion).
+
+- **Dataset-from-traces primitive** — Langfuse lets an operator
+  promote selected traces into a dataset used for regression
+  testing prompts. Episteme's analog: an `episteme dataset build`
+  subcommand that promotes selected episodic records (operator
+  spot-check "used" verdicts, or gate-grading PASS records, or
+  specific context-signature clusters) into a versioned corpus
+  for discriminator calibration + gate-grading regression. Maps
+  directly to CP-DISC-02 (discriminator threshold re-calibration
+  against larger corpus — §3.5 prerequisite). Candidate **v1.1
+  scope as CP-DATASET-01** (effort ~2 days; operator-triggered
+  workflow, not automatic).
+
+- **LLM-as-judge scoring pattern (study, not adopt wholesale)** —
+  Langfuse's programmatic eval framework uses an LLM to score
+  trace quality against a rubric. For episteme: the form-filling
+  discriminator (§1.9 POST_SOAK_TRIAGE) is deliberately
+  deterministic (regex + density). LLM-as-judge is NOT a
+  replacement because it reintroduces the exact failure mode
+  (confidently-fluent-output) the kernel exists to detect.
+  BUT: LLM-as-judge could be a **secondary cross-check** on a
+  small sample — if the regex discriminator and an LLM judge
+  disagree on the same record, that's a threshold-calibration
+  signal. Candidate **v1.2 as CP-DISC-03 — LLM-cross-check
+  audit** (effort ~2 days; advisory-only, never replaces the
+  deterministic path).
+
+- **Self-hostable + sovereignty stance** — Langfuse's self-host-
+  first model aligns with episteme's Pillar 2 tamper-evident
+  local-only semantics. No adopt needed — we already ship this.
+  Noting as **parallel design philosophy** that validates our
+  posture for external observers (reviewers, adopters) who
+  understand Langfuse's positioning.
+
+### 5.7 Consciously NOT adopt (from Langfuse)
+
+- **Prompt management as a product feature** — Langfuse stores
+  prompt templates, versions them, A/B-tests variants. Episteme
+  is not a prompt-ops product. Our analog — the reasoning-surface
+  schema — is load-bearing structure, not user-editable templates.
+  Making reasoning-surfaces user-editable would collapse the
+  governance contract. **Explicit non-goal.**
+
+- **Playground / interactive exploration UI** — Langfuse's
+  playground lets operators iterate prompts against live models.
+  Episteme's analog would be "iterate on reasoning-surface fields
+  against live agent runs" — but that's the agent itself doing
+  the iteration, not a separate UI. Also the Textual TUI (§3.6
+  CP-TUI-01) covers the observability side, not the interactive-
+  exploration side. **Explicit non-goal.**
+
+- **Multi-LLM-provider SDK abstractions** — Langfuse supports
+  OpenAI SDK, Langchain, LlamaIndex, LiteLLM. Same rationale as
+  the Hermes transport-ABC non-adopt (§5.2): we're governance,
+  not runtime. Every SDK abstraction we add is scope creep away
+  from the kernel mandate. **Explicit non-goal.**
+
+- **Analytics-dashboard-as-primary-surface** — Langfuse's UI is a
+  web dashboard for observability-first workflows. Episteme has
+  a web/ surface today, but it's marketing-facing + a small
+  fixtures visualization — not a general-purpose observability
+  dashboard. The TUI (CP-TUI-01) + web dashboard parity
+  (CP-WEB-01) stay **scoped to the kernel's own evidence
+  streams**, not a general LLM observability product. The
+  governance mandate would be diluted if we tried to become a
+  Langfuse competitor. **Explicit non-goal at the product
+  positioning level.**
+
+### 5.8 Adoption matrix summary
+
+| Langfuse v3.170 feature | episteme decision | Milestone |
+|---|---|---|
+| OpenTelemetry export | Adopt (portability, standardization) | v1.2 CP-OTEL-01 |
+| Dataset-from-traces | Adopt (operator-triggered) | v1.1 CP-DATASET-01 |
+| LLM-as-judge eval | Adopt as secondary cross-check, not replacement | v1.2 CP-DISC-03 |
+| Self-host-first sovereignty | Parallel design — already shipped | — |
+| Prompt management | Explicit non-goal (would break governance contract) | — |
+| Playground UI | Explicit non-goal | — |
+| Multi-LLM SDK abstractions | Explicit non-goal (governance, not runtime) | — |
+| Analytics-dashboard-as-product | Explicit non-goal (stay kernel-scoped) | — |
+
+### 5.9 Counter-positioning observation (Langfuse)
+
+Langfuse and episteme occupy **different layers of the agent
+stack**, not different segments of the same layer:
+
+- **Langfuse**: LLM-call observability + prompt-ops for app
+  developers. "Is my LLM integration producing the right output?"
+- **episteme**: Agent-reasoning governance for kernel architects.
+  "Is the agent thinking in a way that would survive external
+  audit?"
+
+A team could (and should) use both simultaneously. Langfuse sees
+the LLM call shape; episteme sees the reasoning shape around the
+call. OpenTelemetry export from episteme → Langfuse could
+literally federate the two: LLM-call observability in Langfuse,
+cognitive-adoption governance in episteme, same underlying trace
+standard.
+
+This is the cleanest counter-positioning the roadmap has
+surfaced so far: **Langfuse and episteme are vertically composable,
+not horizontally competitive.** A v1.2 `CP-OTEL-01` makes this
+composition explicit.
+
+### 5.10 Cross-ecosystem pattern emerging
+
+Two ecosystem scans in (Hermes §5.1-§5.4, Langfuse §5.5-§5.9) reveal
+the same pattern repeating:
+
+| Ecosystem | Their move | Our non-adopt rationale |
+|---|---|---|
+| Hermes | Multi-provider LLM transports | We're governance, not runtime |
+| Langfuse | Multi-LLM SDK abstractions | Same |
+| Hermes | Messaging platform expansion | Not our scope |
+| Langfuse | Prompt management | Would break governance contract |
+| Hermes | Shell-script hook flexibility | We chose typed Python for kernel discipline |
+| Langfuse | Playground interactive UI | Not our product |
+
+**Pattern**: every adjacent ecosystem expands its surface (providers,
+platforms, modalities, UI richness). Episteme's opposite move —
+deepening the governance underneath — is what makes the two
+composable rather than competitive. This is not a reason to dismiss
+ecosystem scans; it's a reason to keep doing them, because the
+named non-adopts reinforce the governance mandate better than any
+abstract statement would.
+
+If a third ecosystem scan (e.g., next cadence) produces net-zero
+adopt items, that's a signal: either the scan methodology is
+over-fitting to our existing plans, or the ecosystem has genuinely
+converged. In either case, re-evaluate whether quarterly cadence is
+the right cadence.
+
 ---
 
 ## 6. How this doc stays current

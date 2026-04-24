@@ -1279,6 +1279,40 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 52 — 2026-04-24 — Langfuse v3.170.0 adjacent-ecosystem appendix (§5.5-§5.10 of ROADMAP_POST_V1.md)
+
+**Scope.** Single doc extension to `docs/ROADMAP_POST_V1.md` on feature branch `event-52-langfuse-appendix` + PROGRESS Event 52 entry + NEXT_STEPS touch. Zero code / hook / schema / test touches. Pure docs; soak-safe.
+
+**Why.** Operator ask after Event 51 roadmap landed (PR #11 merged): *"what about for langfuse/langfuse can we get some ideas off it that can enhance episteme given our current roadmap?"* The roadmap's §6 update protocol already specifies quarterly adjacent-ecosystem re-scans; Event 52 exercises that cadence with Langfuse as the second data point after Hermes (Event 51's §5.1-§5.4).
+
+**Shipped — six new sub-sections in ROADMAP_POST_V1.md §5:**
+
+- **§5.5 Context** — Langfuse (`langfuse/langfuse` · YC W23 · ~26k stars · TypeScript · self-hostable · v3.170.0 released 2026-04-23). Description: *"Open source LLM engineering platform: LLM Observability, metrics, evals, prompt management, playground, datasets."* Scope-level distinction: Langfuse targets app-developers building LLM integrations; episteme targets agent-governance one layer up the stack. Overlap is at **evidence-shape**, not at product category — which shapes every adopt/decline call.
+
+- **§5.6 Adopt (4 items)**:
+  - **CP-OTEL-01** (v1.2) — OpenTelemetry-compatible export for episteme's evidence stream. Portability + ecosystem interop (Grafana / Jaeger / Datadog / Langfuse itself) without becoming an observability product. Maps to Job 4 (continuous self-maintenance via ecosystem audit). Effort ~3 days; standardization not feature-expansion.
+  - **CP-DATASET-01** (v1.1) — `episteme dataset build` subcommand promoting selected episodic records (operator spot-check "used" verdicts, gate-grading PASS records, context-signature clusters) into versioned corpus. Direct dependency of CP-DISC-02 discriminator recalibration. Effort ~2 days.
+  - **CP-DISC-03** (v1.2) — LLM-as-judge as **secondary cross-check only**, NOT replacement for the deterministic regex+density discriminator. If regex and LLM-judge disagree on a record, that's a threshold-calibration signal. Advisory-only; never replaces the deterministic path (preserves the kernel's anti-form-filling mandate). Effort ~2 days.
+  - **Self-host-first sovereignty** — parallel design philosophy validating Pillar 2 posture for external reviewers; no code change, just noted as validation.
+
+- **§5.7 Consciously NOT adopt (4 items)** — prompt management (would break governance contract by making reasoning-surfaces user-editable); playground interactive UI (not our product); multi-LLM SDK abstractions (governance, not runtime — same rationale as Hermes transport non-adopt); analytics-dashboard-as-primary-product (stay kernel-scoped, don't become a Langfuse competitor).
+
+- **§5.8 Adoption matrix** — 8-row summary table mirroring §5.3 Hermes matrix structure.
+
+- **§5.9 Counter-positioning observation** — the cleanest positioning insight the roadmap has surfaced: **Langfuse and episteme are vertically composable, not horizontally competitive**. Langfuse sees the LLM call shape; episteme sees the reasoning shape around the call. A team could (and should) use both simultaneously — OpenTelemetry export from episteme → Langfuse literally federates the two. CP-OTEL-01 makes this composition explicit.
+
+- **§5.10 Cross-ecosystem pattern emerging** — after two ecosystem scans (Hermes §5.1-§5.4 + Langfuse §5.5-§5.9), a consistent pattern surfaces: every adjacent ecosystem expands its surface (providers / platforms / modalities / UI richness); episteme's opposite move (deepening governance underneath) is what makes the two composable rather than competitive. Named non-adopts reinforce the governance mandate better than any abstract statement. Meta-meta observation baked in as a calibration rule: if a third ecosystem scan produces net-zero adopts, re-evaluate whether quarterly cadence is the right cadence (might be methodology over-fitting, or genuine ecosystem convergence).
+
+**§3 theme tables deliberately NOT modified this Event.** Three new CP candidates (CP-OTEL-01 in Theme 5 v1.2, CP-DATASET-01 in Theme 4 v1.1, CP-DISC-03 in Theme 5 v1.2) are named in §5.8 matrix but not yet integrated into §3 tables. Follow-up for the next roadmap revision — integration requires thought about per-theme acceptance criteria updates + effort-across-theme rebalancing. Keeping Event 52 scope narrow to the appendix addition.
+
+**Soak safety.** Pure docs layer; single file extension. Zero `core/hooks/`, `src/episteme/`, `kernel/`, `tests/`, or mode.ts touches. Fresh 7-day soak clock (Event 38 anchor 2026-04-23T21:23:36Z) unaffected.
+
+**PR queue.** PR #12 opens. PR #2 release-please still held.
+
+**Commit (to-be):** `docs: Langfuse v3.170.0 adjacent-ecosystem appendix (Event 52)` — SHA at commit.
+
+---
+
 ## Event 51 — 2026-04-24 — Post-v1.0 branched roadmap + Hermes v2026.4.23 lessons appendix (`docs/ROADMAP_POST_V1.md`)
 
 **Scope.** One new 484-line docs artifact on feature branch `event-51-post-v1-roadmap` + PROGRESS.md entry + NEXT_STEPS pointer. Zero code / schema / hook / test touches. Pure docs; soak-safe; Event 38 soak clock preserved.
