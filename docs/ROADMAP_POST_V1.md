@@ -11,19 +11,28 @@ Drafted Event 51 (2026-04-24), extended with Langfuse analysis Event 52,
 audited + trimmed Event 53. All 6 pre-soak infrastructure CPs landed
 (Events 47-50); soak clock runs toward ~2026-04-30 close.
 
-**Event 55 (2026-04-25) — v1.1+ architectural vision drafted.** See
+**Event 55-56 (2026-04-25) — v1.1+ architectural vision drafted &
+APPROVED (first pass).** See
 [`docs/DESIGN_V1_1_REASONING_ENGINE.md`](./DESIGN_V1_1_REASONING_ENGINE.md)
 for the full synthesis of three structural epiphanies that transition
 episteme from *reactive logging/blocking* to a *proactive reasoning
-engine*: (A) **Temporal Integrity** — protocols become falsifiable
-hypotheses with explicit time-validity and operator-gated retirement;
-(B) **Causal Synthesis** — zero-LLM entity extraction over the deferred-
-discoveries stream + LLM-driven reflective-session triage + atomic
-cluster closure; (C) **Self-Consistency Convergence** — per-blueprint
-invariants, protocol-to-model promotion, auto-disconfirmation generation.
-Status `drafted (vision)`; v1.1 CP work gated on operator approval after
-v1.0 GA cut. The roadmap below is unchanged operational planning; the
-design document carries the architectural reasoning.
+engine*. Locked-in framing: **3 Cognitive Arms** (Arm A · Temporal
+Integrity, Arm B · Causal Synthesis, Arm C · Self-Consistency
+Convergence) operating on top of v1.0's three Pillars — Pillars are the
+unchanging structural foundation; Arms are the fluid active engines
+refactoring the kernel's own knowledge over time. Status flipped Event
+56: `drafted (vision)` → `approved (reframed, first pass)`. Six operator
+decisions in the first-pass approval: (1) `3 Cognitive Arms` naming
+(NOT Pillar 4-6); (2) staggered verification windows 30d/60d/90d; (3)
+Cognitive Arm C ships CP-MODEL-01 cross-protocol consistency check in
+v1.1 (vision without execution = Doxa); (4) **D11 Operator Fatigue
+Guardrails** added — sub-second approval times flag as
+`attention_bottleneck` drift signal; (5) Claude Code first per BYOS, no
+multi-adapter parity at v1.1 GA gate; (6) Zero-LLM Entity Extraction
+precision/recall named the primary technical risk for Arm B. v1.1 CP
+work begins only after v1.0 GA cut + soak gates resolve favorably. The
+roadmap below is unchanged operational planning; the design document
+carries the architectural reasoning.
 
 ---
 

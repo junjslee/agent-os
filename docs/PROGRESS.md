@@ -1279,6 +1279,61 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 57 — 2026-04-25 — `AGENTS.md` git workflow protocol — always-clean-master codified
+
+**Scope.** Pure governance/policy artifact. One additive section in `AGENTS.md` (cross-tool repo-operating contract; visible to Claude Code / Codex / opencode / Hermes adapters), this Event entry, plus `docs/NEXT_STEPS.md` Resume-here update. Zero `core/hooks/`, `core/blueprints/`, `src/episteme/`, `tests/`, `kernel/`-tier touches. Soak-safe by construction.
+
+**Why it matters.** Three Events in a row hit the same recurring git failure: `git merge --ff-only <feature-branch>` on local master fails with `Diverging branches can't be fast-forwarded`. Event 54 (PR #15 created because ff-only failed), Event 55-56 (PR #16 same pattern — and PR #16 actually merged only the Event-55 draft commit `d62f374`; the Event-56 approval commit `ac7bf7d` sat unmerged on the branch until Event 57's rebase pulled it forward), and now Event 57. The recurring problem deserves a permanent protocol.
+
+**Root cause (causal-chain).** The chkpt hook (`core/hooks/checkpoint.py`) commits to whatever branch HEAD points at — commonly `master` when the operator hasn't yet branched. Each chkpt commit silently diverges local master from origin/master. Once diverged, no fast-forward path from a feature branch to local master exists, and the operator must fall back to opening a PR every cycle. The chkpt hook's local-master-commit behavior is the load-bearing root — fixing it is post-soak work (touches `core/hooks/`).
+
+**Protocol added to `AGENTS.md` — `## Git workflow protocol — always-clean-master`.** Five-stage discipline that holds regardless of when the chkpt hook gets its root-cause fix:
+
+1. **Pre-Event** — `git fetch origin` + verify clean tree + sync local master to origin (operator-only `git reset --hard origin/master` if local has diverged, since `core/hooks/block_dangerous.py` policy blocks the agent from running it directly) + branch off origin/master directly (`git checkout -b event-NN-shortname origin/master`).
+2. **During Event** — all commits land on the feature branch; never commit directly to local master; never run `git merge` on local master.
+3. **Ship Event — pick exactly one path.** **Path A (PR-merge, default):** `git push -u origin event-NN-shortname` + `gh pr create` + GitHub UI merge with `--merge` strategy (NOT squash, NOT rebase — preserves the per-commit audit trail matching Pillar 2's append-only ethos). **Path B (local fast-forward, optimization for clean case only):** `git push` + `git checkout master` + `git pull --ff-only origin master` + `git merge --ff-only event-NN-shortname` + `git push origin master`. If Path B's pull fails, abort and switch to Path A — don't fight divergence locally.
+4. **Post-Event sync** — `git checkout master` + `git fetch origin` + operator-only `git reset --hard origin/master` + restore `/archive/` if needed + verify with `git log --oneline -5`. Optional: delete the local feature branch.
+5. **Long-term root-cause fix (deferred to v1.0.1+):** chkpt hook should commit to a dedicated `chkpt/YYYY-MM-DD` branch OR write to `~/.episteme/state/chkpt-snapshots/` (untracked) instead of committing to HEAD on master.
+
+**Failure-mode patterns documented as DO NOT USE.** Branching off local master without first syncing; `git merge --no-ff` after PR-merge already landed (creates duplicate merge commit); `git rebase` of pushed feature branches; squash-merging by default (collapses audit trail).
+
+**Branch-naming convention update.** AGENTS.md's `Commit and handoff conventions` section gains `event-NN-shortname` as the canonical branch-naming pattern for ordered Events (matches `docs/PROGRESS.md` Event numbering already in use). Non-Event branch-naming (`feat/`, `fix/`, `research/`, `ops/`, `docs/`) preserved.
+
+**Why AGENTS.md and not a new docs/ file.** Per Event 54's docs-cluster trim discipline (don't add new files to fix what an existing file can absorb), and per the kernel-tone rule that operator-instruction-tier content lives in AGENTS.md not in `docs/`. AGENTS.md is also cross-tool — Codex / opencode / Hermes adapters all read it.
+
+**Provenance side-discovery.** During this Event's investigation, the agent discovered that PR #16 merged only `d62f374` (Event 55 draft) into master, NOT `ac7bf7d` (Event 56 approval). Operator merged the PR before the second commit was pushed, leaving `ac7bf7d` orphaned on the feature branch. Event 57's branch was rebased onto `ac7bf7d` so this commit ships as part of the Event 57 PR — single PR closes BOTH the missing Event 56 approval and the new Event 57 protocol. Symptom of the same divergence-class problem this Event's protocol is designed to prevent going forward.
+
+**Files touched.** `AGENTS.md` (one new section + one branch-naming convention line), `docs/PROGRESS.md` (this Event entry), `docs/NEXT_STEPS.md` (Resume-here Event-57 line). Three docs files. Soak-invariant intact.
+
+**Soak status reminder.** v1.0.0 RC fresh 7-day soak active since 2026-04-23T21:23:36Z, target close ~2026-04-30. Day-7 grading proceeds unchanged. The chkpt-hook root-cause fix is logged as a deferred discovery for the v1.0.1 cycle; no kernel/hook code touched in this Event.
+
+---
+
+## Event 56 — 2026-04-25 — Operator approval of v1.1 spec (first pass): `drafted (vision)` → `approved (reframed, first pass)` with 3 Cognitive Arms framing + D11 Operator Fatigue Guardrails added
+
+**Scope.** Same docs-only blast radius as Event 55 — pure approval-pass artifact during active v1.0.0-rc1 soak. Zero `core/hooks/`, `core/blueprints/`, `src/episteme/`, `tests/`, `kernel/CONSTITUTION`-tier touches. Status flip + approval-record paragraph + naming-framing lock-in + D11 add + Primary Technical Risk callout + Operator review checklist marked RESOLVED with the six operator answers preserved inline. Soak invariants intact.
+
+**Why it matters.** The Event-55 vision draft proposed the v1.1 architecture; Event 56 is the operator's first-pass approval. The v1.0 spec required three reframes before approval; v1.1 lands on first pass with six load-bearing decisions that refine the proposed mechanisms without retracting any of them.
+
+**The six operator decisions, as committed to the design doc.**
+
+1. **Naming locked: `3 Cognitive Arms` (Arm A · Arm B · Arm C), NOT Pillar 4-6.** *Pillars are the unchanging structural foundation (v1.0); these new additions are the fluid, active engines operating on top of them.* Section headers in `docs/DESIGN_V1_1_REASONING_ENGINE.md` renamed accordingly; the Pillars/Arms distinction made explicit in the cognitive-arc section: Pillars stand still; Arms reach.
+2. **Verification windows: staggered (30d · 60d · 90d).** *Protocol decay is visible within 30 days, but achieving true convergence for a significant model promotion requires at least a 90-day accumulation.* Vision-draft proposal confirmed; no change to the proposed gates.
+3. **Cognitive Arm C ships one measurable v1.1 step: CP-MODEL-01 cross-protocol consistency check.** *Simply declaring a vision will turn v1.1 into nothing more than "Doxa" (hollow rhetoric). Even if we only implement a single logic — one that detects and rejects contradictions between protocols — it will fundamentally elevate the entire system.* Vision-draft proposal confirmed; CP-MODEL-01 is a v1.1 deliverable, not a v1.2 deferral.
+4. **D11 · Operator Fatigue Guardrails added** to the Goodhart-counter family (D1-D10 → D1-D11). *Since developers must manually approve Macro CPs or model promotions, there's a risk they'll blindly click 'Yes' if they're overwhelmed by notifications. We need a mechanism that triggers a warning if the approval time is unnaturally short (e.g., approving in under a second), as this signals a lack of proper review.* D11 integrated into Threat Model row #5 (operator-attention bottleneck) as the named countermeasure + into the consolidated Goodhart counters paragraph. The 1-second figure is provisional — operator-tunable at CP-MODEL-02 implementation time against observed approval-time distributions.
+5. **Cross-tool parity: Claude Code first per BYOS — NOT a v1.1 GA gate.** *The core philosophy of episteme is BYOS (Bring Your Own Skill). Proving flawless functionality must come first; we shouldn't create a bottleneck by trying to support every tool from the start.* Multi-adapter parity becomes a v1.2 milestone candidate.
+6. **Primary technical risk acknowledged: Zero-LLM Entity Extraction precision/recall** (Cognitive Arm B Step 1). *The synthesis has no logical holes. However, the biggest implementation hurdle will be just how precisely the `Zero-LLM Entity Extraction` can actually extract nodes.* Integrated as a Primary Technical Risk callout inside Cognitive Arm B Step 1, naming false-positive (cluster proposals chase noise) and false-negative (patterns get buried) failure modes; monitored closely from CP-CLUSTER-01 onward as a CP-acceptance gate.
+
+**Provenance discipline (Pillar 2 ethos).** The Operator review checklist section at the bottom of `docs/DESIGN_V1_1_REASONING_ENGINE.md` was rewritten as `Operator review checklist · RESOLVED` with the six original questions preserved verbatim and the six operator answers preserved verbatim below each. Future readers can audit *which questions were asked, what was answered, what shape the approval took* — not just *that the approval happened*. This is the same provenance pattern v1.0's `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` uses for its three reframes.
+
+**Files touched.** `docs/DESIGN_V1_1_REASONING_ENGINE.md` (status + approval record + naming pass + D11 + Primary Technical Risk callout + checklist resolved), `docs/PROGRESS.md` (this Event entry), `docs/NEXT_STEPS.md` (Resume-here), `docs/PLAN.md` (forward-pointer status update), `docs/ROADMAP_POST_V1.md` (anchor section status reflect).
+
+**Operator-specified commit message.** `docs(vision): operator approved v1.1 spec with 3 Cognitive Arms and D11 fatigue guard`. No AI-attribution trailer per universal rule. Commit lands additively on `event-55-v1-1-reasoning-engine-vision` branch (no force-push, no PR ceremony per standing instruction).
+
+**Soak status reminder.** v1.0.0 RC fresh 7-day soak active since 2026-04-23T21:23:36Z, target close ~2026-04-30. Day-7 grading at `~/.episteme/framework/`-derived counts proceeds unchanged. v1.1 CP work begins ONLY after the v1.0 GA cut completes AND the soak window's gates resolve favorably per `docs/POST_SOAK_TRIAGE.md`. This Event is the v1.1 architectural lock-in, not the v1.1 implementation kickoff.
+
+---
+
 ## Event 55 — 2026-04-25 — v1.1+ architectural vision drafted (`docs/DESIGN_V1_1_REASONING_ENGINE.md`): three structural epiphanies synthesized into the Proactive Reasoning Engine roadmap
 
 **Scope.** Pure docs/vision artifact during active v1.0.0-rc1 soak. Zero `core/hooks/`, `core/blueprints/`, `src/episteme/`, `kernel/` touches. New design document + 4 cross-reference updates. Soak-safe by construction.

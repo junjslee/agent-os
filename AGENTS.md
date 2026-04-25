@@ -145,12 +145,96 @@ High-impact decisions must record to `.episteme/reasoning-surface.json` before t
 
 ---
 
+## Git workflow protocol — always-clean-master
+
+> **Why this exists.** Every Event in this repo follows the pattern *branch off master → commit → push → merge back to master.* Three Events in a row (54 / 55-56 / 57) have hit the same recurring failure: `git merge --ff-only <feature-branch>` on local master fails with `Diverging branches can't be fast-forwarded`. Root cause: the chkpt hook (`core/hooks/checkpoint.py`) commits to whatever branch HEAD points at — commonly `master` — which silently diverges local master from origin/master. Once diverged, no fast-forward path exists, and operators fall back to manually opening a PR each time. The fix below holds whether or not the chkpt hook is later fixed at its root.
+
+**Rule.** Use this exact sequence for every Event. Deviation reproduces the divergence.
+
+### Pre-Event (before any work begins)
+
+1. `git fetch origin`
+2. Verify clean working tree: `git status` must read `nothing to commit, working tree clean`. If not — commit, stash, or revert before continuing.
+3. Sync local master to origin. Two paths depending on local state:
+   - **Local master is clean and merely behind origin** → `git checkout master && git pull --ff-only origin master`.
+   - **Local master has diverged** (chkpt commits or any local-only commits) → operator runs in their own terminal: `cp -R archive /tmp/archive-backup-pre-event` (only if `archive/` has files); `git checkout master`; `git reset --hard origin/master`; `cp -R /tmp/archive-backup-pre-event/. archive/` (restore). The agent **must not** attempt the hard-reset itself — `core/hooks/block_dangerous.py` blocks it; that block is operator policy, respected.
+4. Branch off origin/master directly (avoids any leftover local-master state):
+   ```bash
+   git checkout -b event-NN-shortname origin/master
+   ```
+5. Begin work.
+
+### During Event
+
+6. All commits land on the feature branch. **Never commit directly to local master.** All work — including small typo fixes — goes through a feature branch.
+7. **Never run `git merge` on local master.** Merging happens on origin (via PR) or via post-merge sync (step 11 below), not via local merge.
+8. Conventional-commit messages, imperative mood, scoped: `kernel: …`, `docs: …`, `feat(scope): …`, `fix(scope): …`, etc. Checkpoint commits keep prefix `chkpt:` (existing chkpt hook still uses it).
+
+### Ship Event — pick exactly one path
+
+**Path A · PR-merge (default; preferred when local master may be diverged).**
+
+```bash
+git push -u origin event-NN-shortname
+gh pr create --title "..." --body "..."     # or via GitHub UI
+# Operator merges via GitHub UI or `gh pr merge --merge` (NOT --squash, NOT --rebase)
+```
+
+The merge-commit strategy preserves the audit trail matching Pillar 2's append-only ethos. Squash collapses the audit; rebase rewrites it.
+
+**Path B · local fast-forward (only when local master is verified clean and synced).**
+
+```bash
+git push -u origin event-NN-shortname
+git checkout master
+git pull --ff-only origin master            # confirm clean ancestor
+git merge --ff-only event-NN-shortname
+git push origin master
+```
+
+If step 3 of Path B fails (any divergence) — abort Path B, switch to Path A. Don't fight the divergence locally; let GitHub handle it.
+
+### Post-Event sync (BEFORE the next Event begins)
+
+After a PR merges or a local-ff push completes:
+
+9. `git checkout master`
+10. `git fetch origin`
+11. **Operator runs in their own terminal** (block_dangerous policy): `git reset --hard origin/master`. Restore `/archive/` if needed: `cp -R /tmp/archive-backup-pre-event/. archive/`.
+12. Verify: `git log --oneline -5` shows the merge commit at HEAD. `git status` is clean.
+13. Optional: delete the local feature branch: `git branch -d event-NN-shortname`.
+
+### Why this works
+
+- **No local master commits → no divergence class.** The chkpt hook's local-master-commit behavior is sidestepped because operator never sits on master while working.
+- **Every Event starts from origin/master directly.** Step 4's `git checkout -b event-NN-shortname origin/master` makes the branch root deterministic, regardless of local-master state.
+- **PR-merge always works.** Path A doesn't depend on local-master state at all. Path B is the optimization for the clean case.
+- **Post-Event hard-reset re-mirrors local to origin.** Step 11 makes local master a known-clean copy of origin/master, ready for the next Event's step 3.
+
+### Patterns that reproduce the failure (do NOT use)
+
+- Branching off local master without first syncing — inherits any chkpt divergence.
+- `git merge --no-ff` on local master after a PR merge already landed — creates a duplicate merge commit that conflicts with origin.
+- `git rebase event-NN-shortname onto master` — rewrites already-pushed feature commits.
+- `gh pr merge --squash` — collapses the per-commit audit trail. Reserve for backport flows; not the default.
+
+### Long-term root-cause fix (deferred)
+
+The recurring divergence comes from `core/hooks/checkpoint.py` committing to local HEAD. Real fix options for v1.0.1+:
+
+- Have the chkpt hook commit to a dedicated `chkpt/YYYY-MM-DD` branch instead of HEAD, OR
+- Have it write to `~/.episteme/state/chkpt-snapshots/` (untracked) instead of git-committing.
+
+Either kills the divergence class entirely. Soak-incompatible right now (touches `core/hooks/`); logged as deferred-discovery for the v1.0.1 cycle. The protocol above holds regardless of when the hook fix lands.
+
+---
+
 ## Commit and handoff conventions
 
 - Commit messages: imperative mood, scoped (`kernel: …`, `docs: …`, `adapters: …`). Checkpoint commits use prefix `chkpt:`.
 - Every substantive change updates `docs/PROGRESS.md` with a Reasoning Surface block.
 - Every session ends by updating `docs/NEXT_STEPS.md` with a one-sentence "So-What Now?".
-- Branch naming: `feat/<name>`, `fix/<name>`, `research/<name>`, `ops/<name>`, `docs/<name>`.
+- Branch naming: `event-NN-shortname` for ordered Events (matches `docs/PROGRESS.md` Event numbering); `feat/<name>`, `fix/<name>`, `research/<name>`, `ops/<name>`, `docs/<name>` for non-Event work.
 
 ---
 

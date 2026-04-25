@@ -1,8 +1,17 @@
 # Design — v1.1+ · From Reliability Engineering to Epistemology · The Proactive Reasoning Engine
 
-Status: **drafted (vision)** · Drafted 2026-04-25 (Event 55) · Awaiting operator review · Scope: post-v1.0-GA architectural vision — extends `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` without retracting any of its load-bearing decisions.
+Status: **approved (reframed, first pass)** · Drafted 2026-04-25 (Event 55) · Approved 2026-04-25 (Event 56) · Scope: post-v1.0-GA architectural vision — extends `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md` without retracting any of its load-bearing decisions.
 
-> **This is a vision draft, not an approved spec.** The v1.0 RC spec required three reframes before it landed as `approved (reframed, third pass)`. v1.1 will require at least one operator review before any CP under it begins. The proposed CP plan in §10 is provisional. No code lands against this document until the status flips to `approved`.
+> **Approval record (first pass · 2026-04-25 · Event 56).** Operator reviewed the Event-55 vision draft and resolved the six review-checklist questions (the answers are preserved inline at the §Operator review checklist section below — Pillar 2 ethos: nothing changes silently, every decision recorded). Six load-bearing decisions in this approval pass:
+>
+> 1. **Naming locked to `3 Cognitive Arms` (Arm A · Arm B · Arm C).** NOT `Pillar 4-6`. Pillars 1-3 are v1.0's *unchanging structural foundation*; the v1.1 additions are *fluid active engines* operating on top. The distinction is load-bearing — Pillars do not move; Arms refactor the system's own knowledge over time.
+> 2. **Verification windows stay staggered (30d · 60d · 90d).** Cognitive Arm A's protocol decay is observable within a 30-day window; Cognitive Arm B's cluster proposals need a 60-day window to surface real patterns; Cognitive Arm C's protocol-to-model promotion requires at least 90 days of accumulation for a defensible convergence signal.
+> 3. **Cognitive Arm C ships at least one measurable v1.1 step (CP-MODEL-01).** A vision without execution becomes Doxa. The cross-protocol consistency check — detect-and-reject silent contradictions between protocols at synthesis time — is the minimum-viable v1.1 deliverable for Arm C and fundamentally elevates the whole framework even if no further Arm-C work ships in v1.1.
+> 4. **D11 · Operator Fatigue Guardrails added** to the Goodhart-counter family. Approval times for Macro CPs and model promotions are measured; unnaturally short approval times (e.g., approval in < 1 second after the prompt surfaces) flag the event as `attention_bottleneck` drift signal in the Phase 12 audit. Counters compliance theater (operator clicking *Yes* on autopilot when overwhelmed) without forcing the operator to slow down arbitrarily.
+> 5. **Claude Code first per BYOS.** Multi-adapter parity is NOT a v1.1 GA gate. Proving the new mechanisms flawlessly on one adapter is the priority; chasing Codex / opencode / Hermes parity at v1.1 GA would create a multi-fronted bottleneck that the BYOS philosophy explicitly rejects. Adapter parity becomes a v1.2 milestone candidate.
+> 6. **Primary technical risk acknowledged: Zero-LLM Entity Extraction precision/recall** (Cognitive Arm B Step 1). The deterministic graph-builder is the load-bearing entry point for the entire reflective-session pipeline. False-positive entity matches inflate cluster proposals; false-negative misses bury patterns the kernel was supposed to surface. Monitored closely from CP-CLUSTER-01 onward.
+>
+> The v1.1 spec status flips from `drafted (vision)` to `approved (reframed, first pass)`. v1.1 CP work begins only after the **v1.0 GA cut completes** AND the soak window's gates resolve favorably (per `docs/POST_SOAK_TRIAGE.md`). Any later change that relaxes a load-bearing v1.1 decision — the 3-Cognitive-Arms framing, the staggered verification windows, the CP-MODEL-01 commitment, the D11 counter, the BYOS-first parity stance — is a governance change, not an implementation tweak. Subsequent operator review passes (if v1.1 CP execution surfaces issues) become `(reframed, second pass)` etc.
 
 ---
 
@@ -46,13 +55,13 @@ Five sub-questions this spec must answer:
 |---|---|---|---|
 | **v0.x** | *Detect named failure modes.* | Lazy-token blocklist; ≥ 15-char minimums; normalized-command scanning; structural validation against a fixed schema. | Reactive — the kernel knows what *vapor* looks like and refuses it. |
 | **v1.0 RC** | *Force causal-consequence modeling.* | Pillar 1 Cognitive Blueprints (A · B · C · D + generic fallback) + Pillar 2 hash-chained streams + Pillar 3 framework synthesis & active-guidance loop. | The agent's per-action reasoning becomes tamper-evidently structured. The kernel surfaces context-fit protocols from prior decisions at the next matching op. |
-| **v1.1+** | *Refactor the kernel's own knowledge.* | Three new cognitive arms operating on the kernel's own artifacts (protocols, discoveries, models): Temporal Integrity, Causal Synthesis, Self-Consistency Convergence. | Records gain the same discipline they used to merely *record*. The framework can falsify itself; clusters can resolve atomically; protocols can promote to models that derive disconfirmations structurally. |
+| **v1.1+** | *Refactor the kernel's own knowledge.* | **3 Cognitive Arms** operating on the kernel's own artifacts (protocols, discoveries, models): **Arm A · Temporal Integrity**, **Arm B · Causal Synthesis**, **Arm C · Self-Consistency Convergence**. | Records gain the same discipline they used to merely *record*. The framework can falsify itself; clusters can resolve atomically; protocols can promote to models that derive disconfirmations structurally. |
 
-The v1.0 pillars remain load-bearing and unchanged. v1.1 adds three arms that reach above them — pulling the kernel's posture from *per-action discipline* toward *per-system self-maintenance*.
+**The Pillars / Cognitive Arms distinction (load-bearing).** Pillars 1-3 (v1.0) are the **unchanging structural foundation** — Cognitive Blueprints, the Append-Only Hash Chain, Framework Synthesis & Active Guidance. They do not move. The 3 Cognitive Arms (v1.1) are **fluid active engines operating on top of them** — they refactor the kernel's own knowledge over time, but only against the substrate the Pillars provide. Pillars stand still; Arms reach. v1.1 adds three Arms; v1.0's three Pillars carry forward unchanged.
 
 ---
 
-## v1.1 cognitive arm A · Temporal Integrity (Protocol Decay)
+## Cognitive Arm A · Temporal Integrity (Protocol Decay)
 
 > *Pillar 3 protocols are written-once, read-forever. They reflect a past truth. The kernel needs to falsify its own past beliefs.*
 
@@ -94,7 +103,7 @@ Temporal Integrity ships when, after a 30-day window with the v1.1 mechanism liv
 
 ---
 
-## v1.1 cognitive arm B · Causal Synthesis (Causal Clustering & Macro-CP Closure)
+## Cognitive Arm B · Causal Synthesis (Causal Clustering & Macro-CP Closure)
 
 > *Deferred discoveries pile up faster than humans can read. The kernel should let the operator see patterns at a glance — and resolve clusters atomically.*
 
@@ -118,6 +127,8 @@ A new background worker (proposed location `tools/discovery_graph.py`, scheduled
 A directed graph is built: nodes are entities; edges are co-occurrence in the same deferred-discovery entry; weight is co-occurrence frequency over a sliding window. The graph is persisted as a derived chain stream (proposed name to be specced — same `cp7-chained-v1` envelope so Pillar 2 invariants are preserved).
 
 Hot-path budget: extraction is regex + dictionary lookup, no LLM. Per-entry cost is bounded by entity-vocabulary size; the workers run nightly, not in PreToolUse. Layer-3-grounding discipline applies — every claimed entity must grep against the project tree.
+
+> **Primary technical risk (operator-named at first-pass approval).** The precision and recall of this Zero-LLM Entity Extraction layer is the load-bearing technical hurdle for the entire Cognitive Arm B pipeline. False-positive entity matches inflate cluster proposals (the reflective-session subcommand chases noise patterns; operator burns review attention on phantom clusters). False-negative misses bury the patterns the kernel was supposed to surface (1000 deferred entries pile up; the cluster the operator needed to see never gets proposed). The v1.0 PHASE_12_LEXICON-style bounded-lexicon discipline carries forward — start narrow, grow deliberately, version-stamp every lexicon change. Monitored closely from CP-CLUSTER-01 onward as a named CP-acceptance gate; abnormally low cluster-proposal acceptance rate at operator review surfaces the Arm's precision/recall as a Phase 12 audit signal in its own right.
 
 **Step 2 — Reflective Session (LLM-driven, operator-gated).**
 
@@ -150,7 +161,7 @@ Causal Synthesis ships when, after a 60-day window: ≥ 3 Macro CPs have been pr
 
 ---
 
-## v1.1 cognitive arm C · Self-Consistency Convergence
+## Cognitive Arm C · Self-Consistency Convergence
 
 > *The endgame is structural self-consistency. The chain becomes evidence of, not basis for, correctness. The kernel ceases to be a "governance logging system" and becomes a true "Reasoning Engine."*
 
@@ -231,14 +242,14 @@ The full asymptote is *not* a v1.1 deliverable. v1.1 ships *one measurable step 
 
 | # | Threat | Surface | Counter |
 |---|---|---|---|
-| 1 | **Protocol churn erodes framework trust.** Aggressive decay marks too many protocols dead, the active-guidance loop goes silent, the agent regresses to v1.0 default behavior. | Cognitive arm A. | Decay rate is a Phase 12 audit signal (D5). Abnormal churn surfaces as drift, not silently. Operator can re-tune the decay threshold per blueprint. |
-| 2 | **False clusters waste operator attention.** The discovery graph over-fits on noise; the reflective session generates Macro CPs that are pattern-match without architectural substance. | Cognitive arm B. | Cluster threshold is auditable (D6). Per-entry independent verification on closure (D7) — a wrong macro hypothesis closes N but only verifies M < N, surfacing failure. |
-| 3 | **Model ossification turns axioms unfalsifiable.** A promoted model becomes a fence whose original purpose drifts; new evidence is rejected because it contradicts the model rather than the model being decayed by the new evidence. | Cognitive arm C. | Models inherit decay (D9). The same time-validity contract applies. Sufficient contradicting evidence demotes the model. |
-| 4 | **Endgame Goodhart — agents game the convergence asymptote.** A sufficiently-aware agent emits protocols that *look* consistent with each other (sharing surface vocabulary) but encode nothing falsifiable, producing a fast-promoted model that locks in vapor. | Cognitive arm C. | Model promotion requires N protocols across DIFFERENT contexts (D8). Same-window same-operator same-project clusters do not promote. Multi-signature convergence at the meta-level. |
-| 5 | **Operator-attention bottleneck.** v1.1's mechanisms generate operator-gate events (decay re-elicitations, cluster Macro CPs, model promotions, auto-disconfirmation overrides). At scale, the operator cannot keep up; gates rubber-stamp; D3 quietly fails. | All three arms. | Operator-attention budget is itself a Phase 12 axis. Abnormally fast gate-clearance times (operator clearing 10 gates / minute) surface as `attention_bottleneck` drift. The kernel watches for the operator's own discipline decaying. |
+| 1 | **Protocol churn erodes framework trust.** Aggressive decay marks too many protocols dead, the active-guidance loop goes silent, the agent regresses to v1.0 default behavior. | Cognitive Arm A. | Decay rate is a Phase 12 audit signal (D5). Abnormal churn surfaces as drift, not silently. Operator can re-tune the decay threshold per blueprint. |
+| 2 | **False clusters waste operator attention.** The discovery graph over-fits on noise; the reflective session generates Macro CPs that are pattern-match without architectural substance. | Cognitive Arm B. | Cluster threshold is auditable (D6). Per-entry independent verification on closure (D7) — a wrong macro hypothesis closes N but only verifies M < N, surfacing failure. |
+| 3 | **Model ossification turns axioms unfalsifiable.** A promoted model becomes a fence whose original purpose drifts; new evidence is rejected because it contradicts the model rather than the model being decayed by the new evidence. | Cognitive Arm C. | Models inherit decay (D9). The same time-validity contract applies. Sufficient contradicting evidence demotes the model. |
+| 4 | **Endgame Goodhart — agents game the convergence asymptote.** A sufficiently-aware agent emits protocols that *look* consistent with each other (sharing surface vocabulary) but encode nothing falsifiable, producing a fast-promoted model that locks in vapor. | Cognitive Arm C. | Model promotion requires N protocols across DIFFERENT contexts (D8). Same-window same-operator same-project clusters do not promote. Multi-signature convergence at the meta-level. |
+| 5 | **Operator-attention bottleneck.** v1.1's mechanisms generate operator-gate events (decay re-elicitations, cluster Macro CPs, model promotions, auto-disconfirmation overrides). At scale, the operator cannot keep up; gates rubber-stamp; D3 quietly fails. | All three Arms. | **D11 · Operator Fatigue Guardrails.** Approval times for Macro CPs and model promotions are measured. Unnaturally short approval times (e.g., approval in < 1 second after the prompt surfaces) flag the event as `attention_bottleneck` drift signal in the Phase 12 audit. The 1-second figure is provisional — operator-tunable at CP implementation time against observed approval-time distributions. Counters compliance theater (operator clicking *Yes* on autopilot when overwhelmed) without forcing the operator to slow down arbitrarily. Operator-attention budget remains a Phase 12 axis as the over-arching signal; D11 is the specific countermeasure that makes the signal load-bearing. |
 | 6 | **Cross-tool drift.** v1.1 mechanisms ship in the Claude Code adapter first; Codex / opencode / Hermes adapters lag. An operator using multiple adapters sees inconsistent kernel behavior. | All three arms; cross-cutting. | Adapter-parity is a v1.1 GA gate (named in `docs/POST_SOAK_TRIAGE.md` discipline). Adapter-specific gaps are documented-as-deferred at each landing. |
 
-The four prior load-bearing v1.0 countermeasures (D1 multi-signature convergence, D2 retrospective-only computation, D3 re-elicitation never auto-edit, D4 named-limit honesty) carry forward into v1.1 unchanged. The v1.1 additions (D5 decay rate as audit signal, D6 cluster threshold auditable, D7 per-entry verification on closure, D8 promotion requires diverse contexts, D9 models inherit decay, D10 auto-disconfirmation overridable) extend the family.
+The four prior load-bearing v1.0 countermeasures (D1 multi-signature convergence, D2 retrospective-only computation, D3 re-elicitation never auto-edit, D4 named-limit honesty) carry forward into v1.1 unchanged. The v1.1 additions (D5 decay rate as audit signal, D6 cluster threshold auditable, D7 per-entry verification on closure, D8 promotion requires diverse contexts, D9 models inherit decay, D10 auto-disconfirmation overridable, **D11 operator fatigue guardrails — sub-threshold approval-time flagging**) extend the family.
 
 ---
 
@@ -248,7 +259,7 @@ These are explicit non-goals — naming them prevents scope creep and silent-imp
 
 1. **No auto-merge of Macro CPs without operator gate.** D3 re-elicitation discipline is non-negotiable. The kernel proposes; the operator disposes. v1.1 does not relax this.
 2. **No removal of the hash chain.** The chain is evidence-of correctness in the asymptote, but it never goes away. A future where the chain is "unnecessary" is a future where the chain is *redundant with structural deduction*, not a future where it has been deleted. v1.1 does not propose deletion at any stage.
-3. **No LLM in the hot-path entity extraction.** The < 100 ms hot-path budget holds. Cognitive arm B's Step 1 is regex + dictionary lookup. The LLM enters at Step 2 in the reflective layer, off the hot path.
+3. **No LLM in the hot-path entity extraction.** The < 100 ms hot-path budget holds. Cognitive Arm B's Step 1 is regex + dictionary lookup. The LLM enters at Step 2 in the reflective layer, off the hot path.
 4. **No retraction of v1.0 commitments.** Pillars 1-3, the four named blueprints, the generic max-rigor fallback, the BYOS stance, the < 100 ms hot-path ceiling, the 10% → 5% sample-rate schedule — all carry forward unchanged. v1.1 extends; v1.1 does not contradict.
 5. **No replacement of the operator profile or cognitive profile schemas.** Phase 12's profile-audit loop continues operating at v1.1; new audit signals (decay rate, cluster threshold, model promotion rate, attention bottleneck) are *additive axes*, not a re-architecture of the schema.
 6. **No automatic profile-axis mutation.** Phase 12's D3 — the loop writes a *prompt* for the operator, never a profile mutation — applies at v1.1 unchanged. New v1.1 audit signals follow the same discipline.
@@ -260,19 +271,19 @@ These are explicit non-goals — naming them prevents scope creep and silent-imp
 
 > **Status: vision-draft proposal.** No CP under this plan begins until the v1.1 spec status flips from `drafted (vision)` to `approved`. The CP names below namespace the v1.1 work to avoid colliding with v1.0 / v1.0.1 CP identifiers.
 
-### Cognitive arm A · Temporal Integrity (proposed CPs)
+### Cognitive Arm A · Temporal Integrity (proposed CPs)
 
 1. **CP-DECAY-01** — Validity-block schema additions to the existing protocol envelope; new audit subcommand under `episteme evolve` that compares protocols against episodic records over a 30-day window; supersession-write flow on operator-confirmed retirement.
 2. **CP-DECAY-02** — Falsification-condition validation gate at synthesis time. A blueprint's synthesis arm cannot emit a protocol with a missing or fluent-vacuous falsification condition. Carries forward v1.0's anti-vapor invariant to the protocol-level.
 3. **CP-DECAY-03** — Phase 12 audit gains the decay-rate axis. Abnormal churn surfaces as `protocol_churn` drift signal in the audit report.
 
-### Cognitive arm B · Causal Synthesis (proposed CPs)
+### Cognitive Arm B · Causal Synthesis (proposed CPs)
 
 4. **CP-CLUSTER-01** — `tools/discovery_graph.py` background worker (or whatever the operator names it at first review): zero-LLM entity extraction + graph builder; persists to a derived chain stream under the existing `~/.episteme/framework/` path tree.
 5. **CP-CLUSTER-02** — New reflective-session subcommand under `episteme evolve`: cluster identification, LLM prompt composition, Macro CP draft to a holding area for operator review.
 6. **CP-CLUSTER-03** — Closure protocol: single chain entry per cluster resolution; per-entry annotation pointing back at the closure entry; per-entry independent verification that surfaces wrong-macro-hypothesis as M < N closures-with-evidence.
 
-### Cognitive arm C · Self-Consistency Convergence (proposed CPs)
+### Cognitive Arm C · Self-Consistency Convergence (proposed CPs)
 
 7. **CP-MODEL-01** — Per-blueprint invariant declarations (one section per named blueprint); cross-protocol consistency check at synthesis time; refuse-and-surface flow on contradiction.
 8. **CP-MODEL-02** — Protocol-to-model promotion: detection of N converging protocols across M contexts; operator-gated promotion to a new `models` chain stream.
@@ -339,7 +350,7 @@ This document **does not** retract anything in `docs/COGNITIVE_SYSTEM_PLAYBOOK.m
 - `docs/COGNITIVE_SYSTEM_PLAYBOOK.md` — practical cognitive + workflow operating protocol; load-bearing prose anchor for the kernel's posture.
 - `docs/POST_SOAK_TRIAGE.md` — Day-7 gate-grading rubric and form-filling discriminator; v1.1 gates extend the same discipline.
 - `kernel/CONSTITUTION.md` — root claim, four principles, eleven failure modes (9 v0.x + 2 v1.0 RC additions).
-- `kernel/FAILURE_MODES.md` — named failure modes; mode 10 (`framework-as-Doxa`) is the named risk that motivates Cognitive arm A.
+- `kernel/FAILURE_MODES.md` — named failure modes; mode 10 (`framework-as-Doxa`) is the named risk that motivates Cognitive Arm A.
 - `kernel/REASONING_SURFACE.md` — v0.x → v1.0 surface protocol; the schema v1.1 protocol-validity block extends.
 - `kernel/MEMORY_ARCHITECTURE.md` — five memory tiers; v1.1's Causal Synthesis arm operates at the procedural-tier boundary.
 - `kernel/PHASE_12_LEXICON.md` — bounded lexicon discipline; v1.1 Causal Synthesis Step 1 uses the same FP-averse pattern.
@@ -347,15 +358,21 @@ This document **does not** retract anything in `docs/COGNITIVE_SYSTEM_PLAYBOOK.m
 
 ---
 
-## Operator review checklist
+## Operator review checklist · RESOLVED (first-pass approval · 2026-04-25)
 
-Before flipping status from `drafted (vision)` to `approved`, the operator should answer:
+The six review questions and the operator's verbatim answers are preserved here as the approval-pass record. Pillar 2 ethos: nothing changes silently; every decision recorded.
 
-1. Does the **Pillar 4-6** naming continuation (Temporal Integrity · Causal Synthesis · Self-Consistency Convergence) match the operator's mental model, or is a different framing (cognitive arm / extension axis / discipline / layer) preferred?
-2. Are the proposed v1.1 verification windows (30d / 60d / 90d) calibrated for the v1.1 cycle, or should they mirror the v1.0 90-day post-soak window across all arms?
-3. Is **Cognitive arm C** ready to ship one measurable v1.1 step (CP-MODEL-01 cross-protocol consistency check), or should arm C stay as a documented direction-statement deferred to v1.2?
-4. Are the proposed Goodhart counters D5-D10 sufficient, or does any v1.1 mechanism need an additional countermeasure?
-5. Is the cross-tool parity assumption (Claude Code first, others follow) acceptable for v1.1, or should multi-adapter parity be a v1.1 GA gate?
-6. Is anything missing? — a fourth structural epiphany the operator has surfaced since this draft was written, or an inter-epiphany consistency hole this synthesis has not seen.
+1. **Q: Naming framing — `Pillar 4-6` continuation vs. a different framing (cognitive arm / extension axis / discipline / layer)?**
+   - **A:** Use **`3 Cognitive Arms`** (Arm A · Arm B · Arm C). Not Pillar 4-6. *Pillars are the unchanging structural foundation (v1.0); these new additions are the fluid, active engines operating on top of them.*
+2. **Q: Verification windows — staggered 30d / 60d / 90d, or mirror v1.0's 90-day window across all arms?**
+   - **A:** Keep the **staggered application (30d / 60d / 90d)**. *Protocol decay is visible within 30 days, but achieving true convergence for a significant model promotion requires at least a 90-day accumulation.*
+3. **Q: Cognitive Arm C — ship one measurable v1.1 step (CP-MODEL-01) or defer to v1.2 as direction-statement only?**
+   - **A:** **Ship at least one measurable step (CP-MODEL-01)** in v1.1. *Simply declaring a vision will turn v1.1 into nothing more than "Doxa" (hollow rhetoric). Even if we only implement a single logic — one that detects and rejects contradictions between protocols — it will fundamentally elevate the entire system.*
+4. **Q: Goodhart counters D5-D10 — sufficient, or any v1.1 mechanism needs an additional countermeasure?**
+   - **A:** Add **D11 · Operator Fatigue Guardrails**. *Since developers must manually approve Macro CPs or model promotions, there's a risk they'll blindly click 'Yes' if they're overwhelmed by notifications. We need a mechanism that triggers a warning if the approval time is unnaturally short (e.g., approving in under a second), as this signals a lack of proper review.* (Integrated into Threat Model row #5 + Goodhart counters paragraph.)
+5. **Q: Cross-tool parity (Claude Code first vs. multi-adapter at v1.1 GA)?**
+   - **A:** **Claude Code first.** *The core philosophy of episteme is BYOS (Bring Your Own Skill). Proving flawless functionality must come first; we shouldn't create a bottleneck by trying to support every tool from the start.*
+6. **Q: Anything missing — fourth epiphany, or inter-epiphany consistency hole?**
+   - **A:** *The synthesis has no logical holes. However, the biggest implementation hurdle will be just how precisely the `Zero-LLM Entity Extraction` can actually extract nodes.* (Integrated as a Primary Technical Risk callout inside Cognitive Arm B Step 1.)
 
-Once answered, the spec status flips to `approved (reframed, first pass)` or further reframes are requested. v1.1 CP work begins after approval, post-v1.0-GA cut.
+**Status flipped:** `drafted (vision)` → `approved (reframed, first pass)`. v1.1 CP work begins only after the v1.0 GA cut completes AND the soak window's gates resolve favorably (per `docs/POST_SOAK_TRIAGE.md`). Subsequent operator review passes (if v1.1 CP execution surfaces issues during implementation) become `(reframed, second pass)`, etc.
