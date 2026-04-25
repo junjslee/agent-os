@@ -11,6 +11,20 @@ Drafted Event 51 (2026-04-24), extended with Langfuse analysis Event 52,
 audited + trimmed Event 53. All 6 pre-soak infrastructure CPs landed
 (Events 47-50); soak clock runs toward ~2026-04-30 close.
 
+**Event 55 (2026-04-25) — v1.1+ architectural vision drafted.** See
+[`docs/DESIGN_V1_1_REASONING_ENGINE.md`](./DESIGN_V1_1_REASONING_ENGINE.md)
+for the full synthesis of three structural epiphanies that transition
+episteme from *reactive logging/blocking* to a *proactive reasoning
+engine*: (A) **Temporal Integrity** — protocols become falsifiable
+hypotheses with explicit time-validity and operator-gated retirement;
+(B) **Causal Synthesis** — zero-LLM entity extraction over the deferred-
+discoveries stream + LLM-driven reflective-session triage + atomic
+cluster closure; (C) **Self-Consistency Convergence** — per-blueprint
+invariants, protocol-to-model promotion, auto-disconfirmation generation.
+Status `drafted (vision)`; v1.1 CP work gated on operator approval after
+v1.0 GA cut. The roadmap below is unchanged operational planning; the
+design document carries the architectural reasoning.
+
 ---
 
 ## 0. Governing intent — the anchor everything traces back to

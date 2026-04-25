@@ -1279,6 +1279,43 @@ Phase A scope is narrow-by-design and entirely advisory: surface `preferred_lens
 
 ---
 
+## Event 55 — 2026-04-25 — v1.1+ architectural vision drafted (`docs/DESIGN_V1_1_REASONING_ENGINE.md`): three structural epiphanies synthesized into the Proactive Reasoning Engine roadmap
+
+**Scope.** Pure docs/vision artifact during active v1.0.0-rc1 soak. Zero `core/hooks/`, `core/blueprints/`, `src/episteme/`, `kernel/` touches. New design document + 4 cross-reference updates. Soak-safe by construction.
+
+**Why it matters.** Operator surfaced three structural epiphanies that mark the post-v1.0 cognitive arc — the transition from a *reactive logging/blocking system* to a *proactive reasoning engine*. The kernel made *the agent's per-action reasoning* tamper-evidently structured at v1.0; v1.1 extends the same discipline to *the kernel's own knowledge artifacts* (protocols, discoveries, models). Every load-bearing v1.0 commitment carries forward unchanged.
+
+**The three epiphanies, synthesized.**
+
+1. **Temporal Integrity (Protocol Decay).** Pillar 3 protocols are written-once, read-forever. A protocol synthesized in 2026-04 may be invalid by 2026-08 because the underlying dependency or convention shifted. v1.0 has no falsification path for its own past beliefs — the named failure mode `framework-as-Doxa` (mode 10 in `kernel/FAILURE_MODES.md`). v1.1 adds a validity block to the protocol envelope (synthesis timestamp + falsification condition + optional re-elicit window + supersession reference), an audit subcommand under the existing `episteme evolve` family that compares protocol predictions against recent episodic record, and an active-guidance loop that excludes decayed protocols from advisory output. Decay verdicts surface re-elicitation prompts to the operator (D3 carries forward — never auto-mutate the framework).
+
+2. **Causal Synthesis (Causal Clustering & Macro-CP Closure).** `~/.episteme/framework/deferred_discoveries.jsonl` grows unbounded; the operator burden of reading 1000 entries to find 15 that share a root cause is a candidate for kernel-side reduction without delegating the reasoning. Three-step pipeline: (i) zero-LLM entity extraction + nightly graph builder over the deferred-discoveries stream, persisting to a derived chain stream under the existing framework path; (ii) LLM-driven reflective-session subcommand under `episteme evolve` that clusters entries and proposes a Macro Change Proposal to a holding area for operator review; (iii) closure protocol — a single chain entry per cluster references the resolving commit, each member entry hash-chained with closure annotation, per-entry independent verification surfaces wrong-macro-hypothesis as M < N closures-with-evidence. LLM enters at the reflective layer only — the < 100 ms hot-path budget holds.
+
+3. **Self-Consistency Convergence (the asymptote).** Every v1.0 mechanism is *reactive in the limit* — *"if it breaks, detect and stop"*. The endgame: structural self-consistency where new protocols cannot silently contradict existing ones, models can be promoted from converging-protocol clusters, and disconfirmation conditions can be auto-derived from causal models. Three concrete v1.1 sub-deliverables move one measurable step toward the asymptote: (a) per-blueprint invariant declarations + cross-protocol consistency check at synthesis time; (b) protocol-to-model promotion when N protocols converge across M different contexts (D8 multi-signature pattern at the meta-level); (c) auto-disconfirmation generation from models, operator-overridable, override events chained as quality signal. The asymptote is direction, not deliverable — v1.1 ships *one step toward* it.
+
+**Naming framing.** Three new cognitive arms — Temporal Integrity · Causal Synthesis · Self-Consistency Convergence — extending v1.0's Pillars 1-3. The Pillar 4-6 numerical continuation is operator-reviewable at first review pass; alternative framings (cognitive arm / extension axis / discipline / layer) named in the design doc's operator-review checklist.
+
+**Threat model.** Six threats named (1-6 in design doc §Threat model): protocol churn, false clusters, model ossification, endgame Goodhart, operator-attention bottleneck, cross-tool drift. Six new countermeasures (D5-D10) extend v1.0's four (D1-D4): D5 decay rate as Phase 12 axis; D6 cluster threshold auditable; D7 per-entry verification on closure; D8 model promotion requires diverse contexts; D9 models inherit decay; D10 auto-disconfirmation overridable. All v1.0 countermeasures carry forward unchanged.
+
+**Proposed CP plan (PROVISIONAL — not yet approved).** Nine CPs across three series:
+- **CP-DECAY-01/02/03** — validity block schema + audit subcommand + Phase 12 decay-rate axis.
+- **CP-CLUSTER-01/02/03** — discovery-graph background worker + reflective-session subcommand + closure protocol with per-entry verification.
+- **CP-MODEL-01/02/03** — per-blueprint invariants + protocol-to-model promotion + auto-disconfirmation generation.
+
+Sequencing: CP-DECAY-01 is prerequisite for CP-MODEL series (models inherit decay). CP-CLUSTER series ships independently. Estimated calendar: 3-5 weeks per arm post-approval; total v1.1 delivery window ~3 months from approval, sequenced after operator approves the v1.1 spec post-soak.
+
+**Verification gates.** Per arm: A · 30-day window post-CP-DECAY-03 (≥ 1 valid decay confirmed); B · 60-day window post-CP-CLUSTER-03 (≥ 3 Macro CPs proposed, ≥ 1 accepted, accepted CP closes ≥ 5 entries at ≥ 80% per-entry verification rate); C · 90-day window post-CP-MODEL-03 (≥ 1 cross-protocol consistency check fires, ≥ 1 protocol-to-model promotion proposed). Failure of any gate triggers operator review, not silent re-tuning.
+
+**Out of scope / declared non-goals.** Seven non-goals named to prevent scope creep: no auto-merge of Macro CPs, no removal of the hash chain, no LLM in hot-path entity extraction, no retraction of v1.0 commitments, no replacement of profile schemas, no automatic profile-axis mutation, no promise that the convergence asymptote is reached in v1.1.
+
+**Files touched.** New: `docs/DESIGN_V1_1_REASONING_ENGINE.md`. Updated: `docs/ROADMAP_POST_V1.md` (Event-55 anchor section + link), `docs/NEXT_STEPS.md` (Resume-here update), `docs/PLAN.md` (forward-pointer line), this Event entry. No code, no schema, no kernel, no test changes — soak-invariant intact.
+
+**Operator gate.** Status of `docs/DESIGN_V1_1_REASONING_ENGINE.md` is `drafted (vision)` — explicitly NOT `approved`. The document carries an *Operator review checklist* (six numbered questions) that gates the status flip. v1.1 CP work begins only after the spec status is `approved` AND v1.0 GA cut completes. This Event documents the vision; it does not authorize any v1.1 implementation.
+
+**Soak invariants.** No edits to `core/hooks/`, `core/blueprints/`, `src/episteme/`, `tests/`, or `kernel/CONSTITUTION`-tier files. 565/565 test suite untouched. Episodic + protocols + audit streams continue firing. Day-7 grading at ~2026-04-30 21:23:36Z proceeds unchanged.
+
+---
+
 ## Event 54 — 2026-04-25 — First-external-user response (issue #14) + onboarding doc gap closed (`INSTALL.md §4`) + `docs/` consolidation pass
 
 **Scope.** Two-axis Event responding to GitHub issue #14 (cheuk-cheng — *"how to set up episteme to utilize its functions when working on a local git repository"*), the project's first external-user issue. Pure docs / workflow / index changes; zero `core/hooks/`, `src/`, or `tests/` touches; soak-safe (565/565 invariants intact).
