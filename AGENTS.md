@@ -155,8 +155,13 @@ High-impact decisions must record to `.episteme/reasoning-surface.json` before t
 
 1. `git fetch origin`
 2. Verify clean working tree: `git status` must read `nothing to commit, working tree clean`. If not — commit, stash, or revert before continuing.
-3. Sync local master to origin. Two paths depending on local state:
-   - **Local master is clean and merely behind origin** → `git checkout master && git pull --ff-only origin master`.
+3. Sync local master to origin. Order is load-bearing — `git checkout master` MUST happen BEFORE `git pull` (see Footgun A in `### Common footguns` below). Two paths depending on local state:
+   - **Local master is clean and merely behind origin** →
+     ```bash
+     git checkout master                  # FIRST — switch off any feature branch
+     git pull --ff-only origin master     # THEN — fast-forward master cleanly
+     ```
+     Doing these as one chained `&&` is fine, but the order matters: pull operates on the currently-checked-out branch. Running `pull` while still on a feature branch advances the FEATURE BRANCH past its remote-tracking ref and triggers Footgun A later.
    - **Local master has diverged** (chkpt commits or any local-only commits) → operator runs in their own terminal: `cp -R archive /tmp/archive-backup-pre-event` (only if `archive/` has files); `git checkout master`; `git reset --hard origin/master`; `cp -R /tmp/archive-backup-pre-event/. archive/` (restore). The agent **must not** attempt the hard-reset itself — `core/hooks/block_dangerous.py` blocks it; that block is operator policy, respected.
 4. Branch off origin/master directly (avoids any leftover local-master state):
    ```bash
@@ -182,7 +187,7 @@ gh pr create --title "..." --body "..."     # or via GitHub UI
 
 The merge-commit strategy preserves the audit trail matching Pillar 2's append-only ethos. Squash collapses the audit; rebase rewrites it.
 
-**Path B · local fast-forward (only when local master is verified clean and synced).**
+**Path B · local fast-forward (only when local master is verified clean and synced AND origin permits direct push to master).**
 
 ```bash
 git push -u origin event-NN-shortname
@@ -194,6 +199,8 @@ git push origin master
 
 If step 3 of Path B fails (any divergence) — abort Path B, switch to Path A. Don't fight the divergence locally; let GitHub handle it.
 
+**Path B caveat — branch protection.** Path B requires origin to permit direct push to master. When master branch protection is enforced (e.g., a `Require a pull request before merging` rule, recommended for any episteme deployment), `git push origin master` returns `GH006: Protected branch update failed for refs/heads/master. Changes must be made through a pull request.` and Path B is impossible. **On `junjslee/episteme`: branch protection IS enforced — Path A only.** Verify protection state on a fresh repo with `gh repo view --json branchProtectionRules,defaultBranchRef`. If branch protection is on, do not even attempt Path B; jump straight to Path A.
+
 ### Post-Event sync (BEFORE the next Event begins)
 
 After a PR merges or a local-ff push completes:
@@ -202,7 +209,7 @@ After a PR merges or a local-ff push completes:
 10. `git fetch origin`
 11. **Operator runs in their own terminal** (block_dangerous policy): `git reset --hard origin/master`. Restore `/archive/` if needed: `cp -R /tmp/archive-backup-pre-event/. archive/`.
 12. Verify: `git log --oneline -5` shows the merge commit at HEAD. `git status` is clean.
-13. Optional: delete the local feature branch: `git branch -d event-NN-shortname`.
+13. Optional: delete the local feature branch — `git branch -d event-NN-shortname`. After a PR-merge this `-d` may refuse with `not deleting branch ... not yet merged to refs/remotes/origin/event-NN-...-prep, even though it is merged to HEAD` (Footgun B in `### Common footguns` below). The fix is `git branch -D event-NN-shortname` (force-delete) — safe in this case because the branch's tip commit IS the parent of the merge commit on master; all content is preserved. Optionally also delete the stale remote branch: `git push origin --delete event-NN-shortname`.
 
 ### Why this works
 
@@ -226,6 +233,44 @@ The recurring divergence comes from `core/hooks/checkpoint.py` committing to loc
 - Have it write to `~/.episteme/state/chkpt-snapshots/` (untracked) instead of git-committing.
 
 Either kills the divergence class entirely. Soak-incompatible right now (touches `core/hooks/`); logged as deferred-discovery for the v1.0.1 cycle. The protocol above holds regardless of when the hook fix lands.
+
+### Common footguns
+
+Two recurring failure modes the protocol above is designed to prevent. Each names the SYMPTOM (so you recognize it in your terminal output) and the FIX. Codified Event 61 after both were observed across Events 56-60.
+
+#### Footgun A · `git pull` on feature branch advances it past remote-tracking ref
+
+**Symptom.** You're on a feature branch (e.g., `event-NN-shortname`). You run `git pull --ff-only origin master` to "sync local master." It says `Updating <SHA>..<SHA>  Fast-forward` and reports the diff stat. **You weren't on master.** The pull just advanced your CURRENT branch (the feature branch) by pulling origin/master into it. Your local feature-branch HEAD is now ahead of `origin/<feature-branch>` (the remote tracking ref). When you later try `git branch -d <feature-branch>`, it refuses with `error: the branch '<feature-branch>' is not fully merged ... If you are sure you want to delete it, run 'git branch -D'`.
+
+**Why it happens.** `git pull` operates on the currently-checked-out branch, regardless of the source argument. `git pull --ff-only origin master` means "fast-forward CURRENT branch by pulling origin/master into it" — not "fast-forward LOCAL master." If your CURRENT branch is `event-NN-shortname`, that's the branch that advances.
+
+**Fix.** Always `git checkout master` BEFORE `git pull`. The Pre-Event step 3 above codifies this order explicitly. If you've already hit Footgun A, the recovery is in Footgun B.
+
+#### Footgun B · Post-PR-merge `git branch -d` refuses with stale-upstream-tracking complaint
+
+**Symptom.** Your PR has merged on origin (verified by `git log --oneline origin/master | head -1` showing the merge commit). You're on local master, synced to origin/master. You run `git branch -d event-NN-shortname` to clean up. Git refuses with:
+
+```
+warning: not deleting branch 'event-NN-shortname' that is not yet merged to
+         'refs/remotes/origin/event-NN-shortname', even though it is merged to HEAD
+error: the branch 'event-NN-shortname' is not fully merged
+hint: If you are sure you want to delete it, run 'git branch -D event-NN-shortname'
+```
+
+The phrase **"even though it is merged to HEAD"** is the load-bearing tell — git itself confirms the branch IS merged to master.
+
+**Why it happens.** When a PR merges on origin, the source branch on origin (`origin/event-NN-shortname`) is NOT auto-deleted or auto-updated; it stays at whatever SHA was the last push. Your local feature-branch's UPSTREAM tracking ref still points at that stale origin SHA. Meanwhile your local feature-branch HEAD may have advanced (Footgun A) OR stayed where it was — but EITHER way, `git branch -d` checks the local-vs-upstream relationship, sees the upstream is stale, and refuses. It's checking the wrong thing. The branch IS merged to master (via the merge commit on master, whose parent IS the branch's tip).
+
+**Fix.** `git branch -D event-NN-shortname` (force-delete). Safe here because: (a) git itself confirmed `even though it is merged to HEAD`; (b) the branch's tip commit is reachable from master via the merge commit; (c) `-D` only removes the local ref pointer, not the underlying commits. Optionally also delete the stale remote branch:
+
+```bash
+git branch -D event-NN-shortname
+git push origin --delete event-NN-shortname
+```
+
+`-D` is the operator-only command on this repo — `block_dangerous.py` may refuse the agent's attempt depending on its substring rules. Operator runs both lines themselves; ~5 seconds.
+
+**When NOT to use `-D`.** If the branch genuinely has unmerged work (e.g., a feature branch you abandoned mid-Event without merging), `-d` refuses for the right reason. Distinguish Footgun B from a real unmerged-work case by the `even though it is merged to HEAD` line in the warning — that line confirms safety. If git's warning does NOT say `merged to HEAD`, the branch has real unmerged commits and you must decide: merge them or accept the loss.
 
 ---
 
