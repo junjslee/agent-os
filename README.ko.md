@@ -1,9 +1,7 @@
 <h1 align="center">
-  <img src="docs/assets/logo-dragon-faithful-128.svg" alt="episteme — sovereign cognitive kernel mark" width="128" height="128"/>
-  <br/>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
-    <img alt="episteme" src="docs/assets/logo-light.svg" width="456">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg?v=2">
+    <img alt="episteme" src="docs/assets/logo-light.svg?v=2" width="456">
   </picture>
 </h1>
 
