@@ -76,3 +76,14 @@ credentials/
 .claude/settings.local.json
 .codex/auth.json
 .cursor/settings.local.json
+
+# ─── Privatized strategic forward-vision docs (Event 65) ─────────────────────
+# Moved to ~/episteme-private/docs/ per Path C step 1 (2026-04-27). Local
+# symlinks at these paths point to the private staging dir for operator
+# convenience; the public commit captures pure deletion. Re-publishing
+# requires deleting the symlink and committing the file content from the
+# private staging directory.
+docs/DESIGN_V1_1_REASONING_ENGINE.md
+docs/ROADMAP_POST_V1.md
+docs/POST_SOAK_MIGRATION_PLAN.md
+docs/POST_SOAK_TRIAGE.md
