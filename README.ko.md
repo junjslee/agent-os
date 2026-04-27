@@ -172,8 +172,6 @@ episteme doctor
 
 한국어 **결**(*gyeol*)은 나무나 돌의 결 — 따를 때 일관된 형태를 낳고, 거슬러 자를 때 균열하는 — 잠재적 패턴-구조다. Reasoning Surface의 필드 순서 (Knowns → Unknowns → Assumptions → Disconfirmation)가 바로 인식론적 규율의 결이다: **정착된 → 열려있는 → 잠정적 → 반증 조건**.
 
-전체 철학 산문: **[`docs/NARRATIVE.md`](./docs/NARRATIVE.md)**.
-
 ---
 
 ## 더 읽기

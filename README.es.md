@@ -124,8 +124,6 @@ El nombre del repositorio viene del griego:
 
 La palabra coreana **결** (*gyeol*) nombra el grano de la madera o piedra — el patrón latente que, seguido, produce forma coherente, y cortado en contra, se fractura. El orden de los campos de la Reasoning Surface es el *gyeol* de la disciplina epistémica: **establecido → abierto → provisional → condición de falsificación**.
 
-Prosa filosófica completa: **[`docs/NARRATIVE.md`](./docs/NARRATIVE.md)**.
-
 ---
 
 ## Lee a continuación

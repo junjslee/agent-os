@@ -87,3 +87,20 @@ docs/DESIGN_V1_1_REASONING_ENGINE.md
 docs/ROADMAP_POST_V1.md
 docs/POST_SOAK_MIGRATION_PLAN.md
 docs/POST_SOAK_TRIAGE.md
+
+# ─── Privatized Tier 1 + Tier 2 docs (Event 66) ──────────────────────────────
+# Operational/strategic docs moved to ~/episteme-private/docs/ per the broader
+# Tier 1 (operational state) + Tier 2 (positioning narrative) classification.
+# Same symlink pattern as Event 65. Tier 3 (DESIGN_V1_0, EVOLUTION_CONTRACT,
+# ARCHITECTURE, LAYER_MODEL, SUBSTRATE_BRIDGE, MEMORY_CONTRACT) remains PUBLIC
+# as the kernel's credibility surface — protected by AGPL-3.0.
+docs/NEXT_STEPS.md
+docs/PLAN.md
+docs/PROGRESS.md
+docs/DEFERRED_DISCOVERIES_TRIAGE.md
+docs/DISCRIMINATOR_CALIBRATION.md
+docs/PREPARED_PATCHES.md
+docs/POSTURE.md
+docs/NARRATIVE.md
+docs/COGNITIVE_SYSTEM_PLAYBOOK.md
+docs/DECISION_STORY.md

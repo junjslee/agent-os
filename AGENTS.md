@@ -102,7 +102,7 @@ All consequential edits follow the kernel's own loop:
 2. **Decompose.** Fill the Reasoning Surface (Knowns / Unknowns / Assumptions / Disconfirmation). For high-impact work, provide 2+ options with trade-offs and an explicit because-chain.
 3. **Execute.** Prefer smallest reversible action that produces new information. One bounded lane per task owner.
 4. **Verify.** Validate against success criteria, not effort. Re-check each assumption. Evaluate hypothesis: validated / refined / invalidated.
-5. **Handoff.** Update `docs/PROGRESS.md`, `docs/NEXT_STEPS.md`. Name residuals explicitly.
+5. **Handoff.** Maintainer: update the project's authoritative operational record (PROGRESS / NEXT_STEPS may be private staging) and name residuals explicitly. External contributors: include a Handoff section in the PR description (what shipped, what's left, named residuals) — the maintainer integrates this into the operational record on merge.
 
 High-impact decisions must record to `.episteme/reasoning-surface.json` before the action. See `kernel/HOOKS_MAP.md`.
 
@@ -277,9 +277,9 @@ git push origin --delete event-NN-shortname
 ## Commit and handoff conventions
 
 - Commit messages: imperative mood, scoped (`kernel: …`, `docs: …`, `adapters: …`). Checkpoint commits use prefix `chkpt:`.
-- Every substantive change updates `docs/PROGRESS.md` with a Reasoning Surface block.
-- Every session ends by updating `docs/NEXT_STEPS.md` with a one-sentence "So-What Now?".
-- Branch naming: `event-NN-shortname` for ordered Events (matches `docs/PROGRESS.md` Event numbering); `feat/<name>`, `fix/<name>`, `research/<name>`, `ops/<name>`, `docs/<name>` for non-Event work.
+- Maintainer workflow: every substantive change updates the project's authoritative operational record (PROGRESS / NEXT_STEPS — may be in private staging) with a Reasoning Surface block, and every session ends with a one-sentence "So-What Now?".
+- External contributor workflow: include the Reasoning Surface block + "So-What Now?" inline in the PR description; the maintainer integrates these into the operational record on merge. Contributors do not need to update operational docs themselves.
+- Branch naming: `event-NN-shortname` for maintainer-ordered Events (numbering tracked in the maintainer's operational record); `feat/<name>`, `fix/<name>`, `research/<name>`, `ops/<name>`, `docs/<name>` for non-Event work.
 
 ---
 

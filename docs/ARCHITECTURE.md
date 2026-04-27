@@ -2,7 +2,7 @@
 
 > Mermaid flowchart. Renders natively on GitHub, Obsidian, and any CommonMark viewer with Mermaid support. Four subgraphs trace the full lifecycle from agent intention through the three-pillar kernel — Cognitive Blueprints, Append-Only Hash Chain, Framework Synthesis & Active Guidance — into praxis and the learning loop.
 >
-> **State.** This diagram depicts the **v1.0 RC shipped state** (spec: [`./DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`](./DESIGN_V1_0_SEMANTIC_GOVERNANCE.md), status *approved (reframed, third pass)* 2026-04-21). All ten RC checkpoints have shipped with paused-review-before-commit discipline; 565/565 tests green at HEAD. See [`./PROGRESS.md`](./PROGRESS.md) Events 7–17.
+> **State.** This diagram depicts the **v1.0 RC shipped state** (spec: [`./DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`](./DESIGN_V1_0_SEMANTIC_GOVERNANCE.md), status *approved (reframed, third pass)* 2026-04-21). All ten RC checkpoints have shipped with paused-review-before-commit discipline; 565/565 tests green at HEAD.
 
 ---
 
@@ -206,5 +206,4 @@ Nothing executes until preconditions hold. Nothing evolves until postconditions 
 - Failure modes: `kernel/FAILURE_MODES.md`
 - Reasoning Surface protocol: `kernel/REASONING_SURFACE.md`
 - Memory architecture: `kernel/MEMORY_ARCHITECTURE.md`
-- Narrative spine (doxa / episteme / praxis / 결): `docs/NARRATIVE.md`
 - v1.0 RC spec: `docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`

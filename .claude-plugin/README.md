@@ -50,5 +50,4 @@ Uninstall removes plugin-managed surfaces. Your authoritative files (`core/memor
 ## See also
 
 - [`../INSTALL.md`](../INSTALL.md) — the three install paths compared.
-- [`../docs/POSTURE.md`](../docs/POSTURE.md) — what the plugin actually installs, in posture terms.
 - [`../demos/03_differential/`](../demos/03_differential/) — same scenario with the posture off vs. on.

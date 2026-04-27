@@ -118,7 +118,7 @@ ls ~/.episteme/framework/      # global hash chain — protocols.jsonl + audit/*
 
 Hook exit traces appear in your Claude Code session output, not in a separate log file — the visible-evidence channel is the session itself.
 
-For the deeper *why this shape* — see [`docs/POSTURE.md`](./docs/POSTURE.md). For the runtime architecture — see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md). For the differential demo (same prompt, framework off vs on) — see [`demos/03_differential/`](./demos/03_differential/).
+For the runtime architecture — see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md). For the differential demo (same prompt, framework off vs on) — see [`demos/03_differential/`](./demos/03_differential/).
 
 ---
 
@@ -147,4 +147,4 @@ Not a tool. A posture. The four artifacts that make the posture enforceable:
 | `verification.md`                  | Evidence per assumption + per disconfirmation condition     |
 | `handoff.md`                       | What shipped, what was pre-rejected and why                 |
 
-Full framing: [`docs/POSTURE.md`](./docs/POSTURE.md). Differential proof: [`demos/03_differential/`](./demos/03_differential/).
+Differential proof: [`demos/03_differential/`](./demos/03_differential/).

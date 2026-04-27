@@ -74,7 +74,7 @@
   <!-- ════════════════════ HEADER (y 60 – 150) ════════════════════ -->
   <text x="60"   y="85"  class="header-title">episteme — structural stratification of the epistemic posture</text>
   <text x="1540" y="85"  class="header-sub end">v1.0 RC · three pillars shipped · 565/565 green</text>
-  <text x="60"   y="112" class="header-sub">Figure 1 · the doxa / episteme / praxis axis, traversed by the grain (결 · gyeol) · see docs/NARRATIVE.md</text>
+  <text x="60"   y="112" class="header-sub">Figure 1 · the doxa / episteme / praxis axis, traversed by the grain (결 · gyeol)</text>
   <line x1="60" y1="140" x2="1540" y2="140" class="rule-main"/>
 
   <!-- ════════════════════ DOXA BAND (y 160 – 430) ════════════════════ -->
@@ -342,6 +342,6 @@
 
   <!-- ════════════════════ FIGURE CAPTION (y 1490 – 1520) ════════════════════ -->
   <line x1="60" y1="1490" x2="1540" y2="1490" class="rule-main"/>
-  <text x="60" y="1509" class="fig-caption"><tspan class="fig-num">Figure 1.</tspan><tspan class="fig-title" dx="6">Structural stratification of the epistemic posture (v1.0 RC).</tspan><tspan dx="6">The three strata — <tspan style="font-style:italic;fill:#1A1A1A">doxa</tspan>, <tspan style="font-style:italic;fill:#1A1A1A">episteme</tspan>, <tspan style="font-style:italic;fill:#1A1A1A">praxis</tspan> — are traversed by the grain (<tspan style="font-style:italic;fill:#1A1A1A">결 · gyeol</tspan>) of epistemic discipline; the v1.0 RC pillar row layers onto the v0.11 components. Prose: <tspan class="art-path">docs/NARRATIVE.md</tspan>.</tspan></text>
+  <text x="60" y="1509" class="fig-caption"><tspan class="fig-num">Figure 1.</tspan><tspan class="fig-title" dx="6">Structural stratification of the epistemic posture (v1.0 RC).</tspan><tspan dx="6">The three strata — <tspan style="font-style:italic;fill:#1A1A1A">doxa</tspan>, <tspan style="font-style:italic;fill:#1A1A1A">episteme</tspan>, <tspan style="font-style:italic;fill:#1A1A1A">praxis</tspan> — are traversed by the grain (<tspan style="font-style:italic;fill:#1A1A1A">결 · gyeol</tspan>) of epistemic discipline; the v1.0 RC pillar row layers onto the v0.11 components.</tspan></text>
 
 </svg>

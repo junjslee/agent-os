@@ -16,9 +16,9 @@ Packs are applied via `episteme sync` or `episteme setup --sync`.
 
 | Hook                    | Event                                                    | What it does                                                                                    |
 |-------------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| `session_context.py`    | `SessionStart`                                           | Prints branch, git status, and `NEXT_STEPS.md` at session open                                  |
+| `session_context.py`    | `SessionStart`                                           | Prints branch, git status, and `NEXT_STEPS.md` at session open (if present in your project)     |
 | `block_dangerous.py`    | `PreToolUse Bash`                                        | Blocks `rm -rf`, `git reset --hard`, `git push --force`, `sudo`, `pkill`, and more              |
-| `workflow_guard.py`     | `PreToolUse Write\|Edit\|MultiEdit`                      | Advisory nudge to keep `docs/PLAN.md`, `PROGRESS.md`, `NEXT_STEPS.md` aligned with edits        |
+| `workflow_guard.py`     | `PreToolUse Write\|Edit\|MultiEdit`                      | Advisory nudge to keep authoritative docs (`PLAN.md` / `PROGRESS.md` / `NEXT_STEPS.md`) aligned with edits, when present |
 | `prompt_guard.py`       | `PreToolUse Write\|Edit\|MultiEdit`                      | Advisory detection of prompt-injection patterns when writing durable context                    |
 | `format.py`             | `PostToolUse Write\|Edit`                                | Auto-runs `ruff` (Python) or `prettier` (JS/TS) after every file write                          |
 | `test_runner.py`        | `PostToolUse Write\|Edit`                                | Runs pytest / jest on the file if it is a test file                                             |

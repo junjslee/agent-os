@@ -117,7 +117,7 @@ This architecture also counters **Cognitive Deskilling** — the erosion of the 
 | See what the framework produces end-to-end                     | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
 | Install as a Claude Code plugin (one line)          | `/plugin marketplace add junjslee/episteme`                     |
 | Install on my machine (CLI + editable kernel)       | `pip install -e . && episteme init` — see [`INSTALL.md`](./INSTALL.md) |
-| Understand what this installs in 3 minutes          | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md) · [`docs/POSTURE.md`](./docs/POSTURE.md) |
+| Understand what this installs in 3 minutes          | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md)                          |
 | Draft a reasoning surface from a Slack thread       | `episteme capture --input thread.txt --output surface.json`    |
 | Sync identity to every AI tool I use                | `episteme sync`                                                 |
 | Encode working style + reasoning posture            | `episteme setup . --interactive`                                |
@@ -125,7 +125,6 @@ This architecture also counters **Cognitive Deskilling** — the erosion of the 
 | Know when *not* to use this kernel                  | [`kernel/KERNEL_LIMITS.md`](./kernel/KERNEL_LIMITS.md)              |
 | Find attribution for any borrowed concept           | [`kernel/REFERENCES.md`](./kernel/REFERENCES.md)                    |
 | Audit my setup                                      | `episteme doctor`                                               |
-| Read the deeper philosophy (doxa · episteme · praxis · 결)  | [`docs/NARRATIVE.md`](./docs/NARRATIVE.md)                     |
 
 ---
 
@@ -299,7 +298,7 @@ Memory model, Memory Contract v1, Evolution Contract v1, and managed-runtime coe
 
 ## Architecture & philosophy
 
-> Prose spine: [`docs/NARRATIVE.md`](./docs/NARRATIVE.md). Full diagram with node annotations and cross-references: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+> Full diagram with node annotations and cross-references: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 The Thinking Framework above is the *product surface*. Beneath it sits a structural vocabulary borrowed from ancient Greek epistemology and Korean aesthetics — a spine that every diagram, demo, and artifact in this repository renders onto.
 
@@ -439,7 +438,6 @@ Authority hierarchy: **project docs > operator profile > kernel defaults > runti
 
 | Topic                                      | Where                                                            |
 |--------------------------------------------|------------------------------------------------------------------|
-| What `episteme` installs (posture framing) | [`docs/POSTURE.md`](./docs/POSTURE.md)                         |
 | The v1.0 RC direction                      | [`docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`](./docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md) |
 | Kernel distillation (30 lines)             | [`kernel/SUMMARY.md`](./kernel/SUMMARY.md)                       |
 | What the kernel produces                   | [`demos/01_attribution-audit/`](./demos/01_attribution-audit/) · [`demos/02_debug_slow_endpoint/`](./demos/02_debug_slow_endpoint/) |
@@ -455,7 +453,6 @@ Authority hierarchy: **project docs > operator profile > kernel defaults > runti
 | Personal customization (memory/hooks/skills) | [`docs/CUSTOMIZATION.md`](./docs/CUSTOMIZATION.md)             |
 | Agent repo operating contract              | [`AGENTS.md`](./AGENTS.md)                                       |
 | Layer model + adapter matrix               | [`docs/LAYER_MODEL.md`](./docs/LAYER_MODEL.md)                   |
-| Cognitive system playbook                  | [`docs/COGNITIVE_SYSTEM_PLAYBOOK.md`](./docs/COGNITIVE_SYSTEM_PLAYBOOK.md) |
 
 ---
 

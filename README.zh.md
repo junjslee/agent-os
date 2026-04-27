@@ -124,8 +124,6 @@ episteme doctor
 
 韩语 **결**（*gyeol*）命名木材或石头的纹理——潜在的模式结构，顺着它切会形成连贯的形态，逆着它切则会断裂。Reasoning Surface 的字段顺序正是认识论纪律的 *gyeol*：**已确立 → 开放 → 暂定 → 证伪条件**。
 
-完整的哲学行文：**[`docs/NARRATIVE.md`](./docs/NARRATIVE.md)**。
-
 ---
 
 ## 下一步阅读

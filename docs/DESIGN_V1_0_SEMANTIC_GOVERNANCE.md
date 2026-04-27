@@ -21,7 +21,7 @@ The six prior decisions carry forward unchanged:
 
 Implementation proceeds against this reframed spec. Any deviation surfaces as a spec-amendment request before code lands. Per the Phase 12 discipline: any later change that relaxes a load-bearing countermeasure — the eight layers, the three orthogonal pairs, the < 100 ms ceiling, the sample-rate schedule, **the Cognitive Blueprint registry (four named blueprints: Axiomatic Judgment, Fence Reconstruction, Consequence Chain, Architectural Cascade & Escalation), the generic maximum-rigor fallback, the hash-chain scope, the Framework Synthesis substrate, the active-guidance loop, the cascade-synchronization discipline**, the BYOS stance — is a governance change, not an implementation tweak.
 
-**Implementation timing.** v0.11.0 has been tagged and shipped (2026-04-21). The v1.0 RC cycle is open. CP1 is the next executable unit once this second-pass reframe is registered in the authoritative docs (`docs/PLAN.md`, `docs/PROGRESS.md`, `docs/NEXT_STEPS.md`).
+**Implementation timing.** v0.11.0 has been tagged and shipped (2026-04-21). The v1.0 RC cycle is open. CP1 is the next executable unit once this second-pass reframe is registered in the project's authoritative operational record.
 
 ## Why this exists
 
@@ -135,7 +135,7 @@ Required fields (synthesis arm — the "protocol synthesis" escalation):
 - `framework_entry_ref` — pointer to the hash-chained framework record (`~/.episteme/framework/protocols.jsonl`) where the `synthesized_protocol` is committed. Written at PreToolUse success; hash-chained per Pillar 2.
 - `guidance_trigger` — the context-match predicate that should cause this protocol to surface as proactive operator guidance on future ops. Typically a canonicalization of `context_signature`; keeps the matching predicate honest and auditable.
 
-Hooks to Phase 12 Axis A (disconfirmation specificity), the believability-weighting rule named in `COGNITIVE_SYSTEM_PLAYBOOK.md` §3 (Dalio, Radical Transparency), and Pillar 3 (Framework Synthesis & Active Guidance). Full realization of the synthesis-arm fields is the v1.0.1 deliverable that ships alongside the first operator-visible `episteme guide` queries; the *structure* lands in v1.0 RC so CP5's Fence Reconstruction has a companion synthesis slot and can begin contributing protocols (constraint-safety know-how) even before Axiomatic Judgment's full realization.
+Hooks to Phase 12 Axis A (disconfirmation specificity), the believability-weighting rule (Dalio, Radical Transparency), and Pillar 3 (Framework Synthesis & Active Guidance). Full realization of the synthesis-arm fields is the v1.0.1 deliverable that ships alongside the first operator-visible `episteme guide` queries; the *structure* lands in v1.0 RC so CP5's Fence Reconstruction has a companion synthesis slot and can begin contributing protocols (constraint-safety know-how) even before Axiomatic Judgment's full realization.
 
 ### Blueprint B · Fence Reconstruction
 
@@ -163,7 +163,7 @@ Required fields:
 - `base_rate_reference` — historical distribution of this op-class in this project (or in the operator's broader experience if project-local data is sparse)
 - `margin_of_safety` — buffer if assumptions slip 30–50%; explicit statement of what becomes unacceptable at that slip
 
-Hooks to the mental-model lattice in `COGNITIVE_SYSTEM_PLAYBOOK.md` §3 (Munger: inversion, second-order, base rates, margin of safety).
+Hooks to the mental-model lattice (Munger: inversion, second-order, base rates, margin of safety).
 
 ### Blueprint D · Architectural Cascade & Escalation
 
@@ -180,7 +180,7 @@ Required fields:
 - `sync_plan[]` — concrete one-line atomic action per surface in `blast_radius_map`. `no change needed because <reason>` is valid. Entries missing a rationale are rejected.
 - `deferred_discoveries[]` — adjacent gaps the agent uncovered mid-task but is not fixing in this pass. Each carries `(description, observable, log_only_rationale)`. Every entry is hash-chained into the framework as a `deferred_discovery` record immediately; Phase 12 audits the accumulated log for (a) frequency (which classes of discovery recur and suggest a structural issue) and (b) aging (how long discoveries sit before being promoted or triaged).
 
-Hooks to (a) Munger's second-order thinking (blast radius = second-order effect), (b) Dalio's radical transparency (surface the cascade, don't hide it), (c) systems-thinking default from `COGNITIVE_SYSTEM_PLAYBOOK.md` Collaboration Stance ("preserve whole-system coherence, not local optimizations that break global intent"), and (d) fence_discipline (refactor-vs-patch is the "why was this constraint here" question asked about the posture itself).
+Hooks to (a) Munger's second-order thinking (blast radius = second-order effect), (b) Dalio's radical transparency (surface the cascade, don't hide it), (c) the systems-thinking default ("preserve whole-system coherence, not local optimizations that break global intent"), and (d) fence_discipline (refactor-vs-patch is the "why was this constraint here" question asked about the posture itself).
 
 Selector triggers (CP10, see *Implementation sequencing*):
 
@@ -648,7 +648,7 @@ This section is load-bearing. Any later change to v1.0 RC scope that claims to c
 - **Blueprint D dogfood — the kernel satisfies itself.** Over the RC soak, at least one real architectural-cascade op *on the episteme repo itself* (a rename, a refactor, a schema change, or a core-logic update) fires Blueprint D, produces a non-trivial `blast_radius_map[]` grounded against real surfaces, a `sync_plan[]` with concrete actions per surface, ≥ 1 `deferred_discoveries[]` entry committed to the hash-chained framework, AND the proposed diff ultimately touches every surface named in the map (no orphan-reference regression detected retrospectively). If the kernel's author edits the kernel without Blueprint D firing — or fires it but ships orphan references — the self-maintenance axis failed regardless of test count. This is the Gate-28 equivalent for Blueprint D.
 - Phase 12 audit dogfood shows `disconfirmation_unverified` rate < 10% on the maintainer's tier after 30 days of Layer 6 active. Above 10% means the kernel is enforcing contracts the operator isn't honoring — either tighten the operator's discipline or relax the contract; the audit surfaces the gap.
 - **Pillar 3 dogfood** — after 30 days of real use on the maintainer's tier, the framework holds ≥ 3 non-trivial protocols AND ≥ 1 has fired as guidance on a subsequent op AND the operator has a spot-check verdict recorded on that firing (useful / vague / overfit). If the framework is empty or guidance never fires, Pillar 3 failed at the cognitive level regardless of whether the code runs.
-- **Deferred-discovery flow-through.** Over the RC soak, ≥ 3 deferred-discovery entries are logged and at least one is either (a) promoted to a named phase/CP in NEXT_STEPS.md, or (b) triaged to "won't fix" with recorded rationale. A deferred-discovery log that only grows is an architectural-debt accumulator, not a self-maintenance loop.
+- **Deferred-discovery flow-through.** Over the RC soak, ≥ 3 deferred-discovery entries are logged and at least one is either (a) promoted to a named phase/CP in the project's next-steps tracking, or (b) triaged to "won't fix" with recorded rationale. A deferred-discovery log that only grows is an architectural-debt accumulator, not a self-maintenance loop.
 - Chain verification succeeds across the full RC soak window for all three chained streams (episodic tier, pending contracts, framework protocols — including `deferred_discovery` records). Any chain-broken event during the soak is investigated and root-caused before GA.
 - Layer 8 spot-check delivers ≥ 1 actionable operator verdict per week of normal use over the RC soak. Below this, sample rate is too low; above 5/week, sample rate is too high (operator burden).
 - This document remains `approved (reframed, third pass)` through RC; any further philosophical shift is a new spec amendment.

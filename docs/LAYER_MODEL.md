@@ -82,13 +82,7 @@ Detection: `episteme detect [path]` scores signals in the repo (dependency files
 
 ### 3. Project Memory
 
-Every project keeps its definitive truth in repo files:
-- `AGENTS.md`
-- `docs/REQUIREMENTS.md`
-- `docs/PLAN.md`
-- `docs/PROGRESS.md`
-- `docs/RUN_CONTEXT.md`
-- `docs/NEXT_STEPS.md`
+Every project keeps its definitive truth in repo files. The episteme reference pattern uses `AGENTS.md` plus a staged-execution doc set (typically `docs/REQUIREMENTS.md`, `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/RUN_CONTEXT.md`, `docs/NEXT_STEPS.md`) — these names are convention, not contract. Adopt or rename to fit your project.
 
 This layer must remain tool-agnostic.
 

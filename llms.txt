@@ -19,7 +19,6 @@ episteme is the posture layer installed beneath whichever memory substrate and w
 
 ## Delivery framing
 
-- [docs/POSTURE.md](./docs/POSTURE.md): what episteme installs in posture terms — the single canonical statement.
 - [INSTALL.md](./INSTALL.md): three install paths (marketplace one-liner, full CLI clone, dev `--plugin-dir`).
 
 ## Demos (reference deliverables)
@@ -52,7 +51,6 @@ episteme is the posture layer installed beneath whichever memory substrate and w
 - [README](./README.md): project overview, quick start, comparisons
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md): v1.0 RC runtime flowchart with node annotations
 - [docs/LAYER_MODEL.md](./docs/LAYER_MODEL.md): layer model + tool/adapter matrix + bootstrap policy
-- [docs/COGNITIVE_SYSTEM_PLAYBOOK.md](./docs/COGNITIVE_SYSTEM_PLAYBOOK.md): operational playbook
 - [docs/SUBSTRATE_BRIDGE.md](./docs/SUBSTRATE_BRIDGE.md): pluggable substrate adapter protocol (mem0, memori, noop reference impls).
 
 ## Contracts (governance)

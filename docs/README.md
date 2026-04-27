@@ -9,7 +9,6 @@ Primary navigation for episteme documentation.
 - `../kernel/CONSTITUTION.md` — the governing philosophy: why this system exists, what it believes, and what it is not
 - `ARCHITECTURE.md` — v1.0 RC runtime flowchart (Mermaid) with node annotations and cross-references
 - `LAYER_MODEL.md` — layer model, tool/adapter matrix, bootstrap policy, source-of-truth order
-- `COGNITIVE_SYSTEM_PLAYBOOK.md` — practical cognitive + workflow operating protocol
 
 ## Contracts
 
@@ -35,9 +34,8 @@ Read the kernel first. Everything else is derived from it.
 5) `../README.md`
 6) `ARCHITECTURE.md`
 7) `LAYER_MODEL.md`
-8) `COGNITIVE_SYSTEM_PLAYBOOK.md`
-9) `MEMORY_CONTRACT.md`
-10) `EVOLUTION_CONTRACT.md`
+8) `MEMORY_CONTRACT.md`
+9) `EVOLUTION_CONTRACT.md`
 
 ## Contribution quality gate (docs changes)
 

@@ -4,7 +4,7 @@ Short version:
 
 1. Read `AGENTS.md` (the operational contract) and `kernel/SUMMARY.md` (30-line kernel distillation).
 2. Work in a branch — `feat/<name>`, `fix/<name>`, `docs/<name>`.
-3. For substantive changes, update `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/NEXT_STEPS.md` in the same PR.
+3. For substantive changes, include narrative context (what changed, why, expected impact) in the PR description. The maintainer integrates this into the project's private operational state — external contributors do not need to update operational docs themselves.
 4. `PYTHONPATH=. pytest -q` must pass before you ask for review.
 5. Kernel changes follow `docs/EVOLUTION_CONTRACT.md` — major shifts go through propose → critique → gate → promote.
 
