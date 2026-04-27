@@ -104,3 +104,15 @@ docs/POSTURE.md
 docs/NARRATIVE.md
 docs/COGNITIVE_SYSTEM_PLAYBOOK.md
 docs/DECISION_STORY.md
+
+# ─── Privatized operator-profile canonicals (Event 71) ───────────────────────
+# Maintainer's lived profile content lives at ~/episteme-private/core/memory/global/.
+# Canonical paths in core/memory/global/ ship as gitignored symlinks for the
+# maintainer's local workflow; fork users seed clean templates from
+# core/memory/global/examples/*.example.md via `episteme init`. See AGENTS.md
+# § "Doc classification policy (public vs. private)" for the canonical-vs-
+# example rationale.
+core/memory/global/operator_profile.md
+core/memory/global/cognitive_profile.md
+core/memory/global/workflow_policy.md
+core/memory/global/agent_feedback.md

@@ -127,10 +127,12 @@ High-impact decisions must record to `.episteme/reasoning-surface.json` before t
 ### Safe to edit freely
 
 - `docs/*.md` (except the contract files above)
-- `skills/custom/*`, `skills/private/*`
+- `skills/custom/*`, `skills/private/*` (see note below — `skills/private/` here means *local-only sync exemption*, not operator-private content)
 - `templates/*`
 - `tests/*`
 - `src/episteme/*` under usual engineering discipline
+
+> **Naming clarification — `skills/private/` is a sync-exemption boundary, not a privacy boundary.** Skills in `skills/private/` are tracked publicly in this repo but are NOT propagated by `episteme sync` to `~/.claude/skills/` (or any other adapter target). Use `skills/private/` for experimental / WIP / project-only skills that should not flow into your global skill library. Operator-private content (lived profile state, operational logs) is privatized via the `~/episteme-private/` symlink mechanism — a different and orthogonal concern.
 
 ---
 
@@ -316,6 +318,18 @@ Before creating or moving any doc under `docs/`, classify it. The repo splits `d
 **Cross-ref repair discipline (when privatizing).** Run `git grep -nE '<filename>'` across all tracked files. Repair links in PUBLIC-tier docs (visitor-facing 404s); leave operational/descriptive references that function correctly in user projects (harnesses, skills, agent definitions); never edit `kernel/CHANGELOG.md` historical entries (revisionism).
 
 **For new docs (creation, not move).** Same classification gate before the first write. If the doc would describe operational state, positioning, or strategic decision rationale, create it directly in `~/episteme-private/docs/` and symlink in; do not commit a public version first.
+
+### Canonical-vs-example pattern (operator profiles in `core/memory/global/`)
+
+`core/memory/global/{operator_profile, cognitive_profile, workflow_policy, agent_feedback}.md` follow the SAME privatize-via-symlink pattern as `docs/*.md` above (canonical paths are gitignored symlinks pointing to `~/episteme-private/core/memory/global/<name>.md`). The PUBLIC repo state for these paths is "no tracked file" — and that is intentional.
+
+**Fork-onboarding path:** `core/memory/global/examples/<name>.example.md` ships PUBLIC as the sanitized starting template. Fork users who run `episteme init` get the canonical path seeded from the example template — clean, generic, identity-neutral starting state. Forks then edit their own `core/memory/global/<name>.md` (which is gitignored locally on their machine) to make it theirs.
+
+**Maintainer's lived state:** the operator's actual filled-in profile is at `~/episteme-private/core/memory/global/<name>.md`. The canonical-path symlink in the kernel repo resolves transparently to the private file, so `episteme sync` + `~/.claude/CLAUDE.md` @-imports continue to read the operator's REAL profile during their sessions.
+
+**Why the operator's real profile is NOT shipped publicly as an "example":** the operator's filled-in profile is highly operator-specific (cognitive axes, noise signatures, expertise-map scores) — copying it imports the maintainer's identity, not the user's. The `examples/*.example.md` templates are sanitized + structurally generic + intentionally identity-neutral; they're the right starting point for forks. Shipping the maintainer's REAL profile as a "look, here's a real one" demo creates competitive-intel exposure (cognitive style mappable to decision-making) without onboarding benefit.
+
+**Special case — `agent_feedback.md`.** No `agent_feedback.example.md` ships in `examples/` because agent-learned behavioral rules are PURELY operator-lived — there's no generic template to start from. Forks initialize this file empty (just the section headers) and accumulate their own agent-learned rules over sessions. The kernel's `episteme init` should write a stub with the section structure but no rules.
 
 ---
 
