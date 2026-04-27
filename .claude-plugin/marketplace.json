@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "The epistemic-posture layer for AI coding agents. Reasoning Surface protocol, named failure-mode counters, operator profile schema, and workflow loop — shipped as skills, agents, and hooks.",
-    "version": "1.0.0-rc1"
+    "version": "1.1.0-rc1"
   },
   "plugins": [
     {
@@ -16,7 +16,7 @@
         "url": "https://github.com/junjslee/episteme.git"
       },
       "description": "Install the episteme kernel, skills, agent personas, and safety hooks into Claude Code. Posture-first: structures Core Question + Knowns / Unknowns / Assumptions / Disconfirmation before high-impact actions.",
-      "version": "1.0.0-rc1",
+      "version": "1.1.0-rc1",
       "category": "productivity",
       "tags": [
         "reasoning",
