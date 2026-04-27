@@ -28,7 +28,7 @@ Why this matters:
 
 - `skills/custom/` — your own skills, synced globally.
 - `skills/vendor/` — curated upstream skills (declare in `runtime_manifest.json`).
-- `skills/private/` — experimental skills that never sync globally.
+- `skills/private/` — **sync-exemption boundary** for experimental / WIP / project-only skills. Tracked publicly in this repo, but **not propagated** by `episteme sync` to your global skill library. The "private" here means *local-only sync exemption*, not operator-private content (which uses the separate `~/episteme-private/` symlink pattern documented in `AGENTS.md` § Doc classification policy).
 
 Each skill is a folder with a `SKILL.md`. See [`SKILLS_AND_PERSONAS.md`](./SKILLS_AND_PERSONAS.md) for what ships and provenance rules.
 

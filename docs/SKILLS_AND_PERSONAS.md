@@ -14,7 +14,7 @@ Two extension surfaces shipped with episteme: **skills** (reusable operator capa
 
 ### Adding your own
 
-Drop a folder under `skills/custom/` with a `SKILL.md`. Experimental skills that should never sync globally live under `skills/private/`.
+Drop a folder under `skills/custom/` with a `SKILL.md`. Experimental skills that should never sync globally live under `skills/private/` — that directory's name encodes a **sync-exemption boundary** (skills there are tracked publicly but not propagated by `episteme sync`), distinct from the `~/episteme-private/` symlink pattern used for operator-private profile content.
 
 ### Vendor skill provenance (inspired, not copied)
 
