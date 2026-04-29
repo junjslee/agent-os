@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -133,18 +134,46 @@ def validate_rationale(text) -> None:
         )
 
 
-def _validate_audit_id(audit_id) -> None:
-    """Reject empty / non-string audit_ids. Format check is loose — the
-    audit-id format `audit-YYYYMMDD-HHMMSS-NNNN` is convention from
-    ``_profile_audit.run_audit`` but not strictly enforced here so the
-    ack-store tolerates schema evolution.
+# Audit-id format from `_profile_audit.run_audit`:
+#   audit-YYYYMMDD-HHMMSS-NNNN
+# where NNNN is ``uuid.uuid4().hex[:4]`` — exactly 4 lowercase hex chars.
+_AUDIT_ID_PATTERN = re.compile(r"^audit-\d{8}-\d{6}-[0-9a-f]{4}$")
+
+
+def normalize_audit_id(audit_id) -> str:
+    """Validate + normalize an audit_id. Returns the well-formed id.
+
+    Lenient on missing prefix: if ``audit_id`` is the bare stem
+    ``YYYYMMDD-HHMMSS-NNNN``, ``audit-`` is auto-prepended. This was
+    added (Event 79) after a dogfood firing of CP-AUDIT-ACK-01 (Event 78)
+    where the operator copy-pasted the stem without the prefix and the
+    permissive CLI silently wrote a malformed entry to the ack-store —
+    the suppression check then failed because the run_id in
+    ``profile_audit.jsonl`` carries the prefix.
+
+    Strict on format: the resulting string must match
+    ``^audit-\\d{8}-\\d{6}-[0-9a-f]{4}$`` exactly. Anything else raises
+    ValueError with a diagnostic message.
 
     Untyped param is intentional: this is a runtime defensive check at
     the public-API boundary; CLI passes strings but the validator must
     handle any input shape without trusting type annotations.
     """
-    if not isinstance(audit_id, str) or not audit_id.strip():
+    if not isinstance(audit_id, str):
+        raise ValueError("audit_id must be a string")
+    stripped = audit_id.strip()
+    if not stripped:
         raise ValueError("audit_id must be a non-empty string")
+
+    candidate = stripped if stripped.startswith("audit-") else f"audit-{stripped}"
+
+    if not _AUDIT_ID_PATTERN.match(candidate):
+        raise ValueError(
+            f"audit_id {audit_id!r} does not match the expected format "
+            f"`audit-YYYYMMDD-HHMMSS-NNNN` (NNNN = 4 lowercase hex chars). "
+            f"Use `episteme profile audit ack --list` to see valid ids."
+        )
+    return candidate
 
 
 # ---------------------------------------------------------------------------
@@ -212,13 +241,13 @@ def write_ack(
     Raises ``ValueError`` on invalid ``audit_id`` or invalid
     ``rationale`` (lazy-token, too-short).
     """
-    _validate_audit_id(audit_id)
+    normalized_id = normalize_audit_id(audit_id)
     validate_rationale(rationale)
     now = _now or datetime.now(timezone.utc)
 
     payload = {
         "type": "profile_audit_ack",
-        "audit_id": audit_id,
+        "audit_id": normalized_id,
         "rationale": rationale.strip(),
         "acked_at": now.isoformat(),
         "acker": acker or _resolve_acker(),
@@ -241,13 +270,13 @@ def write_revoke(
     entry whose latest-state-per-audit-id wins. Audit trail preserved
     by construction (Pillar 2 ethos).
     """
-    _validate_audit_id(audit_id)
+    normalized_id = normalize_audit_id(audit_id)
     validate_rationale(rationale)
     now = _now or datetime.now(timezone.utc)
 
     payload = {
         "type": "profile_audit_ack_revoke",
-        "audit_id": audit_id,
+        "audit_id": normalized_id,
         "rationale": rationale.strip(),
         "revoked_at": now.isoformat(),
         "acker": acker or _resolve_acker(),

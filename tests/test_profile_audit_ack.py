@@ -89,19 +89,19 @@ class AckStoreWriteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
             ack.write_ack(
-                "audit-x",
+                "audit-20260427-070000-aaaa",
                 "Substantive ack rationale here.",
                 state_dir=state_dir,
                 acker="testuser",
             )
             revoke = ack.write_revoke(
-                "audit-x",
+                "audit-20260427-070000-aaaa",
                 "Reverting because new evidence shows drift continues.",
                 state_dir=state_dir,
                 acker="testuser",
             )
             self.assertEqual(revoke["payload"]["type"], "profile_audit_ack_revoke")
-            self.assertEqual(revoke["payload"]["audit_id"], "audit-x")
+            self.assertEqual(revoke["payload"]["audit_id"], "audit-20260427-070000-aaaa")
 
     def test_write_ack_invalid_audit_id_rejected(self):
         with tempfile.TemporaryDirectory() as td:
@@ -112,72 +112,138 @@ class AckStoreWriteTests(unittest.TestCase):
                 ack.write_ack(None, "Substantive rationale here.", state_dir=state_dir)  # type: ignore[arg-type]
 
 
+class NormalizeAuditIdTests(unittest.TestCase):
+    """Event 79 — auto-prefix + regex validation on audit_id."""
+
+    def test_already_prefixed_audit_id_returned_unchanged(self):
+        result = ack.normalize_audit_id("audit-20260427-063251-9131")
+        self.assertEqual(result, "audit-20260427-063251-9131")
+
+    def test_bare_stem_gets_audit_prefix_auto_prepended(self):
+        result = ack.normalize_audit_id("20260427-063251-9131")
+        self.assertEqual(result, "audit-20260427-063251-9131")
+
+    def test_malformed_format_rejected(self):
+        with self.assertRaises(ValueError) as ctx:
+            ack.normalize_audit_id("blarg")
+        self.assertIn("expected format", str(ctx.exception))
+
+    def test_uppercase_hex_in_suffix_rejected(self):
+        # NNNN must be lowercase hex per uuid4().hex[:4] convention
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id("audit-20260427-063251-91FF")
+
+    def test_wrong_date_length_rejected(self):
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id("audit-2026-04-27-063251-9131")
+
+    def test_empty_audit_id_rejected(self):
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id("")
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id("   ")
+
+    def test_non_string_rejected(self):
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id(None)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ack.normalize_audit_id(123)  # type: ignore[arg-type]
+
+    def test_write_ack_with_bare_stem_normalizes_in_chain(self):
+        """Functional test: write_ack with bare stem ends up storing the full id."""
+        with tempfile.TemporaryDirectory() as td:
+            state_dir = Path(td)
+            envelope = ack.write_ack(
+                "20260427-063251-9131",  # NO prefix
+                "Substantive rationale of sufficient length here.",
+                state_dir=state_dir,
+            )
+            # The chain entry carries the normalized (prefixed) id
+            self.assertEqual(envelope["payload"]["audit_id"], "audit-20260427-063251-9131")
+            # And is_acked of the FULL id returns True
+            self.assertTrue(ack.is_acked("audit-20260427-063251-9131", state_dir=state_dir))
+
+    def test_write_ack_with_malformed_id_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            state_dir = Path(td)
+            with self.assertRaises(ValueError):
+                ack.write_ack(
+                    "abracadabra",
+                    "Substantive rationale of sufficient length here.",
+                    state_dir=state_dir,
+                )
+
+
 class IsAckedReadPathTests(unittest.TestCase):
     """is_acked + acked_ids reflect the latest-state-per-id walk."""
 
     def test_is_acked_returns_false_when_no_store(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
-            self.assertFalse(ack.is_acked("audit-anything", state_dir=state_dir))
+            self.assertFalse(ack.is_acked("audit-20260427-060001-0000", state_dir=state_dir))
 
     def test_is_acked_returns_true_after_ack(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
             ack.write_ack(
-                "audit-y",
+                "audit-20260427-070001-aaaa",
                 "Rationale that is sufficiently long.",
                 state_dir=state_dir,
             )
-            self.assertTrue(ack.is_acked("audit-y", state_dir=state_dir))
-            self.assertFalse(ack.is_acked("audit-other", state_dir=state_dir))
+            self.assertTrue(ack.is_acked("audit-20260427-070001-aaaa", state_dir=state_dir))
+            self.assertFalse(ack.is_acked("audit-20260427-070002-bbbb", state_dir=state_dir))
 
     def test_revoke_after_ack_returns_false(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
             ack.write_ack(
-                "audit-z",
+                "audit-20260427-080001-aaaa",
                 "First ack rationale that is substantive.",
                 state_dir=state_dir,
             )
-            self.assertTrue(ack.is_acked("audit-z", state_dir=state_dir))
+            self.assertTrue(ack.is_acked("audit-20260427-080001-aaaa", state_dir=state_dir))
             ack.write_revoke(
-                "audit-z",
+                "audit-20260427-080001-aaaa",
                 "Reverting on new evidence of continued drift.",
                 state_dir=state_dir,
             )
-            self.assertFalse(ack.is_acked("audit-z", state_dir=state_dir))
+            self.assertFalse(ack.is_acked("audit-20260427-080001-aaaa", state_dir=state_dir))
 
     def test_re_ack_after_revoke_returns_true(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
+            aid = "audit-20260427-090001-aaaa"
             ack.write_ack(
-                "audit-q",
+                aid,
                 "First ack with substantive rationale text.",
                 state_dir=state_dir,
             )
             ack.write_revoke(
-                "audit-q",
+                aid,
                 "Initial revoke with substantive reason text.",
                 state_dir=state_dir,
             )
             ack.write_ack(
-                "audit-q",
+                aid,
                 "Second ack with substantive rationale text.",
                 state_dir=state_dir,
             )
             # Latest is ack again
-            self.assertTrue(ack.is_acked("audit-q", state_dir=state_dir))
+            self.assertTrue(ack.is_acked(aid, state_dir=state_dir))
 
     def test_acked_ids_returns_set_of_currently_acked(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
-            ack.write_ack("audit-a", "Substantive ack rationale here.", state_dir=state_dir)
-            ack.write_ack("audit-b", "Substantive ack rationale here.", state_dir=state_dir)
-            ack.write_ack("audit-c", "Substantive ack rationale here.", state_dir=state_dir)
-            ack.write_revoke("audit-b", "Substantive revoke rationale here.", state_dir=state_dir)
+            aid_a = "audit-20260427-100001-aaaa"
+            aid_b = "audit-20260427-100002-bbbb"
+            aid_c = "audit-20260427-100003-cccc"
+            ack.write_ack(aid_a, "Substantive ack rationale here.", state_dir=state_dir)
+            ack.write_ack(aid_b, "Substantive ack rationale here.", state_dir=state_dir)
+            ack.write_ack(aid_c, "Substantive ack rationale here.", state_dir=state_dir)
+            ack.write_revoke(aid_b, "Substantive revoke rationale here.", state_dir=state_dir)
             self.assertEqual(
                 ack.acked_ids(state_dir=state_dir),
-                {"audit-a", "audit-c"},  # b revoked
+                {aid_a, aid_c},  # b revoked
             )
 
 
@@ -187,10 +253,12 @@ class ChainIntegrityTests(unittest.TestCase):
     def test_chain_intact_after_multiple_writes(self):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td)
-            ack.write_ack("audit-1", "First substantive ack rationale.", state_dir=state_dir)
-            ack.write_ack("audit-2", "Second substantive ack rationale.", state_dir=state_dir)
-            ack.write_revoke("audit-1", "Revoke rationale that is substantive.", state_dir=state_dir)
-            ack.write_ack("audit-1", "Re-ack rationale that is substantive.", state_dir=state_dir)
+            aid_1 = "audit-20260427-110001-1111"
+            aid_2 = "audit-20260427-110002-2222"
+            ack.write_ack(aid_1, "First substantive ack rationale.", state_dir=state_dir)
+            ack.write_ack(aid_2, "Second substantive ack rationale.", state_dir=state_dir)
+            ack.write_revoke(aid_1, "Revoke rationale that is substantive.", state_dir=state_dir)
+            ack.write_ack(aid_1, "Re-ack rationale that is substantive.", state_dir=state_dir)
 
             verdict = ack.verify_chain(state_dir=state_dir)
             self.assertTrue(verdict.intact)
@@ -219,10 +287,12 @@ class ListOutstandingAuditsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             state_dir = Path(td) / "state"
             reflective_dir = Path(td) / "reflective"
-            self._write_audit_record(reflective_dir, "audit-old", ["asymmetry_posture"])
-            self._write_audit_record(reflective_dir, "audit-new", ["fence_discipline"])
+            aid_old = "audit-20260427-120001-aaaa"
+            aid_new = "audit-20260427-120002-bbbb"
+            self._write_audit_record(reflective_dir, aid_old, ["asymmetry_posture"])
+            self._write_audit_record(reflective_dir, aid_new, ["fence_discipline"])
             ack.write_ack(
-                "audit-old",
+                aid_old,
                 "Acked because re-elicited in Event 68.",
                 state_dir=state_dir,
             )
@@ -232,7 +302,7 @@ class ListOutstandingAuditsTests(unittest.TestCase):
                 state_dir=state_dir,
             )
             self.assertEqual(len(outstanding), 1)
-            self.assertEqual(outstanding[0]["run_id"], "audit-new")
+            self.assertEqual(outstanding[0]["run_id"], aid_new)
             self.assertEqual(outstanding[0]["drift_axes"], ["fence_discipline"])
 
     def test_outstanding_excludes_no_drift_records(self):
@@ -240,7 +310,7 @@ class ListOutstandingAuditsTests(unittest.TestCase):
             state_dir = Path(td) / "state"
             reflective_dir = Path(td) / "reflective"
             # Record with NO drift axes
-            self._write_audit_record(reflective_dir, "audit-no-drift", [])
+            self._write_audit_record(reflective_dir, "audit-20260427-130001-cccc", [])
 
             outstanding = ack.list_outstanding_audits(
                 reflective_dir=reflective_dir,
