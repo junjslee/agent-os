@@ -3034,6 +3034,66 @@ def _profile_audit_cli(*, since: str, write: bool, as_json: bool) -> int:
     return 0
 
 
+def _protocol_history_cli(args) -> int:
+    """CLI entry for `episteme history protocol` (Item 4 / Event 84).
+
+    Walks supersede chains in the synthesized-protocol stream. Default
+    output groups by context_signature and renders each chain in order
+    (oldest → latest, marking superseded vs active). With --list-chains,
+    prints a one-line summary per chain.
+    """
+    import sys as _sys
+    hooks_dir = REPO_ROOT / "core" / "hooks"
+    if str(hooks_dir) not in _sys.path:
+        _sys.path.insert(0, str(hooks_dir))
+    try:
+        import _framework  # type: ignore  # pyright: ignore[reportMissingImports]
+    except ImportError as exc:
+        print(f"[episteme history protocol] error loading framework: {exc}", file=sys.stderr)
+        return 2
+
+    project_name = getattr(args, "project_name", None)
+    list_chains = getattr(args, "list_chains", False)
+    chains = _framework.walk_supersede_chains(project_name=project_name)
+
+    if not chains:
+        scope = f" for project={project_name!r}" if project_name else ""
+        print(f"No supersede chains found{scope}.")
+        print("  (A 'supersede chain' is two or more protocols sharing the same context_signature.)")
+        return 0
+
+    if list_chains:
+        print(f"Supersede chains ({len(chains)}):")
+        for chain in chains:
+            first = chain[0]
+            sig = (first.get("payload") or {}).get("context_signature") or {}
+            project = sig.get("project_name", "?")
+            blueprint = sig.get("blueprint", "?")
+            latest_hash = chain[-1].get("entry_hash", "?")
+            print(f"  project={project} blueprint={blueprint} entries={len(chain)} latest={latest_hash[:30]}...")
+        return 0
+
+    print(f"Supersede chains ({len(chains)}):")
+    for ci, chain in enumerate(chains, 1):
+        first_sig = (chain[0].get("payload") or {}).get("context_signature") or {}
+        print()
+        print(f"--- Chain {ci} (entries={len(chain)}) ---")
+        print(f"  context_signature.project_name = {first_sig.get('project_name', '?')}")
+        print(f"  context_signature.blueprint    = {first_sig.get('blueprint', '?')}")
+        print()
+        for ei, envelope in enumerate(chain, 1):
+            payload = envelope.get("payload") or {}
+            marker = "[SUPERSEDED]" if ei < len(chain) else "[ACTIVE]    "
+            print(f"  {marker} entry_hash: {envelope.get('entry_hash', '?')}")
+            print(f"               ts:         {envelope.get('ts', '?')}")
+            sup = payload.get("supersedes")
+            if sup:
+                print(f"               supersedes: {sup}")
+            print(f"               rule:       {payload.get('synthesized_protocol', '?')}")
+            print()
+    return 0
+
+
 def _profile_history_cli(args) -> int:
     """CLI entry for `episteme history axis` (Cognitive Arm A · Item 1 / Event 82).
 
@@ -3042,16 +3102,20 @@ def _profile_history_cli(args) -> int:
     - `axis <name> --record --from "..." --to "..." --reason "..."`: record a change.
     - `axis <name>`: walk + render the chronological trajectory for the axis.
     """
-    from episteme import _profile_history as ph_mod
-
     history_action = getattr(args, "history_action", None)
+
+    if history_action == "protocol":
+        return _protocol_history_cli(args)
+
     if history_action != "axis":
         print(
             f"unknown history action: {history_action!r} "
-            "(expected: axis)",
+            "(expected: axis, protocol)",
             file=sys.stderr,
         )
         return 2
+
+    from episteme import _profile_history as ph_mod
 
     if getattr(args, "list_axes", False):
         axes = ph_mod.list_axes_with_history()
@@ -4282,8 +4346,13 @@ def _guide_dispatch(args) -> int:
             print()
         return 0
 
-    # Default path — list protocols.
-    envelopes = _framework.list_protocols()
+    # Default path — list protocols. Event 84: include_superseded=True
+    # so the operator-facing `episteme guide` view shows the full
+    # synthesis history (including superseded entries) for forensic /
+    # archaeology reads. The active-guidance HOOK path uses
+    # `include_superseded=False` (the default) to surface only currently
+    # active protocols at decision-time.
+    envelopes = _framework.list_protocols(include_superseded=True)
     out_items = []
     for env in envelopes:
         if not isinstance(env, dict):
@@ -4943,6 +5012,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="Walk the supersede-with-history record streams (Cognitive Arm A)",
     )
     history_sub = history_cmd.add_subparsers(dest="history_action", required=True)
+
+    p_h_protocol = history_sub.add_parser(
+        "protocol",
+        help="Walk synthesized-protocol supersede chains (Item 4 — Cognitive Arm A core)",
+    )
+    p_h_protocol.add_argument(
+        "--project",
+        dest="project_name",
+        default=None,
+        help="Filter to a specific project_name (filters context_signature.project_name)",
+    )
+    p_h_protocol.add_argument(
+        "--list-chains",
+        dest="list_chains",
+        action="store_true",
+        help="One-line summary per chain (terse)",
+    )
+
     p_h_axis = history_sub.add_parser(
         "axis",
         help="Walk profile axis change history (or --record / --list)",

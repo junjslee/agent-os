@@ -116,7 +116,12 @@ def _framework_digest_line() -> str | None:
         sys.path.insert(0, str(_hooks_dir))
     try:
         import _framework  # type: ignore  # pyright: ignore[reportMissingImports]
-        all_protocols = _framework.list_protocols()
+        # Event 84 — pass include_superseded=True so the digest counts
+        # ALL synthesis events (including superseded ones). The digest
+        # is a "what changed since last session" metric, not a "what's
+        # currently active" view; superseded entries still count as
+        # synthesis activity worth reporting.
+        all_protocols = _framework.list_protocols(include_superseded=True)
         deferred = _framework.list_deferred_discoveries(status="pending")
     except Exception:
         return None

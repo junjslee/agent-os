@@ -112,10 +112,130 @@ def _deferred_discoveries_path() -> Path:
 # ---------------------------------------------------------------------------
 
 
+def _canonical_context_signature(sig: dict) -> str:
+    """Canonical JSON serialization of a context_signature dict for
+    equality comparison. Sort-keys + minimal separators ensures
+    byte-identical output for semantically equal signatures regardless
+    of insertion order."""
+    return json.dumps(sig, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _find_predecessor(target: Path, context_signature: dict) -> str | None:
+    """Return the entry_hash of the LATEST protocol whose
+    context_signature matches the given one, or None.
+
+    Used by ``write_protocol`` to auto-set the ``supersedes`` field on
+    a new protocol whose context_signature matches an existing one.
+    Match semantics: canonical-JSON equality of the full
+    context_signature dict.
+
+    Walks the chain in file order; latest match wins (last-write-wins
+    is the natural semantic for supersede chains).
+    """
+    if not target.is_file():
+        return None
+    target_canonical = _canonical_context_signature(context_signature)
+    last_match: str | None = None
+    for rec in _chain_iter(target, verify=True):
+        if not isinstance(rec, dict):
+            continue
+        payload = rec.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        if payload.get("type") != PROTOCOL_TYPE:
+            continue
+        sig = payload.get("context_signature")
+        if not isinstance(sig, dict):
+            continue
+        if _canonical_context_signature(sig) == target_canonical:
+            entry_hash = rec.get("entry_hash")
+            if isinstance(entry_hash, str):
+                last_match = entry_hash
+    return last_match
+
+
+def _superseded_hashes(target: Path) -> set[str]:
+    """Return the set of entry_hashes that have been superseded — i.e.,
+    hashes that appear as some later protocol's ``supersedes`` field
+    value.
+
+    Used by ``list_protocols`` (default) to filter out superseded
+    entries from active-guidance queries. The kernel's anti-Doxa
+    discipline at the protocol-routing layer: only the LATEST entry
+    in a supersede chain is active.
+    """
+    if not target.is_file():
+        return set()
+    superseded: set[str] = set()
+    for rec in _chain_iter(target, verify=True):
+        if not isinstance(rec, dict):
+            continue
+        payload = rec.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        if payload.get("type") != PROTOCOL_TYPE:
+            continue
+        sup = payload.get("supersedes")
+        if isinstance(sup, str) and sup.startswith("sha256:"):
+            superseded.add(sup)
+    return superseded
+
+
+def walk_supersede_chains(
+    *,
+    project_name: str | None = None,
+    path: Path | None = None,
+) -> list[list[dict]]:
+    """Group protocols by canonical context_signature and return chains
+    (lists of envelopes) where len(chain) > 1 — i.e., genuine supersede
+    chains where multiple protocols share the same context_signature.
+
+    Chains are returned in file order; within each chain, envelopes
+    are also in file order (oldest-first → latest).
+
+    Used by ``episteme history protocol`` CLI sub-action to show the
+    operator which context_signatures have evolved over time.
+    """
+    target = path if path is not None else _protocols_path()
+    if not target.is_file():
+        return []
+    grouped: dict[str, list[dict]] = {}
+    for rec in _chain_iter(target, verify=True):
+        if not isinstance(rec, dict):
+            continue
+        payload = rec.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        if payload.get("type") != PROTOCOL_TYPE:
+            continue
+        sig = payload.get("context_signature")
+        if not isinstance(sig, dict):
+            continue
+        if project_name is not None and sig.get("project_name") != project_name:
+            continue
+        key = _canonical_context_signature(sig)
+        grouped.setdefault(key, []).append(rec)
+    return [chain for chain in grouped.values() if len(chain) > 1]
+
+
 def write_protocol(payload: dict, *, path: Path | None = None) -> dict:
     """Append a protocol record. ``payload`` gets a ``type: "protocol"``
-    discriminator if missing; passes straight through to
-    ``_chain.append``. Returns the full envelope."""
+    discriminator if missing.
+
+    Event 84 / CP-TEMPORAL-INTEGRITY-EXPANSION-01 Item 4 — supersede
+    detection. If the payload doesn't carry an explicit ``supersedes``
+    field AND a prior protocol with matching ``context_signature``
+    exists, the new protocol's ``supersedes`` field is set to the
+    latest-matching predecessor's entry_hash. This makes
+    supersede-with-history automatic on emit (operator + synthesis
+    logic don't need to manually compute predecessor hashes).
+
+    Backward compatible: protocols without context_signature get no
+    ``supersedes`` field; existing pre-Event-84 protocols remain
+    valid; the field is additive.
+
+    Returns the full envelope.
+    """
     target = path if path is not None else _protocols_path()
     if "type" not in payload:
         payload = {**payload, "type": PROTOCOL_TYPE}
@@ -124,6 +244,15 @@ def write_protocol(payload: dict, *, path: Path | None = None) -> dict:
             f"write_protocol: payload.type must be {PROTOCOL_TYPE!r} "
             f"(got {payload['type']!r})"
         )
+
+    # Auto-detect supersede unless the caller already set the field.
+    if "supersedes" not in payload:
+        sig = payload.get("context_signature")
+        if isinstance(sig, dict):
+            predecessor = _find_predecessor(target, sig)
+            if predecessor:
+                payload = {**payload, "supersedes": predecessor}
+
     return _chain_append(target, payload)
 
 
@@ -221,12 +350,25 @@ def list_protocols(
     project_name: str | None = None,
     blueprint: str | None = None,
     path: Path | None = None,
+    include_superseded: bool = False,
 ) -> list[dict]:
     """Chain-verified read. Stops at first break. Filters on
     ``context_signature.project_name`` and ``blueprint`` when
     provided. Returns a list of envelopes — caller accesses
-    business fields via ``rec["payload"]``."""
+    business fields via ``rec["payload"]``.
+
+    Event 84 / CP-TEMPORAL-INTEGRITY-EXPANSION-01 Item 4 — by default,
+    ``include_superseded=False`` filters out protocols whose
+    ``entry_hash`` appears as some later protocol's ``supersedes``
+    field (i.e., they've been superseded). Active-guidance queries
+    (``_guidance.py:query``) inherit this filter via
+    ``_load_protocols_cached``.
+
+    Pass ``include_superseded=True`` for forensic / archaeology reads
+    that want the full chain including superseded entries.
+    """
     target = path if path is not None else _protocols_path()
+    superseded: set[str] = set() if include_superseded else _superseded_hashes(target)
     out: list[dict] = []
     for rec in _chain_iter(target, verify=True):
         payload = rec.get("payload") if isinstance(rec, dict) else None
@@ -234,6 +376,10 @@ def list_protocols(
             continue
         if payload.get("type") != PROTOCOL_TYPE:
             continue
+        if not include_superseded:
+            entry_hash = rec.get("entry_hash") if isinstance(rec, dict) else None
+            if isinstance(entry_hash, str) and entry_hash in superseded:
+                continue
         if blueprint is not None and payload.get("blueprint") != blueprint:
             continue
         if project_name is not None:
