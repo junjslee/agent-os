@@ -414,19 +414,30 @@ def reset_stream(
     reason: str,
     operator_confirmation: str,
     previous_head: str | None = None,
+    mode: str = "reset",
+    what_was_lost: str | None = None,
 ) -> ResetResult:
     """Archive any existing chain file and start a new chain with a
     ``chain_reset`` genesis record carrying the audit trail.
 
     The archived file is renamed to ``<name>.broken-<ts>.jsonl`` next
     to the original so forensics can recover it. The new chain begins
-    with a single record whose payload preserves ``reason``,
-    ``operator_confirmation``, and ``previous_head`` for Phase 12's
-    legitimate-break audit.
+    with a single record whose payload conforms to the recovery-
+    attestation envelope schema documented in
+    ``kernel/CHAIN_RECOVERY_PROTOCOL.md``: ``type``, ``mode``,
+    ``reason``, ``operator_confirmation``, ``previous_head``,
+    ``recovered_at``, ``archived_from``, ``what_was_lost``.
 
-    Never auto-called. CLI (``episteme chain reset ...``) or explicit
-    programmatic invocation only — auto-reset would be the largest
-    evasion surface on the whole pillar.
+    ``mode`` defaults to ``"reset"`` for backward compatibility with
+    pre-Event-80 callers (which only used full-rewind reset). New CP-
+    CHAIN-RECOVERY-PROTOCOL-01 callers via ``episteme chain recover
+    --mode={reset,selective,migrate}`` pass an explicit mode + an
+    optional ``what_was_lost`` description.
+
+    Never auto-called. CLI (``episteme chain reset ...`` or ``episteme
+    chain recover --mode=reset ...``) or explicit programmatic
+    invocation only — auto-reset would be the largest evasion surface
+    on the whole pillar.
     """
     if not isinstance(reason, str) or not reason.strip():
         raise ChainError("reset_stream: reason must be a non-empty string")
@@ -442,13 +453,19 @@ def reset_stream(
         archived = path.with_suffix(f".broken-{ts_slug}.jsonl")
         path.rename(archived)
 
-    # Start fresh chain with a chain_reset genesis.
+    # Start fresh chain with a chain_reset genesis carrying the
+    # recovery-attestation envelope payload (Event 80 / CP-CHAIN-
+    # RECOVERY-PROTOCOL-01). Schema documented in
+    # kernel/CHAIN_RECOVERY_PROTOCOL.md § Common payload fields.
     genesis_payload = {
         "type": "chain_reset",
+        "mode": mode,
         "reason": reason.strip(),
         "operator_confirmation": operator_confirmation.strip(),
         "previous_head": previous_head,
+        "recovered_at": _now_ts(),
         "archived_from": str(archived) if archived else None,
+        "what_was_lost": what_was_lost.strip() if what_was_lost else None,
     }
     envelope = append(path, genesis_payload)
     return ResetResult(

@@ -4015,6 +4015,70 @@ def _chain_dispatch(args) -> int:
         print(f"  new_genesis: {result.new_genesis_hash}")
         return 0
 
+    if action == "recover":
+        # CP-CHAIN-RECOVERY-PROTOCOL-01 / Event 80 — unified recovery
+        # surface. mode=reset wraps reset_stream with the documented
+        # attestation envelope fields. mode=selective and mode=migrate
+        # are stubs that name their dependencies.
+        mode = args.mode
+        if mode == "selective":
+            print(
+                "[episteme chain recover] mode=selective is not yet implemented.",
+                file=sys.stderr,
+            )
+            print(
+                "  Depends on CP-CHAIN-RECOVERY-PROTOCOL-01 Component 5 "
+                "(windowed-rebuild algorithm). See kernel/CHAIN_RECOVERY_PROTOCOL.md.",
+                file=sys.stderr,
+            )
+            return 2
+        if mode == "migrate":
+            print(
+                "[episteme chain recover] mode=migrate is not yet implemented.",
+                file=sys.stderr,
+            )
+            print(
+                "  Depends on CP-TEMPORAL-INTEGRITY-EXPANSION-01 (Cognitive Arm A) — "
+                "supersede-with-history infrastructure required by the "
+                "schema-migration walker. See kernel/CHAIN_RECOVERY_PROTOCOL.md.",
+                file=sys.stderr,
+            )
+            return 2
+        if mode != "reset":
+            print(
+                f"[episteme chain recover] unknown mode: {mode!r} "
+                "(expected one of: reset, selective, migrate)",
+                file=sys.stderr,
+            )
+            return 2
+
+        # mode == "reset": delegate to reset_stream with the new
+        # attestation fields populated.
+        stream = args.stream
+        stream_path = {
+            "protocols": Path.home() / ".episteme" / "framework" / "protocols.jsonl",
+            "deferred_discoveries": Path.home() / ".episteme" / "framework" / "deferred_discoveries.jsonl",
+            "pending_contracts": Path.home() / ".episteme" / "state" / "pending_contracts.jsonl",
+            "profile_audit_acks": Path.home() / ".episteme" / "state" / "profile_audit_acks.jsonl",
+        }[stream]
+        previous_head = None
+        prior = _chain_mod.verify_chain(stream_path)
+        if prior.head_hash:
+            previous_head = prior.head_hash
+        result = _chain_mod.reset_stream(
+            stream_path,
+            reason=args.reason,
+            operator_confirmation=args.confirm,
+            previous_head=previous_head,
+            mode="reset",
+            what_was_lost=getattr(args, "what_was_lost", None),
+        )
+        print(f"[episteme chain recover --mode=reset] status={result.status}")
+        if result.archived_path:
+            print(f"  archived_to: {result.archived_path}")
+        print(f"  new_genesis: {result.new_genesis_hash}")
+        return 0
+
     if action == "upgrade":
         # Only `protocols` has legacy cp5-pre-chain records at CP7.
         result = _framework.upgrade_cp5_prechain()
@@ -4763,6 +4827,41 @@ def build_parser() -> argparse.ArgumentParser:
         default="protocols",
         choices=["protocols"],
         help="Stream to upgrade (only `protocols` has legacy records to upgrade at CP7)",
+    )
+
+    # CP-CHAIN-RECOVERY-PROTOCOL-01 / Event 80 — unified recovery surface
+    # covering reset (functional), selective (stub), migrate (stub).
+    c_recover = chain_sub.add_parser(
+        "recover",
+        help="Recover a broken chain (mode=reset functional; mode=selective and mode=migrate stubbed pending dependent CPs)",
+    )
+    c_recover.add_argument(
+        "--mode",
+        required=True,
+        choices=["reset", "selective", "migrate"],
+        help="Recovery mode: reset (full rewind), selective (windowed-rebuild; not yet implemented), migrate (schema migration; not yet implemented)",
+    )
+    c_recover.add_argument(
+        "--stream",
+        required=True,
+        choices=["protocols", "deferred_discoveries", "pending_contracts", "profile_audit_acks"],
+        help="Which chain stream to recover",
+    )
+    c_recover.add_argument(
+        "--reason",
+        required=True,
+        help="Operator-supplied rationale (free text; recorded in the recovery-attestation envelope)",
+    )
+    c_recover.add_argument(
+        "--confirm",
+        required=True,
+        help="Operator confirmation string (e.g. 'I ACKNOWLEDGE CHAIN RESET')",
+    )
+    c_recover.add_argument(
+        "--what-was-lost",
+        dest="what_was_lost",
+        default=None,
+        help="Optional description of data that won't be carried forward (recommended for mode=reset)",
     )
 
     # CP9 — Pillar 3 active guidance query.
