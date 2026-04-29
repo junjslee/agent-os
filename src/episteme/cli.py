@@ -3095,14 +3095,17 @@ def _protocol_history_cli(args) -> int:
 
 
 def _profile_history_cli(args) -> int:
-    """CLI entry for `episteme history axis` (Cognitive Arm A · Item 1 / Event 82).
+    """CLI entry for `episteme history` subcommands.
 
-    Three modes dispatched by args:
-    - `axis --list`: enumerate axes that have at least one history entry.
-    - `axis <name> --record --from "..." --to "..." --reason "..."`: record a change.
-    - `axis <name>`: walk + render the chronological trajectory for the axis.
+    Sub-actions:
+    - `axis ...` — operator profile axis history (Item 1 / Event 82)
+    - `policy ...` — cognitive_profile / workflow_policy / agent_feedback
+      section history (Item 2 / Event 83)
     """
     history_action = getattr(args, "history_action", None)
+
+    if history_action == "policy":
+        return _policy_history_cli(args)
 
     if history_action == "protocol":
         return _protocol_history_cli(args)
@@ -3110,7 +3113,7 @@ def _profile_history_cli(args) -> int:
     if history_action != "axis":
         print(
             f"unknown history action: {history_action!r} "
-            "(expected: axis, protocol)",
+            "(expected: axis, policy, protocol)",
             file=sys.stderr,
         )
         return 2
@@ -3187,6 +3190,94 @@ def _profile_history_cli(args) -> int:
         print(f"  recorder:    {payload.get('recorder', '?')}")
         print(f"  old_value:   {payload.get('old_value', '?')}")
         print(f"  new_value:   {payload.get('new_value', '?')}")
+        print(f"  reason:      {payload.get('reason', '?')}")
+        evidence = payload.get("evidence_refs") or []
+        if evidence:
+            print(f"  evidence:    {', '.join(evidence)}")
+        print(f"  entry_hash:  {envelope.get('entry_hash', '?')}")
+        print()
+    return 0
+
+
+def _policy_history_cli(args) -> int:
+    """CLI entry for `episteme history policy` (Item 2 / Event 83)."""
+    from episteme import _policy_history as ph_mod
+
+    if getattr(args, "list_policy_files", False):
+        files = ph_mod.list_files_with_history()
+        if not files:
+            print("No policy files have recorded history yet.")
+            return 0
+        print(f"Policy files with recorded history ({len(files)}):")
+        for f in sorted(files):
+            history = ph_mod.walk_file_history(f)
+            print(f"  {f:25s}  {len(history)} entr{'y' if len(history) == 1 else 'ies'}")
+        return 0
+
+    file_name = getattr(args, "file_name", None)
+    if not file_name:
+        print(
+            "file_name is required (or pass --list to enumerate files with history).",
+            file=sys.stderr,
+        )
+        return 2
+
+    section = getattr(args, "section", None)
+    record = getattr(args, "record", False)
+
+    if record:
+        old_content = getattr(args, "from_value", None)
+        new_content = getattr(args, "to_value", None)
+        reason = getattr(args, "reason", None)
+        evidence_refs = getattr(args, "evidence_refs", None) or []
+
+        if old_content is None or new_content is None or not reason or not section:
+            print(
+                "--record requires --section, --from, --to, and --reason "
+                "(min 15 chars; lazy tokens rejected). --from / --to may be empty "
+                "strings for new-section creation or deletion.",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            envelope = ph_mod.record_change(
+                file_name,
+                section=section,
+                old_content=old_content,
+                new_content=new_content,
+                reason=reason,
+                evidence_refs=evidence_refs,
+            )
+        except ValueError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"Recorded policy change for {file_name}:{section}.")
+        print(f"  entry_hash: {envelope['entry_hash']}")
+        print(f"  recorder:   {envelope['payload'].get('recorder', 'unknown')}")
+        if evidence_refs:
+            print(f"  evidence:   {', '.join(evidence_refs)}")
+        return 0
+
+    # Default: walk + render
+    try:
+        history = ph_mod.walk_file_history(file_name, section=section)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    if not history:
+        scope = f"{file_name}:{section}" if section else file_name
+        print(f"No recorded history for {scope!r}.")
+        return 0
+    scope = f"{file_name}:{section}" if section else file_name
+    print(f"History for {scope} ({len(history)} entr{'y' if len(history) == 1 else 'ies'}):")
+    print()
+    for envelope in history:
+        payload = envelope.get("payload", {})
+        print(f"  recorded_at: {payload.get('recorded_at', '?')}")
+        print(f"  recorder:    {payload.get('recorder', '?')}")
+        print(f"  section:     {payload.get('section', '?')}")
+        print(f"  old:         {payload.get('old_content', '?')}")
+        print(f"  new:         {payload.get('new_content', '?')}")
         print(f"  reason:      {payload.get('reason', '?')}")
         evidence = payload.get("evidence_refs") or []
         if evidence:
@@ -4140,6 +4231,12 @@ def _chain_dispatch(args) -> int:
             history_verdict = _ph_mod.verify_chain()
         except Exception:  # noqa: BLE001 — degrade gracefully
             history_verdict = None
+        # CP-TEMPORAL-INTEGRITY-EXPANSION-01 Item 2 / Event 83 — policy_history
+        try:
+            from episteme import _policy_history as _polh_mod
+            policy_history_verdict = _polh_mod.verify_chain()
+        except Exception:  # noqa: BLE001 — degrade gracefully
+            policy_history_verdict = None
         all_intact = True
         for stream_name, verdict in (
             ("protocols", fw.get("protocols")),
@@ -4148,6 +4245,7 @@ def _chain_dispatch(args) -> int:
             ("pending_contracts_archive", pc_arch),
             ("profile_audit_acks", ack_verdict),
             ("profile_history", history_verdict),
+            ("policy_history", policy_history_verdict),
         ):
             if verdict is None:
                 continue
@@ -5012,6 +5110,54 @@ def build_parser() -> argparse.ArgumentParser:
         help="Walk the supersede-with-history record streams (Cognitive Arm A)",
     )
     history_sub = history_cmd.add_subparsers(dest="history_action", required=True)
+
+    p_h_policy = history_sub.add_parser(
+        "policy",
+        help="Walk operator-policy section change history (cognitive_profile / workflow_policy / agent_feedback)",
+    )
+    p_h_policy.add_argument(
+        "file_name",
+        nargs="?",
+        choices=["cognitive_profile", "workflow_policy", "agent_feedback"],
+        help="One of cognitive_profile / workflow_policy / agent_feedback (omit when using --list)",
+    )
+    p_h_policy.add_argument(
+        "--section",
+        help="Filter to a specific section (e.g., 'Decision Engine'); omit to walk all sections",
+    )
+    p_h_policy.add_argument(
+        "--list",
+        dest="list_policy_files",
+        action="store_true",
+        help="List policy files that have recorded history",
+    )
+    p_h_policy.add_argument(
+        "--record",
+        action="store_true",
+        help="Record a new policy change entry (requires --section / --from / --to / --reason)",
+    )
+    p_h_policy.add_argument(
+        "--from",
+        dest="from_value",
+        help="Prior content / state description (free-form; may be empty for new sections)",
+    )
+    p_h_policy.add_argument(
+        "--to",
+        dest="to_value",
+        help="New content / state description (free-form; may be empty for deletions)",
+    )
+    p_h_policy.add_argument(
+        "--reason",
+        help="Substantive reason for the change (min 15 chars; lazy tokens rejected)",
+    )
+    p_h_policy.add_argument(
+        "--evidence-refs",
+        dest="evidence_refs",
+        nargs="*",
+        default=[],
+        metavar="REF",
+        help="Optional event/episode references",
+    )
 
     p_h_protocol = history_sub.add_parser(
         "protocol",
