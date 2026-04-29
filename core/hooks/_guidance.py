@@ -211,6 +211,69 @@ def _clear_cache_for_tests() -> None:
 # ---------------------------------------------------------------------------
 
 
+def query_top_k(
+    candidate_signature: ContextSignature,
+    *,
+    k: int = 3,
+    cwd: Path,
+    min_overlap: int | None = None,
+) -> list[GuidanceMatch]:
+    """Ranked-with-disclosure helper — Event 86 / CP-ACTIVE-GUIDANCE-
+    RANKING-AUDIT-01. Returns the top-K matching protocols (descending
+    by overlap, then ts) instead of just the top-1.
+
+    Spec: kernel/ACTIVE_GUIDANCE_RANKING.md. Operators use this for
+    forensic / spot-check / 'why did the kernel surface THIS protocol?'
+    workflows. The hot-path `query()` (single-result) remains the
+    primary active-guidance API.
+    """
+    threshold = min_overlap if min_overlap is not None else load_min_overlap(cwd)
+    try:
+        protocols = _load_protocols_cached(candidate_signature.project_name)
+    except Exception:
+        return []
+    if not protocols:
+        return []
+
+    vapor_cids = _build_vapor_correlation_set()
+
+    ranked: list[tuple[int, str, dict]] = []
+    for envelope in protocols:
+        if not isinstance(envelope, dict):
+            continue
+        payload = envelope.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        cid = payload.get("correlation_id")
+        if isinstance(cid, str) and cid in vapor_cids:
+            continue
+        stored = payload.get("context_signature")
+        if not isinstance(stored, dict):
+            continue
+        overlap = field_overlap(candidate_signature, {"context_signature": stored})
+        if overlap < threshold:
+            continue
+        ts = str(envelope.get("ts") or "")
+        ranked.append((overlap, ts, payload))
+
+    if not ranked:
+        return []
+    # Same sort as `query`: primary = overlap desc (specificity);
+    # secondary = ts desc (recency tiebreaker). Anti-Doxa: NO
+    # popularity / use-count / frequency input. Audit doc:
+    # kernel/ACTIVE_GUIDANCE_RANKING.md.
+    ranked.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    matches: list[GuidanceMatch] = []
+    for overlap_val, ts_val, payload_val in ranked[:k]:
+        matches.append(GuidanceMatch(
+            protocol_payload=payload_val,
+            overlap=overlap_val,
+            synthesized_at=ts_val,
+            correlation_id=str(payload_val.get("correlation_id") or ""),
+        ))
+    return matches
+
+
 def query(
     candidate_signature: ContextSignature,
     *,
