@@ -49,10 +49,23 @@ def build_settings(governance_mode: str = "balanced") -> dict:
     pretool_entries = [
         {"matcher": "Bash", "hooks": [hook_cmd("block_dangerous.py")]},
         {"matcher": "Bash|Write|Edit|MultiEdit", "hooks": [hook_cmd("reasoning_surface_guard.py")]},
+        # Cognitive Arm A auto-instrumentation pre-snapshot (Event 91).
+        # Snapshots watched-file content (operator_profile.md +
+        # cognitive_profile.md + workflow_policy.md + agent_feedback.md)
+        # so the post hook can diff and emit trajectory entries. No-op
+        # for unwatched files. Pairs with `_arm_a_post.py` via
+        # correlation_id (Event 50 candidate-list pattern).
+        {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("_arm_a_pre.py")]},
     ]
     posttool_entries = [
         {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("format.py", async_=True)]},
         {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("test_runner.py")]},
+        # Cognitive Arm A auto-instrumentation post-record (Event 91).
+        # Reads marker from `_arm_a_pre.py`, diffs pre vs post, emits
+        # one trajectory entry per (axis,field) change for profile or
+        # per H2 section for policy. auto_recorded=True flag in payload
+        # lets future audits filter manual vs automated entries.
+        {"matcher": "Write|Edit|MultiEdit", "hooks": [hook_cmd("_arm_a_post.py")]},
         # PostToolUse Bash writers (Path-A Event 38 — 2026-04-23).
         # These existed in hooks/hooks.json since CP7/CP8 but were never
         # added to build_settings(), so `episteme sync` never registered

@@ -202,6 +202,7 @@ def record_change(
     *,
     evidence_refs: Iterable[str] | None = None,
     recorder: str | None = None,
+    auto_recorded: bool = False,
     reflective_dir: Path | None = None,
     _now: datetime | None = None,  # test seam
 ) -> dict:
@@ -209,6 +210,11 @@ def record_change(
 
     Raises ValueError on invalid file_name / section / reason / non-string
     content.
+
+    ``auto_recorded`` (Event 91): forward-compat field for entries written
+    by the post-edit hook pair. Defaults False (manual). Auto entries
+    pass full validation; the flag lets future audits filter manual vs
+    automated trajectory data.
     """
     validate_file_name(file_name)
     validate_section(section)
@@ -227,6 +233,7 @@ def record_change(
         "recorded_at": now.isoformat(),
         "recorder": recorder or _resolve_recorder(),
         "evidence_refs": list(evidence_refs) if evidence_refs else [],
+        "auto_recorded": bool(auto_recorded),
     }
     return _chain.append(_resolve_path(reflective_dir), payload)
 
