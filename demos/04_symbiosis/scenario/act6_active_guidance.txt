@@ -1,51 +1,134 @@
-A week later. Different endpoint. Same shape.
+A day later. 2026-04-28. The operator opens a new session.
+
 
 ────────────────────────────────────────────────────────────────────────────────
-$ # The user opens a new session.
-$ # /api/users is now the slow one.
-$ # The user types:
+$ # Event 66 had executed Path C step 1 with broader scope (10 docs, two tiers)
+$ # — privatize Tier 1 (operational: NEXT_STEPS, PLAN, PROGRESS, ...) and
+$ # Tier 2 (positioning: POSTURE, NARRATIVE, COGNITIVE_SYSTEM_PLAYBOOK, ...).
+$ # The agent (me, in real session) had completed the action.
+$ # The operator types:
 ────────────────────────────────────────────────────────────────────────────────
 
-  > "add caching to /api/users — it's slow."
+  > "You executed it but didn't codify the protocol.
+     Future agents will repeat the question-substitution failure on the
+     next new doc. Add the rule to AGENTS.md so they inherit the discipline."
 
 ────────────────────────────────────────────────────────────────────────────────
-[episteme guide] active-guidance fired BEFORE the agent drafted a surface
+  ↑ The operator caught the agent's executed-but-uncodified state.
+    The protocol from Act 5 had been APPLIED but not CODIFIED.
+    Application alone does not propagate to future agents.
 ────────────────────────────────────────────────────────────────────────────────
 
-  Past pattern in this project (synthesized 2026-04-30 from /api/orders work):
 
-    context: endpoint-perf-regression + cache-recommended-prematurely
-    rule:    when remediation precedes measurement, surface the
-             disconfirmation requirement before recommending implementation
+────────────────────────────────────────────────────────────────────────────────
+[episteme] Active guidance fires (the protocol synthesized in Act 5 surfaces
+                                  on its own follow-up application)
+────────────────────────────────────────────────────────────────────────────────
 
-  Last firing of this protocol:
-    decision_id: 2026-04-30-orders-perf-regression
-    outcome:     diagnosis revealed N+1 ORM query (cache would have masked)
-    fix:         schema-layer dataloader, not Redis
+  Past pattern (synthesized 2026-04-27, Event 65):
 
-  Suggest: pull the query plan FIRST. If the bottleneck shape is cache-
-  amenable, proceed. If it is N+1 / lock contention / GC, do not write the
-  cache.
+    context  : irreversible-bundle-proposal + status-pressure
+    rule     : decompose along reversibility lines BEFORE any op runs;
+               ship reversible halves NOW, evidence-gate the rest
 
-  Source: ~/.episteme/framework/protocols.jsonl, hash a1f4c8e2…
+  This guidance fires now because Event 67 is structurally a Path-C-step-2
+  question: do we (a) ship the AGENTS.md codification as a SINGLE OP today
+  (reversible — it is a doc edit), or (b) defer it pending more design
+  thought?
+
+  Recommendation: (a). The AGENTS.md edit is reversible-class; deferring it
+  has no benefit; the protocol's whole purpose is durability across sessions.
+  The next agent on this repo reads AGENTS.md at session start; without
+  the codification, that agent does not inherit the discipline.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-  ↑ The advisory above appeared on the user's screen BEFORE the agent
-    started drafting a Reasoning Surface for the new request.
-  ↓ The user, having already been through this loop once, types again:
 
-  > "audit /api/users — pull the query plan and the trace.
-     don't write anything until we identify the time-dominant component."
+────────────────────────────────────────────────────────────────────────────────
+[Event 67 commits]
+
+  AGENTS.md gains a top-level section:
+
+    ## Doc Classification Policy
+
+    PUBLIC tier criteria:
+      - architecture / spec / contract
+      - kernel docs
+      - user references
+      - GTM (AGPL-3.0 protected)
+
+    PRIVATE tier criteria:
+      - operational state
+        ("where I am, what I'm doing, what I'm fighting")
+      - positioning narrative ("how I market")
+      - historical decision logs
+
+    Default-when-uncertain rule:
+      PRIVATIZE
+      (leaks are expensive to revert: filter-repo + force-push + announce)
+
+    Classification test (for any new doc):
+      Could a competitor
+        (a) replicate the workflow,
+        (b) anticipate the next move,
+        (c) copy the positioning, or
+        (d) find an unfixed weakness
+      from this doc?
+      Any 'yes' → PRIVATE.
+
+    5-step privatize mechanism:
+      1. cp <public-path> ~/episteme-private/<path>
+      2. diff to verify byte-identity
+      3. git rm --cached <public-path>
+      4. ln -s ../../episteme-private/<path> <public-path>
+      5. echo "<public-path>" >> .gitignore
+
+    Cross-ref repair discipline:
+      - Run `git grep` for the privatized path
+      - Repair any public-tier 404s
+      - Leave descriptive references for readers
+      - Never edit kernel/CHANGELOG.md historical entries
+
+    For NEW docs:
+      Classify BEFORE first write.
+      If operational/positioning, create directly in private staging.
 
 ────────────────────────────────────────────────────────────────────────────────
 
-  No one had to remember the protocol. The framework remembered.
-  The user did not have to coach the agent. The framework coached the user.
-  The agent did not have to draft an under-grounded plan. The framework
-  surfaced the protocol that prevented the under-grounded plan from being
-  drafted in the first place.
 
-  This is the loop. This is what the project is for.
+────────────────────────────────────────────────────────────────────────────────
+  The loop closes.
+
+  Three rounds, in 24 hours:
+
+    Round 1 (Event 65): Operator's anxiety-driven Path A.
+      Kernel's adversarial review surfaced 3 Critical findings.
+      Profile-audit drift independently corroborated.
+      Operator chose Path C (decompose, ship reversible, defer irreversible).
+
+    Round 2 (Event 66): Agent's narrow scope ('forward-vision-only').
+      Operator caught the question-substitution failure.
+      Scope re-decomposed (10 docs, two tiers) using the same protocol.
+
+    Round 3 (Event 67): Agent's executed-but-uncodified state.
+      Operator caught the rule had not propagated to future agents.
+      AGENTS.md codified the protocol as constitution.
+
+  Both parties caught each other's failure shapes. Neither failed silently.
+  The protocol that resolved Round 1 is now durable, hash-chained, and
+  load-bearing on every future doc this repo ships.
+
+  The next agent (you, reading this) inherits the rule by reading AGENTS.md
+  at session start. The discipline propagated forward without anyone
+  needing to remember it.
+
+  This is what the kernel does. This is symbiosis on a 24-hour loop, with
+  the protocol the loop produced becoming the constitution that prevents
+  the loop's own failure shapes from happening again.
+
+  No fictional API. No contrived example. Real history. Audit-trailed in
+  ~/episteme-private/docs/NEXT_STEPS.md Events 65, 66, 67 — and now in
+  AGENTS.md, where every future agent on this repo reads it on session
+  start and inherits the discipline.
 
 ────────────────────────────────────────────────────────────────────────────────

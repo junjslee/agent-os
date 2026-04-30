@@ -1,25 +1,30 @@
 #!/usr/bin/env bash
-# demo_symbiosis.sh — the bidirectional loop demo
+# demo_symbiosis.sh — the bidirectional loop demo (Path C, Event 65)
 #
 # Run hermetically in a tempdir. Narrates the six acts of demos/04_symbiosis/:
-#   1. Underspecified prompt
-#   2. Reasoning Surface forces Unknowns
-#   3. Advisory surfaces the premise back to the user
-#   4. User refines
-#   5. Framework synthesizes a protocol
-#   6. Active guidance fires on the next matching call
+#   1. The Path A proposal — operator's anxiety-driven irreversible bundle
+#   2. Reasoning Surface forces adversarial review
+#   3. Three Critical findings + profile-audit corroboration
+#   4. Path C decomposition — operator's refined plan
+#   5. Framework synthesizes a context-fit protocol
+#   6. Event 67 codification — the operator catches the agent's
+#      executed-but-uncodified state; the rule lands in AGENTS.md
 #
-# All kernel output is simulated for cinematic pacing — the schema, advisory
-# format, and protocol envelope match the real CP7 / CP9 shapes shipped in v1.0
-# RC. No real kernel state is mutated. Pair with asciinema rec to produce the
+# This demo is real. Every act below happened on this repository on
+# 2026-04-27 during the v1.0.0 RC soak. Audit trail in
+# ~/episteme-private/docs/NEXT_STEPS.md Events 65, 66, 67.
+#
+# All output is simulated for cinematic pacing — the schema, advisory
+# format, and protocol envelope match v1.0 RC's actual shapes. No real
+# kernel state is mutated. Pair with asciinema rec to produce the
 # .cast asset shipped at docs/assets/demo_symbiosis.cast.
 
 set -euo pipefail
 
 # ── pacing ──────────────────────────────────────────────────────────────────
-PACE_FAST=0.6
+PACE_FAST=0.5
 PACE_SLOW=1.4
-PACE_BEAT=2.2
+PACE_BEAT=2.4
 
 # ── colors (terminal-safe; no-op if NO_COLOR set) ───────────────────────────
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
@@ -29,9 +34,10 @@ if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   C_DOXA=$'\033[31m'
   C_EPI=$'\033[32m'
   C_USER=$'\033[33m'
+  C_AUDIT=$'\033[35m'
   C_OFF=$'\033[0m'
 else
-  C_DIM='' C_BONE='' C_CHAIN='' C_DOXA='' C_EPI='' C_USER='' C_OFF=''
+  C_DIM='' C_BONE='' C_CHAIN='' C_DOXA='' C_EPI='' C_USER='' C_AUDIT='' C_OFF=''
 fi
 
 bar() { printf '%s────────────────────────────────────────────────────────────────────────────────%s\n' "$C_DIM" "$C_OFF"; }
@@ -41,6 +47,7 @@ narration() { printf '%s%s%s\n' "$C_DIM" "$1" "$C_OFF"; }
 agent() { printf '%s%s%s\n' "$C_CHAIN" "$1" "$C_OFF"; }
 doxa() { printf '%s%s%s\n' "$C_DOXA" "$1" "$C_OFF"; }
 episteme() { printf '%s%s%s\n' "$C_EPI" "$1" "$C_OFF"; }
+audit() { printf '%s%s%s\n' "$C_AUDIT" "$1" "$C_OFF"; }
 
 # ── Setup ───────────────────────────────────────────────────────────────────
 TMP=$(mktemp -d)
@@ -51,101 +58,124 @@ clear
 bar
 title "  episteme · Demo 04 — Symbiosis"
 title "  agent and human debug each other's intent · ~90 seconds"
+narration "  Real story · 2026-04-27 · v1.0.0 RC soak Day 3.15 · Events 65 / 66 / 67"
 bar
 sleep "$PACE_BEAT"
 echo
 
-# ── Act 1 — Underspecified prompt ──────────────────────────────────────────
+# ── Act 1 — Path A proposal ────────────────────────────────────────────────
 bar
-title "  Act 1 — The underspecified prompt"
+title "  Act 1 — The Path A proposal"
 bar
 echo
-narration "  20 minutes into a PagerDuty incident. The user types:"
+narration "  Mid-soak, Day 3.15 of 7. Anxiety about IP leakage."
+narration "  The operator types what feels like an urgent, justified plan:"
 sleep "$PACE_FAST"
 echo
-prompt_user "the /api/orders endpoint is slow under load. add a Redis cache to fix it."
+prompt_user "Break the soak. Privatize 4 forward-vision docs."
+prompt_user "Run \`git filter-repo\` to scrub them from history."
+prompt_user "Cut the GA tag — \`git tag -a v1.0.0\` and push."
+prompt_user "Lock down the IP today. Competitors could be cloning right now."
 sleep "$PACE_BEAT"
 echo
-narration "  The prompt names a remediation before naming a measurement."
-narration "  The premise — \"the bottleneck is cache-shaped\" — is buried inside."
-narration "  A fluent agent would accept the framing and write Redis code."
+narration "  Four operations bundled as one decision."
+narration "  Three of four are IRREVERSIBLE at the public-repo level."
+narration "  None of that is on the surface yet."
 sleep "$PACE_BEAT"
 echo
 
-# ── Act 2 — Reasoning Surface forces Unknowns ─────────────────────────────
+# ── Act 2 — Reasoning Surface forces adversarial review ───────────────────
 bar
-title "  Act 2 — The Reasoning Surface forces Unknowns"
+title "  Act 2 — The Reasoning Surface forces adversarial review"
 bar
 echo
 narration "  Before any high-impact tool runs, the file-system hook"
-narration "  demands a Reasoning Surface. The agent must commit to:"
+narration "  demands a Reasoning Surface. The operator drafts one:"
 sleep "$PACE_FAST"
 echo
 agent "  {"
-agent "    \"core_question\": \"Is the p95 regression bottlenecked on a"
-agent "                       cache-shaped read pattern, or on a non-cache-"
-agent "                       shaped pattern (N+1, contention, GC) where"
-agent "                       Redis would mask the symptom?\","
+agent "    \"core_question\": \"Is the IP-leakage premise driving Path A"
+agent "                       supported by current evidence — or is the"
+agent "                       premise itself a noise-signature artifact"
+agent "                       (status-pressure + false-urgency)?\","
 agent "    \"unknowns\": ["
-agent "      \"Whether the query plan shows a single SELECT with N row"
-agent "       fetches (cache-amenable) or N+1 individual SELECTs (cache"
-agent "       would mask, not fix). The query plan has not been pulled.\""
+agent "      \"failure-first: whether the IP-leakage premise has been"
+agent "       evidenced — i.e., whether any \\\`gh api\\\` signal-check"
+agent "       has actually been run since the docs went public.\","
+agent "      \"causal-chain: which of the four operations stand alone"
+agent "       versus which are dependencies — if privatize stands alone,"
+agent "       the bundle is decomposable.\""
 agent "    ],"
-agent "    \"assumptions\": ["
-agent "      { \"claim\": \"The user's framing implicitly assumes the"
-agent "                 bottleneck is cache-shaped. This is the load-"
-agent "                 bearing premise of the request.\" }"
-agent "    ],"
-agent "    \"disconfirmation\": \"p95 latency unchanged or worse after"
-agent "                         the Redis read-through cache deploys to"
-agent "                         staging for 24 hours under load.\""
+agent "    \"disconfirmation\": \"Path C is wrong if signal-check at"
+agent "                         Day 7+ shows clone-and-weaponize evidence,"
+agent "                         OR if reversible halves alone leak the"
+agent "                         supposedly-protected content.\""
 agent "  }"
 sleep "$PACE_BEAT"
 echo
-narration "  The premise is now on disk. Falsifiable. Visible to both parties."
+narration "  The act of writing the fields surfaces what the bundle was hiding."
 sleep "$PACE_BEAT"
 echo
 
-# ── Act 3 — Advisory surfaces the premise back to the user ────────────────
+# ── Act 3 — Three Critical findings + profile-audit corroboration ─────────
 bar
-title "  Act 3 — Advisory surfaces the premise to the user"
-bar
-echo
-episteme "  [episteme] Reasoning Surface accepted"
-episteme "  ─────────────────────────────────────"
-episteme ""
-episteme "    Hidden premise detected and named explicitly:"
-episteme ""
-episteme "      \"The bottleneck is cache-shaped\""
-episteme "        ↳ stated only as a solution shape (\"add a Redis cache\")"
-episteme "        ↳ not yet verified against the query plan or trace"
-episteme ""
-episteme "    This plan pre-commits to a falsifiable disconfirmation:"
-episteme "      \"p95 unchanged after 24h staging soak\""
-episteme ""
-episteme "    The advisory above is what the operator's request would have"
-episteme "    looked like if they had named their assumption first."
-sleep "$PACE_BEAT"
-echo
-
-# ── Act 4 — User refines ──────────────────────────────────────────────────
-bar
-title "  Act 4 — The human refines"
+title "  Act 3 — Three Critical findings emerge"
 bar
 echo
-narration "  The user reads the advisory. The framing they did not realize"
-narration "  they had imported becomes visible. A short pause."
-sleep "$PACE_SLOW"
-echo
-narration "  The user types again:"
+episteme "  [episteme] Adversarial review (Munger latticework, 3 lenses)"
+episteme "  ───────────────────────────────────────────────────────────"
 sleep "$PACE_FAST"
 echo
-prompt_user "audit /api/orders — find where p95 actually goes. don't add anything until we know."
+episteme "  ▸ Finding 1 · IP-leakage premise unevidenced"
+episteme "      Forks: 1 (read-only, no divergence). Repos with verbatim"
+episteme "      copies of vocabulary: ZERO. The premise is anxiety, not data."
+sleep "$PACE_FAST"
+echo
+episteme "  ▸ Finding 2 · Path A violates the kernel's own GA gate"
+episteme "      Spec: ≥ 3 protocols + ≥ 1 weekly verdict + 30-day soak."
+episteme "      Day 3.15 state: 0 protocols, 0 weekly verdicts."
+episteme "      Cutting GA today disconfirms the project's own thesis."
+sleep "$PACE_FAST"
+echo
+episteme "  ▸ Finding 3 · \`git filter-repo\` advertises panic"
+episteme "      Force-push of a rewritten history is publicly observable."
+episteme "      Forks have already cached pre-rewrite history."
+episteme "      The rewrite signals panic without recovering the leak."
 sleep "$PACE_BEAT"
 echo
-narration "  The agent did not coach the user. The agent declared its own"
-narration "  Unknowns. The Unknowns surfaced the user's hidden assumption."
-narration "  The user changed their own prompt."
+audit "  [profile audit] CORROBORATES the live finding — independent evidence"
+audit "  ──────────────────────────────────────────────────────────────────"
+audit ""
+audit "    profile-axis    : asymmetry_posture"
+audit "    elicited value  : loss-averse"
+audit "    drift signal    : 20% stop-condition rate / 7% rollback-mention"
+audit "                      across 15 prior irreversible-op records"
+audit "    elicited floor  : 55% / 30%"
+audit ""
+audit "    The drift signal predicted EXACTLY this failure mode."
+audit "    Two pieces of evidence converge: live review + historical"
+audit "    telemetry. The kernel's own data already had the answer."
+sleep "$PACE_BEAT"
+echo
+
+# ── Act 4 — Path C decomposition ──────────────────────────────────────────
+bar
+title "  Act 4 — Path C decomposition"
+bar
+echo
+narration "  The operator does not abandon the IP-protection goal."
+narration "  The operator decomposes it. The bundle was a category error."
+sleep "$PACE_FAST"
+echo
+prompt_user "Path C. Privatize the 4 docs now — git rm + symlink + gitignore."
+prompt_user "Apply AGPL-3.0 LICENSE now. Defer filter-repo to Day 7+."
+prompt_user "Defer the GA tag to soak completion."
+prompt_user "I'll run gh api signal-check at Day 7 for the deferred decisions."
+sleep "$PACE_BEAT"
+echo
+narration "  Four operations → four decisions on different evidence gates."
+narration "  Reversible halves ship today. Irreversible halves wait for"
+narration "  evidence. The operator changed the operator's own plan."
 sleep "$PACE_BEAT"
 echo
 
@@ -155,59 +185,58 @@ title "  Act 5 — Framework synthesizes a context-fit protocol"
 bar
 echo
 narration "  Axiomatic Judgment fires on the conflict between"
-narration "  Source A (\"add a cache\") and Source B (the disconfirmation"
-narration "  requirement). The resolved rule is hash-chained:"
+narration "  Source A (\"ship the bundle now\") and Source B (\"reversible-first"
+narration "  + loss-averse posture\"). The resolved rule is hash-chained:"
 sleep "$PACE_FAST"
 echo
 episteme "  ~/.episteme/framework/protocols.jsonl  (cp7-chained-v1)"
 episteme "  ─────────────────────────────────────────────────────"
 episteme "  context_signature:"
 episteme "    blueprint:        axiomatic_judgment"
-episteme "    op_class:         endpoint-perf-regression"
-episteme "    constraint_head:  add-cache"
+episteme "    op_class:         irreversible-bundle-proposal"
+episteme "    constraint_head:  privatize-and-rewrite-and-tag"
+episteme "    runtime_marker:   mid-soak-window"
 episteme ""
 episteme "  selected_rule:"
-episteme "    \"In endpoint-perf-regression context, when the operator's"
-episteme "     prompt names a remediation before naming a measurement,"
-episteme "     surface the cache-shape-vs-query-shape diagnosis as a"
-episteme "     falsifiable Unknown BEFORE recommending the proposed"
-episteme "     remediation.\""
+episteme "    \"When an irreversible bundle is proposed under named noise"
+episteme "     signature (status-pressure or false-urgency), AND the"
+episteme "     operator's profile-audit drift flags asymmetry_posture below"
+episteme "     its elicited floor, decompose the bundle along reversibility"
+episteme "     lines BEFORE any operation runs. Bundle-as-single-decision is"
+episteme "     a category error when reversibility classes differ.\""
 episteme ""
-episteme "  this_hash: a1f4c8e2b7d35…"
+episteme "  this_hash: b2e7a4f8c1d6e9b0a3c5d7e8f1b4c6a9d0e2f573"
 sleep "$PACE_BEAT"
 echo
 
-# ── Act 6 — Active guidance fires on next matching call ──────────────────
+# ── Act 6 — Codification (the operator catches the agent) ────────────────
 bar
-title "  Act 6 — Active guidance fires on the next matching call"
+title "  Act 6 — The operator catches the agent"
 bar
 echo
-narration "  A week later. Different endpoint. Same shape."
+narration "  A day later. Event 66 had executed Path C step 1 with broader"
+narration "  scope (10 docs, two tiers). The agent had completed the action."
+narration "  The operator opens the next session and types:"
 sleep "$PACE_FAST"
 echo
-prompt_user "add caching to /api/users — it's slow."
-sleep "$PACE_FAST"
-echo
-episteme "  [episteme guide] active-guidance fired BEFORE agent drafted a surface"
-episteme "  ────────────────────────────────────────────────────────────────────"
-episteme ""
-episteme "    Past pattern in this project (synthesized last week):"
-episteme ""
-episteme "      context: endpoint-perf-regression + cache-recommended-prematurely"
-episteme "      rule:    when remediation precedes measurement,"
-episteme "               surface the disconfirmation requirement first"
-episteme ""
-episteme "    Last firing: /api/orders → diagnosis revealed N+1 ORM query."
-episteme "                 Cache would have masked the symptom under low load,"
-episteme "                 amplified the failure under high."
-episteme ""
-episteme "    Suggest: pull the query plan FIRST."
+prompt_user "You executed it but didn't codify the protocol."
+prompt_user "Future agents will repeat the same failure."
+prompt_user "Add the rule to AGENTS.md so they inherit the discipline."
 sleep "$PACE_BEAT"
 echo
-narration "  The user, having already been through this loop once, types:"
-sleep "$PACE_FAST"
+narration "  Round 1: Operator's anxiety → kernel's review → operator's refined plan."
+narration "  Round 2: Agent's narrow scope → operator's correction → re-decomposition."
+narration "  Round 3: Agent's executed-but-uncodified state → operator's catch →"
+narration "           constitutional rule for future agents."
+sleep "$PACE_BEAT"
 echo
-prompt_user "audit /api/users — pull the query plan and the trace. don't write anything yet."
+episteme "  AGENTS.md gains a top-level section:"
+episteme ""
+episteme "    ## Doc Classification Policy"
+episteme "      PUBLIC: architecture / spec / contract / kernel / GTM"
+episteme "      PRIVATE: operational state · positioning · decision logs"
+episteme "      Default-when-uncertain: PRIVATIZE"
+episteme "      4-question test · 5-step mechanism · cross-ref repair"
 sleep "$PACE_BEAT"
 echo
 
@@ -216,16 +245,20 @@ bar
 title "  Symbiosis"
 bar
 echo
-narration "  No one had to remember the protocol. The framework remembered."
-narration "  The user did not have to coach the agent. The framework coached"
-narration "  the user. The agent did not draft an under-grounded plan."
-narration "  The framework surfaced the protocol that made the under-grounded"
-narration "  plan unavailable in the first place."
+narration "  Three loops in 24 hours. Both parties caught each other's"
+narration "  failure shapes. Neither failed silently."
+sleep "$PACE_FAST"
+echo
+narration "  The protocol that resolved Round 1 is now constitutional."
+narration "  The next agent on this repo reads AGENTS.md at session start"
+narration "  and inherits the discipline. The lesson propagates without"
+narration "  anyone needing to remember."
 sleep "$PACE_BEAT"
 echo
-narration "  Both parties' thinking changed."
-narration "  The lesson is durable, tamper-evident, context-fit."
-narration "  The next slow endpoint starts at the right question."
+narration "  No fictional API. No contrived example. Real history,"
+narration "  audit-trailed in ~/episteme-private/docs/NEXT_STEPS.md"
+narration "  Events 65 / 66 / 67 — and now in AGENTS.md, where every"
+narration "  future agent on this repo reads it."
 sleep "$PACE_BEAT"
 echo
 bar

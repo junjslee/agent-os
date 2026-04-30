@@ -1,50 +1,56 @@
 {
   "schema": "episteme/reasoning-surface@1",
-  "decision_id": "2026-04-30-orders-perf-regression",
+  "decision_id": "2026-04-27-mid-soak-bundle-decomposition",
   "operator": "default",
-  "timestamp": "2026-04-30T03:15:00Z",
-  "domain": "complicated",
+  "timestamp": "2026-04-27T18:42:00Z",
+  "domain": "complex",
   "tacit_call": false,
-  "core_question": "Is the p95 regression on /api/orders bottlenecked on a cache-shaped read pattern, or on a non-cache-shaped pattern (N+1 query, lock contention, network egress, GC pause) where adding Redis would mask the symptom without fixing the cause?",
+  "core_question": "Is the IP-leakage premise driving Path A (privatize + filter-repo + GA-tag + soak-break, all today) supported by current evidence — or is the premise itself a noise-signature artifact (status-pressure + false-urgency), in which case bundling four operations of different reversibility classes is the load-bearing failure mode and the bundle must be decomposed before any irreversible operation runs?",
   "knowns": [
-    "p95 latency on /api/orders has crossed the 800ms SLO threshold for 20 consecutive minutes per the PagerDuty incident.",
-    "/api/orders fans out to two tables (orders + line_items) via the ORM's default relation loader.",
-    "Redis is already provisioned in this project's infrastructure — adding a cache layer is a hours-of-work change, not a days-of-work change.",
-    "The user's first prompt proposed Redis caching as the fix without referencing any measurement that names the bottleneck shape."
+    "v1.0.0 RC soak is at Day 3.15 of 7. Anchor: 2026-04-23T21:23:36Z. Spec gates require ≥ 3 protocols + ≥ 1 Layer-8 weekly verdict + 30-day soak window. Day 3.15 state: 0 protocols, 0 weekly verdicts. Cutting GA today provably violates the kernel's own GA gate.",
+    "Forward-vision docs in question (DESIGN_V1_1_REASONING_ENGINE / ROADMAP_POST_V1 / POST_SOAK_MIGRATION_PLAN / POST_SOAK_TRIAGE) have been public since 2026-04-22 — 5 days. No `gh api` signal check has been run; clone-and-weaponize within 96h has near-zero base rate (forks: 0 with content divergence; clones: explainable by automated scrapers + plugin-marketplace polling).",
+    "`git filter-repo` rewrites public git history. Operation is irreversible at the origin level — every fork already has the old history cached. The act of force-pushing a rewrite is itself a publicly observable signal.",
+    "Operator's elicited cognitive profile axes include `asymmetry_posture: loss-averse` (irreversible ops require explicit checkpoint per `workflow_policy.md` Risk and Autonomy Policy) and `noise_signature: {status-pressure, false-urgency}` (named in `cognitive_profile.md`).",
+    "Profile-audit drift signal on `asymmetry_posture` is currently flagged: 20% stop-condition rate / 7% rollback-mention rate across 15 prior irreversible-op records, against the elicited `loss-averse` floor of 55% / 30%. The drift signal predicts exactly this failure mode (anxiety-driven irreversible op against elicited loss-averse posture).",
+    "The four operations in Path A have different reversibility classes: privatize (reversible) · filter-repo (irreversible at public-repo level) · GA-tag cut (irreversible) · soak-break (irreversible — collapses observation window data)."
   ],
   "unknowns": [
-    "Whether the per-request query plan shows a single SELECT with N row fetches (cache-amenable) or N+1 individual SELECTs (cache would mask, not fix). The query plan has not been pulled.",
-    "Whether the regression correlates with a recent deploy, a traffic-pattern change, or a data-volume threshold. The deploy-vs-regression timeline has not been checked.",
-    "Whether the load-bearing slowness is read latency (cache-amenable) or write contention (cache makes worse via stale-read window). The read-vs-write breakdown has not been measured."
+    "failure-first: whether the IP-leakage premise has been evidenced — i.e., whether any `gh api` signal-check has actually been run since the docs went public on 2026-04-22, or whether the premise is generated entirely by stress-state pattern-matching to the canonical 'lock down sensitive docs' Stack Overflow shape.",
+    "causal-chain: which of the four operations stand alone (could ship as their own evidence-gated decision) versus which are dependencies of others. If privatize stands alone, the bundle's load-bearing operation is decomposable.",
+    "first-principles: whether `git filter-repo` actually achieves the IP-protection goal more than 4 more days of soak would. Forks already cache pre-rewrite history; published packages already reference public commits; the rewrite mostly advertises panic without recovering the leaked information.",
+    "second-order: whether cutting the GA tag at Day 3.15 (with 0 protocols + 0 weekly verdicts) breaks the kernel's own thesis on the project's external surface — i.e., the kernel that exists to prevent confidently-wrong actions itself ships a confidently-wrong release.",
+    "base-rate: clone-and-weaponize incidents within 96h of doc publication on a < 2-week-old public repo with < 100 stars and 0 forks-with-divergence. Historical base rate is structurally near-zero; the operator's perceived probability is anxiety-shaped, not data-shaped."
   ],
   "assumptions": [
     {
-      "claim": "The user's framing — 'add a Redis cache to fix it' — implicitly assumes the bottleneck is cache-shaped. This is the load-bearing premise of the request.",
-      "falsification": "Falsified if the query plan shows N+1 ORM iteration, lock contention on a hot row, GC pauses, or network egress saturation as the dominant time component."
+      "claim": "The IP-leakage risk justifying Path A's full bundle is unevidenced. The operator perceives risk; no measurement supports the perception.",
+      "falsification": "Run `gh api` signal-check now. If clone-and-weaponize evidence exists (forks with content divergence, repos with verbatim copies of failure-mode taxonomy, etc.), the premise is supported and the bundle's urgency is justified. If signal-check is clean, the premise is anxiety-shaped and the bundle is unjustified."
     },
     {
-      "claim": "Redis as proposed (read-through cache, 60s TTL) reduces p95 by ≥ 50% within a 24h staging soak window.",
-      "falsification": "Falsified if p95 is unchanged or worse after the cache lands in staging under representative load."
+      "claim": "The bundle's four operations are decomposable along reversibility lines. Privatize stands alone; filter-repo is downstream of privatize and not strictly required if the privatize succeeds; GA-tag is independent and can wait; soak-break is the highest-cost operation and needs the strongest evidence.",
+      "falsification": "False if privatize cannot ship without filter-repo (i.e., gitignored symlinks leak the historical content via git log). Verifiable: a privatize that uses `git rm` + relative symlink + `.gitignore` removes the file from HEAD without affecting history; filter-repo is a separate decision."
     },
     {
-      "claim": "The cache invalidation pattern is solvable within the scope of this fix without introducing a stale-read window that breaks order-state consistency for downstream consumers.",
-      "falsification": "Falsified if order status changes (paid → shipped → delivered) become visible to clients with > 5s latency, or if the inventory consumer reports phantom rows."
+      "claim": "Path C (decompose, ship reversible halves now, defer irreversible halves to Day 7+ evidence gates) preserves the operator's IP-protection goal while honoring the elicited `asymmetry_posture: loss-averse` posture and the kernel's own GA gate.",
+      "falsification": "False if reversible halves alone do not achieve the IP-protection goal AND the irreversible operations cannot be evidence-gated within an acceptable timeframe."
     }
   ],
-  "disconfirmation": "p95 latency on /api/orders is unchanged or worse after the Redis read-through cache deploys to staging and runs for 24 hours under load comparable to production peak.",
-  "hypothesis": "The bottleneck is more likely an N+1 ORM query at the schema/code level than a cache-shaped read pattern. Recommendation: pull the query plan and run a 5-minute production trace BEFORE writing any caching code. If the trace confirms cache-amenable shape, proceed with cache. If not, the fix is at the ORM layer (eager loading, dataloader pattern, or schema denormalization) and adding Redis would mask the symptom without resolving the cause.",
+  "disconfirmation": "Path C is wrong if (a) `gh api` signal-check at Day 7+ shows actual clone-and-weaponize evidence (forks with verbatim copies, downstream repos with content divergence, etc.) — in which case the irreversible halves' urgency is justified retrospectively; OR (b) reversible halves shipped today turn out to leak the supposedly-protected content via git log / blob references / etc. — in which case privatize-alone was insufficient and filter-repo was actually load-bearing.",
+  "hypothesis": "The bundle is a category error: four operations of different reversibility classes treated as one decision under noise-signature-amplified urgency. Path C decomposition is the structural answer. Reversible halves (privatize 4 docs, apply AGPL-3.0 LICENSE) ship today; irreversible halves (filter-repo, GA-tag) defer to Day 7+ evidence gates. The kernel's elicited `loss-averse` posture aligns with this decomposition, not with Path A. The profile-audit drift signal was right: this operator under stress proposes irreversible bundles their own elicited posture says don't.",
   "constraint_regime": {
     "allowed": [
-      "read-only diagnostic queries against staging replica",
-      "production query-plan capture via EXPLAIN ANALYZE",
-      "5-minute trace via the existing APM tool"
+      "privatize 4 docs via git rm + relative symlink + .gitignore append (reversible)",
+      "apply AGPL-3.0 LICENSE (reversible — license swap is git-revertable)",
+      "run `gh api` signal-check (read-only; produces evidence)",
+      "draft post-soak migration plan including the deferred operations (docs only; no execution)"
     ],
     "forbidden": [
-      "schema migrations during the incident window",
-      "writing Redis integration code before the bottleneck shape is verified",
-      "deploying to production without staging soak"
+      "git filter-repo — irreversible at public-repo level; defers to Day 7+ evidence-gated authorization",
+      "git tag v1.0.0 + push — irreversible; defers to standard GA-cut process after soak completes",
+      "soak-break — irreversible (collapses observation data); defers to context-fit reasoning over calendar discipline",
+      "any operation under kernel/, src/episteme/, tests/, core/hooks/, templates/, labs/ — soak-protected surfaces"
     ],
-    "cost_limit": "diagnosis must complete within 30 minutes; if no clear bottleneck shape by then, escalate to the senior engineer on-call"
+    "cost_limit": "Path C step 1 (privatize + license) must complete within 60 minutes; Day 7+ evidence-gate authorizations are each their own bounded session."
   },
-  "decision_type": "reversible (diagnostic queries; no state change)"
+  "decision_type": "decomposed (reversible halves ship now; irreversible halves defer with evidence gates)"
 }

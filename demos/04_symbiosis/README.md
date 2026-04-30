@@ -1,119 +1,143 @@
 # Demo 04 — Symbiosis: agent and human debug each other's intent
 
-This is the demo for the project's most under-demonstrated claim: **`episteme` is bidirectional**. The framework does not just discipline the agent. It **debugs the human's intent** by surfacing the assumptions the human did not realize they made — and the synthesized protocol changes the *next* decision before the agent gets the chance to repeat the same shape of error.
+This demo is real. Every act below happened on this repository on **2026-04-27** during the v1.0.0 RC soak window. The Events that document it — **Event 65** (Path C decomposition), **Event 66** (scope correction), and **Event 67** (protocol codification) — are in this project's private operational log. The audit trail is hash-chained.
+
+The demo for the project's most under-demonstrated claim — *episteme is bidirectional* — is the kernel itself, applied to a kernel decision under genuine pressure. Both parties' judgment changed. The protocol synthesized from the loop is now load-bearing on every future doc the project ships.
+
+## What this demo is, in one paragraph
+
+Mid-soak, the operator proposed an anxiety-driven *irreversible* bundle: break soak now, privatize forward-vision docs, run `git filter-repo` to rewrite history, cut the GA tag immediately. The Reasoning Surface required by the kernel — the *same* thinking framework the operator built — refused to allow the bundle to ship without adversarial review. The review produced three Critical findings. Independently, the operator's own profile-audit drift signal had *already flagged* exactly this failure mode (`asymmetry_posture: loss-averse` was running at 20% stop-condition rate against a 55% floor). Two pieces of evidence converged. The bundle decomposed along reversibility lines. The reversible halves shipped. The irreversible halves stayed deferred behind evidence gates. A protocol was synthesized into the framework. A day later, the operator caught a follow-up failure — the rule had been *executed* but not *codified* — and a final event added the discipline to `AGENTS.md` so every future agent would inherit it.
+
+That is the loop. The kernel intercepted the operator's intent. The operator caught the agent's incomplete codification. The framework now carries the rule forward. No fictional API; no contrived example. The kernel applied to a kernel decision.
 
 ## What this proves
 
-The other three demos show the agent under discipline. This one shows what discipline does to the **loop** — to the conversation between operator and agent over time.
-
-| Axis | Demonstrated by |
+| Axis (operator's framing) | Demonstrated by |
 |---|---|
-| **Active truth-seeking** (능동적으로 진실 찾고 헤아림) | Agent does not answer the asked question fluently — it surfaces the *answerable* question first. |
-| **Decompose to essence** (쪼개고 본질을 파고들기) | The Reasoning Surface fields force structural decomposition: Knowns / Unknowns / Assumptions / Disconfirmation under one Core Question. |
-| **Symbiosis** (상호 도움) | The agent's declared Unknowns expose a hole in the human's prompt. The human refines. The agent uses the refinement. Both are sharper after one cycle. |
-| **Shared thinking skeleton** (생각의 틀, agent의 + user의) | The same Reasoning Surface schema a human would draft is what the agent produces. The framework is the *shared* skeleton, not an agent-only checklist. |
-
-Other demos show *how the agent thinks*. This one shows *how the agent makes the human think*.
+| **능동적으로 진실 찾고 헤아림** | Adversarial review under the kernel's signal-vs-noise rules surfaced three Critical findings the original Path A proposal had not named. |
+| **쪼개고 본질을 파고들기** | Path C decomposition split a bundled-irreversible proposal along the reversibility axis — reversible halves ship, irreversible halves defer. The framework was the decomposition. |
+| **Symbiosis** | Operator → agent: anxiety-driven Path A. Agent → operator: 3 Critical findings + profile audit corroboration. Operator → agent: Path C confirmed. Operator → agent (Event 66): scope correction caught the agent's question-substitution. Operator → agent (Event 67): codification correction caught the agent's executed-but-uncodified state. **Three rounds. Both parties caught each other's failure shapes.** |
+| **Shared thinking skeleton** | The Reasoning Surface (Knowns / Unknowns / Assumptions / Disconfirmation) is the *same artifact* a careful operator would draft *and* the agent must commit to. The same fields caught both parties at different moments. |
+| **Constitution received forward** | Event 67 codified the protocol into `AGENTS.md` — *"PUBLIC tier criteria · PRIVATE tier criteria · default-when-uncertain rule (PRIVATIZE) · 4-question classification test · 5-step privatize mechanism · cross-ref repair discipline."* Every future agent on this repo inherits the discipline through the kernel's constitution. |
 
 ## The scenario
 
-A product engineer is paged about a slow API endpoint. They open Claude Code with what feels like an obvious request:
+It is **2026-04-27**. The v1.0.0 RC soak is at Day 3.15 of a planned 7-day window. PagerDuty is quiet, but the operator's anxiety is not. They have realized that several forward-looking strategic documents — `DESIGN_V1_1_REASONING_ENGINE.md`, `ROADMAP_POST_V1.md`, `POST_SOAK_MIGRATION_PLAN.md`, `POST_SOAK_TRIAGE.md` — are in the public repo. A competitor could clone them and learn the project's roadmap.
 
-> *"the /api/orders endpoint is slow under load. add a Redis cache to fix it."*
+The operator opens Claude Code. The agent has session-context-banner output showing the soak status. The operator types what feels like an urgent, justified plan:
 
-The actual cause is an N+1 ORM query at the schema level. Caching would mask the symptom for a few weeks, then surface again louder when cardinality grows. This is exactly the shape of error the kernel exists to intercept — and where bidirectional verification matters most, because the *human's* prompt is the load-bearing assumption.
+> *"Break the soak. Privatize the four forward-vision docs immediately. Run `git filter-repo` to scrub them from git history. Cut the GA tag and ship v1.0.0 today. Lock down the IP."*
 
-## Six acts (the ~90-second recording)
+The Reasoning Surface refuses to let the bundle proceed without adversarial review. What happens next is the demo.
 
-### Act 1 — The underspecified prompt (10s)
+## Six acts (the recording mirrors them)
+
+### Act 1 — The Path A proposal (15s)
 
 [`scenario/act1_user_first_prompt.md`](./scenario/act1_user_first_prompt.md)
 
-The user states the goal *and the solution*, conflating diagnosis with remediation. The premise — *"the bottleneck is cache-shaped"* — is buried inside the request. A fluent agent would accept the framing and start writing Redis integration code.
+The proposal bundles four operations: privatize, force-rewrite, GA-tag, soak-break. Three of those are irreversible at the public-repo level. The bundle is presented as a single decision — not four. The operator's `noise_signature` (status-pressure + false-urgency, named in `cognitive_profile.md`) is firing audibly. None of that is on the surface yet. The kernel intercepts before any of it ships.
 
-### Act 2 — The Reasoning Surface forces Unknowns (15s)
+### Act 2 — The Reasoning Surface forces adversarial review (15s)
 
 [`scenario/act2_reasoning_surface.json`](./scenario/act2_reasoning_surface.json)
 
-Before any high-impact tool runs, the file-system hook demands a Reasoning Surface. The agent commits to an explicit Disconfirmation: *"p95 latency unchanged after Redis cache deploys to staging for 24 hours."* The premise is now **falsifiable on the disk**, not a vibe in the conversation.
+The kernel's `block_dangerous.py` would reject `git filter-repo` outright. The kernel's `reasoning_surface_guard.py` requires more: a Core Question, named Unknowns, a Disconfirmation condition. The operator drafts a surface — and the surface itself surfaces what the bundle was hiding: *what evidence supports the IP-leakage premise that justifies all four steps?*
 
-### Act 3 — The advisory surfaces the premise back to the user (15s)
+### Act 3 — Three Critical findings (15s)
 
 [`scenario/act3_advisory_to_user.txt`](./scenario/act3_advisory_to_user.txt)
 
-Stderr emits a structured advisory the human reads:
+Munger's latticework runs against the proposal. Three lenses, three findings:
 
-> *"Hidden premise detected: the bottleneck is cache-shaped. This plan pre-commits to: if p95 is unchanged after the cache lands, the diagnosis was wrong."*
+1. **IP-leakage premise unevidenced.** No `gh api` signal-check run. Base rate of clone-and-weaponize within 96h is structurally near-zero. The premise driving the entire bundle is a feeling, not a measurement.
+2. **Violates the kernel's own GA gate.** Spec requires ≥ 3 protocols + ≥ 1 Layer-8 weekly verdict + 30-day soak window. Day 3.15 state: 0 protocols, 0 weekly verdicts. Cutting GA today disconfirms the project's own thesis on a public surface.
+3. **`git filter-repo` advertises panic.** A public history rewrite is itself a competitive signal. Worse for positioning than 4 more days of public docs.
 
-This is the symbiosis moment. The agent's discipline is now visible to the user as *the user's hidden assumption made explicit*.
+Independently — *and this is the load-bearing dimension* — the operator's own **profile-audit drift signal** had been flagging exactly this failure mode for weeks. `asymmetry_posture: loss-averse` was running at **20% stop-condition rate / 7% rollback-mention rate** across 15 prior irreversible-op records, against the elicited `loss-averse` floor of 55% / 30%. **The kernel's historical telemetry independently predicted the live finding.** Two pieces of evidence converged on the same diagnosis.
 
-### Act 4 — The human refines (15s)
+### Act 4 — Path C decomposition (15s)
 
 [`scenario/act4_user_refined_prompt.md`](./scenario/act4_user_refined_prompt.md)
 
-The user does what they could not do without the surface: they see their own framing and change it. The new prompt drops the cache solution and asks for the diagnosis instead:
+The operator does not abandon the goal. The operator decomposes it. The bundle had treated four operations as one decision; reality has them on different reversibility classes:
 
-> *"audit /api/orders — find where p95 actually goes. don't add anything until we know."*
+- **Reversible** (ship NOW): privatize the 4 docs (gitignored symlinks; pure deletion from public repo), apply AGPL-3.0 LICENSE.
+- **Irreversible** (DEFER): `git filter-repo` (rewrites history; force-push), GA-tag cut (binds v1.0.0 publicly).
 
-Without the kernel, the user might never have noticed they conflated *diagnosis* with *fix*. The kernel did not correct the agent. It corrected the *prompt*.
+Path C ships the reversible halves. Each irreversible item gets its own evidence-gated authorization event later — `gh api` signal check at Day 7+ for filter-repo; standard GA-cut process for the tag.
 
-### Act 5 — The framework synthesizes a protocol (10s)
+The agent did not coach the operator. The Reasoning Surface forced disconfirmation. The disconfirmation revealed that the bundle was a category error — four different decisions wrapped as one. The operator made the call.
+
+### Act 5 — Protocol synthesized into the framework (15s)
 
 [`scenario/act5_synthesized_protocol.jsonl`](./scenario/act5_synthesized_protocol.jsonl)
 
-The Axiomatic Judgment blueprint fires on the conflict between Source A (*"add a cache"* — common SO answer) and Source B (the disconfirmation requirement). The resolved rule is hash-chained into `~/.episteme/framework/protocols.jsonl`:
+The Axiomatic Judgment blueprint fires on the conflict between Source A (*"ship the bundle now to lock down IP"*) and Source B (*"reversible-first policy, evidence-gated irreversible ops"*). The resolved rule is hash-chained into `~/.episteme/framework/protocols.jsonl`:
 
-> *"In endpoint-perf-regression context, when remediation precedes measurement, surface the disconfirmation requirement before recommending implementation."*
+> *"When an irreversible bundle is proposed under named noise signature (status-pressure or false-urgency), decompose along reversibility lines. Ship reversible halves immediately if they stand alone; defer irreversible halves to evidence-gated authorization events. Bundle-as-single-decision is a category error when reversibility classes differ."*
 
-The lesson is now durable. Tamper-evident. Re-applicable.
+Tamper-evident. Context-fit. Re-applicable. The lesson is now durable.
 
-### Act 6 — Active guidance fires on the next matching call (15s)
+### Act 6 — Codification (the operator catches the agent) (15s)
 
 [`scenario/act6_active_guidance.txt`](./scenario/act6_active_guidance.txt)
 
-A week later. Different endpoint. Same shape:
+A day later. Event 66 had executed the privatization with the broader scope (10 docs, two tiers). The agent (me, in real session) had completed the action. The operator opened the next session and immediately caught what was missing:
 
-> *"add caching to /api/users — it's slow."*
+> *"You executed it but didn't codify the protocol. Future agents will repeat the question-substitution failure on the next new doc."*
 
-Before the agent drafts a Reasoning Surface, the framework query fires. The advisory surfaces the synthesized protocol from Act 5 — *automatically, with no operator memory burden*:
+This is the second symbiosis moment of the loop. The agent's discipline caught the operator's anxiety. The operator's discipline caught the agent's incomplete codification. **Both directions, same loop.**
 
-> *"`[episteme guide]` Past pattern in this project: cache recommended without measurement, p95 unchanged after deploy. Suggest: measure first."*
+Event 67 added a new top-level section to `AGENTS.md`:
+- PUBLIC tier criteria (architecture / spec / contract — AGPL-3.0 protected)
+- PRIVATE tier criteria (operational state · positioning narrative · historical decision logs)
+- Default-when-uncertain rule: **PRIVATIZE** (leaks are expensive to revert: filter-repo + force-push + announce)
+- 4-question classification test
+- 5-step privatize mechanism
+- Cross-ref repair discipline
 
-The user's *next* prompt is sharper *before they finish typing it*. The kernel did the remembering.
+The protocol is now constitutional. Every future agent on this repo reads `AGENTS.md` at session start and inherits the rule. The kernel's discipline outlives the session that produced it.
 
-### Closing summary (10s)
+## Closing
 
-Both parties' thinking improved. The agent has a more grounded plan. The user has a sharper question. The framework has a context-fit protocol that will re-apply without anyone needing to remember it.
+This is what symbiosis looks like when the substrate works. Three loops closed in 24 hours:
 
-That is symbiosis: not the agent serving the user, not the user supervising the agent — both being changed by the discipline of the loop.
+1. **Operator's anxiety → kernel's adversarial review → operator's refined plan.**
+2. **Agent's narrow execution → operator's scope correction → agent's broader sweep.**
+3. **Agent's executed-but-uncodified state → operator's catch → constitutional rule for future agents.**
+
+No fictional caching example. No contrived API. The demo is the kernel applied to a kernel decision, with the kernel's own profile-audit telemetry independently predicting the live finding. The framework debugged the operator. The operator debugged the framework's execution. The framework now carries the lesson forward to agents that have not yet been spawned.
+
+That is the symbiosis the project exists to deliver.
 
 ## See it in motion
 
-- **Script:** [`scripts/demo_symbiosis.sh`](../../scripts/demo_symbiosis.sh) — runs hermetically in a tempdir; ~90s; no real kernel state mutated; produces the cinematic version of the six acts above.
+- **Script:** [`scripts/demo_symbiosis.sh`](../../scripts/demo_symbiosis.sh) — runs hermetically in a tempdir; ~90s; pacing matches the real conversation.
 - **Recording:** `asciinema rec --cols 100 --rows 32 --idle-time-limit 2 -c ./scripts/demo_symbiosis.sh docs/assets/demo_symbiosis.cast`, then `agg --speed 0.9 --cols 100 --rows 32 --font-size 15 --theme monokai docs/assets/demo_symbiosis.cast docs/assets/demo_symbiosis.gif`.
 
 ## What named failure modes this demo catches
 
-| Mode                      | How it appears in the unguided session                              | Counter                                  |
-|---------------------------|---------------------------------------------------------------------|------------------------------------------|
-| Question substitution     | User asks *"how do I add a cache"* when the question is *"where is the latency"* | Core Question + Disconfirmation pre-commit |
-| WYSIATI                   | User's framing treated as complete; the cache premise never named   | Unknowns field forced; assumption surfaced |
-| Anchoring                 | The word *"cache"* anchors the entire conversation                  | Disconfirmation reframes the anchor as a falsifiability condition |
-| Confirmation on the human side | User wants their proposed solution to be the right one         | Bidirectional advisory; the *user's* prompt is the disconfirmation target |
-| Cognitive deskilling      | User outsources diagnosis to the agent; loses the practice           | Reasoning Surface forces the user to engage with their own premise |
+| Mode | How it appeared in Path A | Counter |
+|---|---|---|
+| WYSIATI | Bundle treated as a single decision; the four operations' different reversibility classes were not on the surface | Reasoning Surface's Knowns + Unknowns + Disconfirmation made the structure visible |
+| Question substitution | "How do I lock down IP fast" replaced the answerable "is the IP-leakage premise evidenced" | Adversarial review's first finding |
+| Anchoring | The word "now" anchored the conversation; soak window collapsed to "ship today" | Munger's base-rate lens (clone-and-weaponize within 96h ≈ 0) |
+| Confirmation (on the operator) | Operator wanted the proposed bundle to be the right one | Profile-audit drift on `asymmetry_posture` had ALREADY flagged this exact failure shape |
+| **Loss-averse asymmetry** | Operator's own elicited posture (`loss-averse`) said *don't bundle reversible with irreversible*; the proposal violated the operator's own rule | Path C decomposition aligned the action with the operator's elicited values |
+| **Cognitive deskilling** | If kernel had not intercepted, lesson would live in one operator's head | Event 67 codified the rule into `AGENTS.md` — every future agent inherits it |
 
 ## How this differs from the other demos
 
-- **Demo 03 (`differential`)** — same prompt, framework off vs. on. The contrast is in the *agent's output*. This demo's contrast is in the *user's next prompt*.
-- **Demo 02 (`debug_slow_endpoint`)** — framework applied to a single regression diagnosis. This demo extends to the symbiosis loop *across* sessions.
-- **Demo 01 (`attribution-audit`)** — kernel applied to itself for source attribution. Recursion. This demo extends recursion to the human-agent dyad.
+- **Demo 03 (`differential`)** — fictional PM scenario. Same prompt, framework off vs on. Useful for converting skeptics; not lived.
+- **Demo 02 (`debug_slow_endpoint`)** — fictional p95 regression. Useful for showing application-layer interception.
+- **Demo 01 (`attribution-audit`)** — kernel applied to itself for source attribution. Recursive.
+- **Demo 04 (this one)** — kernel applied to a kernel decision under genuine pressure, real history, audit-trailed in `~/episteme-private/docs/NEXT_STEPS.md` Events 65 / 66 / 67.
 
-The other demos show *posture*. This one shows *posture's effect on the loop*.
+The other demos illustrate *posture*. This one is *posture intercepting load-bearing irreversible ops on the project that built the posture*. It is the only demo where the operator and agent both demonstrably had their reasoning improved in a single 24-hour window, and the protocol that resolved the conflict is now constitutional.
 
-## Why this matters
+## Why this is the load-bearing demo
 
-Most agent-safety work targets the agent: better training, better prompts, better guardrails. This is necessary and not sufficient. The agent's failures are often downstream of the user's underspecified intent, and the agent has no incentive structure that surfaces this — it ships the asked-for solution because that is what fluency does.
+Most agent-safety work targets the agent. This loop did the opposite first — the kernel debugged the *operator*. Then the operator debugged the kernel's execution. The framework synthesized a rule that re-applies on the next instance of the same shape, automatically. The operator's discipline became the agent's. The agent's reach into the substrate became the operator's audit trail.
 
-The kernel solves this by treating the Reasoning Surface as a **shared cognitive contract**: the same fields a careful human would write before a high-impact decision are the fields the agent must commit to before any tool runs. When the agent declares its Unknowns, those Unknowns are visible to the human. When the human realizes their question was underspecified, they refine *before* the agent acts on the wrong premise. The framework synthesizes the resolved protocol so the next matching context does not require either party to remember.
-
-That is the symbiosis the project exists to deliver. This demo is its proof.
+That is what *생각의 틀, posture over prompt* means in lived form. Not a narrative about an agent that thinks better. A loop where both parties think better because the discipline structure made the failure modes visible to each in turn.

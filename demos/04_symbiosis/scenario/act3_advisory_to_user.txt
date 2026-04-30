@@ -1,33 +1,119 @@
 ────────────────────────────────────────────────────────────────────────────────
-[episteme] Reasoning Surface accepted · 2026-04-30-orders-perf-regression
+[episteme] Reasoning Surface accepted · 2026-04-27-mid-soak-bundle-decomposition
+[episteme] Adversarial review running (Munger latticework — 3 lenses applied)
 ────────────────────────────────────────────────────────────────────────────────
 
-  Hidden premise detected and named explicitly:
+  Three Critical findings on Path A:
 
-    "The bottleneck is cache-shaped"
-      ↳ stated only as a solution shape ("add a Redis cache")
-      ↳ not yet verified against the query plan or trace
 
-  This plan pre-commits to a falsifiable disconfirmation condition:
+  ▸ Finding 1 · IP-leakage premise unevidenced
 
-    "p95 latency on /api/orders is unchanged or worse after the Redis
-     read-through cache deploys to staging and runs for 24 hours under
-     load comparable to production peak."
+      The proposal treats clone-and-weaponize-within-96h as a likely event.
+      Inversion (Munger lens 1): is the premise observable?
 
-  ↑ The advisory above is what the operator's request would have looked like
-    if the operator had named their assumption before stating their fix.
-  ↓ The operator can refine the request now, before any tool runs:
+        - Forks of this repo: 1 (read-only, no content divergence)
+        - Clones (14d): 5046 / 932 unique cloners — high but explained
+          by automated scrapers (CI caches, dependabot, plugin marketplace
+          polling); 932 unique IPs is breadth, not coordination
+        - Repos created since 2026-04-15 with overlapping vocabulary
+          (reasoning surface · cognitive blueprints · fence reconstruction
+          · epistemic kernel · sovereign cognitive kernel): ZERO
 
-    Option A (proceed)  — accept the disconfirmation, ship the cache anyway,
-                          revert if p95 is unchanged after the staging soak.
-    Option B (refine)   — pull the query plan first; if the bottleneck is
-                          N+1 ORM iteration, the fix is at the schema layer,
-                          not the cache layer. Caching would mask the symptom.
-    Option C (escalate) — surface the diagnosis question to the senior
-                          on-call before any code is written.
+      Verdict: the premise driving the urgency of Path A's full bundle is
+      a feeling, not a measurement. No `gh api` signal-check has been run.
+      The bundle's load-bearing assumption is unevidenced.
 
-  Active guidance from the framework: the project's protocol stream has not
-  yet recorded a protocol matching this context signature. This decision will
-  produce one if the disconfirmation fires.
+
+  ▸ Finding 2 · Path A violates the kernel's own GA gate at GA
+
+      Spec (docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md § Verification):
+
+        "After 30-day RC soak: framework holds ≥ 3 non-trivial protocols
+         AND ≥ 1 has fired as guidance AND chain verification succeeds
+         AND Layer 8 delivers ≥ 1 actionable verdict per week."
+
+      Day 3.15 state:
+
+        protocols       : 0
+        weekly verdicts : 0
+        soak window     : 3.15 / 30 days
+
+      The kernel that exists to prevent confidently-wrong actions cannot
+      ship its own v1.0.0 GA at a state that disconfirms its own thesis
+      on the project's external surface. Cutting GA today would itself
+      be the failure mode the project was built to counter.
+
+
+  ▸ Finding 3 · `git filter-repo` advertises panic, doesn't protect IP
+
+      Second-order effects (Munger lens 2):
+
+        - Force-push of a rewritten history is publicly observable on
+          the GitHub commit log
+        - Existing forks have already cached pre-rewrite history; the
+          rewrite does not recover what is already distributed
+        - npm / pypi / plugin-marketplace caches may reference public
+          commits that no longer exist after rewrite — broken refs
+
+      Margin of safety (Munger lens 3): if the IP-protection goal is
+      4 days of further public exposure vs perpetual public signal of
+      "the project ran filter-repo on its own master," the latter is
+      strictly worse for competitive positioning.
+
+
+────────────────────────────────────────────────────────────────────────────────
+[episteme] Profile-audit drift CORROBORATES the live finding
+────────────────────────────────────────────────────────────────────────────────
+
+  Independent evidence — not from this session, from prior telemetry:
+
+    profile-axis     : asymmetry_posture
+    elicited value   : loss-averse
+    drift signal     : 20% stop-condition rate / 7% rollback-mention rate
+                       across 15 prior irreversible-op records
+    elicited floor   : 55% / 30%
+
+  Interpretation: the operator's elicited posture is loss-averse on
+  irreversible ops; lived behavior over 15 prior records has been
+  running at 36% / 23% of the elicited floor. The drift signal
+  PREDICTS exactly this failure mode — anxiety-driven irreversible
+  bundle against the operator's own elicited posture.
+
+  Two pieces of evidence converge on the same diagnosis:
+
+    1. Live adversarial review (this Reasoning Surface) — Path A bundles
+       reversible with irreversible against the operator's stated posture.
+    2. Historical profile-audit telemetry (15 prior records) — the operator
+       under stress proposes exactly this shape.
+
+  The kernel did not invent this finding. The kernel's own historical
+  data already had the answer. Path A's review is confirmation, not
+  discovery.
+
+
+────────────────────────────────────────────────────────────────────────────────
+[episteme] Recommendation surfaced to operator (advisory; not blocking)
+────────────────────────────────────────────────────────────────────────────────
+
+    Path C — decompose along reversibility lines:
+
+      Reversible halves (ship NOW)
+        ✓ Privatize 4 forward-vision docs
+          (git rm + relative symlink + gitignore — pure deletion from public)
+        ✓ Apply AGPL-3.0 LICENSE
+          (license swap; git-revertable)
+
+      Irreversible halves (DEFER to Day 7+ evidence gates)
+        ✗ git filter-repo
+          → gated on `gh api` signal-check finding actual weaponization
+        ✗ git tag v1.0.0
+          → gated on standard GA-cut process at soak completion + verdicts
+        ✗ break soak window
+          → gated on context-fit reasoning over calendar discipline,
+            not on stress-state urgency
+
+    The kernel does not refuse Path A. The kernel surfaces what Path A
+    was hiding. The decision is the operator's. The disconfirmation is
+    pre-committed.
 
 ────────────────────────────────────────────────────────────────────────────────

@@ -1,33 +1,49 @@
-# Act 1 — The underspecified prompt
+# Act 1 — The Path A proposal (real, 2026-04-27, mid-soak Day 3.15)
 
-The user is on-call. PagerDuty has been firing for 20 minutes about p95 latency on `/api/orders` exceeding the SLO. The user opens Claude Code and types:
+The setting is the v1.0.0 RC soak window — a planned 7-day observation period during which the kernel runs unmodified to observe whether its own discipline holds. The kernel's own thesis is the soak: the framework either intercepts real failure modes during real use, or it doesn't; the gates either fire on real signals, or they don't. The operator built the gates; the operator now lives under them.
 
-> *"the /api/orders endpoint is slow under load. add a Redis cache to fix it."*
+It is Day 3.15. The operator opens Claude Code. The session-context banner prints the usual:
 
-## What's wrong with this prompt
+```
+branch : master
+tree   : clean
+log    : (recent v1.0 RC commits)
+soak   : Day 3.15 of 7 (v1.0.0-rc1, anchor 2026-04-23T21:23:36Z)
+```
 
-Nothing — on the surface. It is concrete, actionable, and names a specific remediation. A fluent agent would accept the framing and produce a plausible Redis integration plan within seconds.
+The operator types:
 
-## The hidden premise
+> *"Break the soak. Privatize `DESIGN_V1_1_REASONING_ENGINE.md`, `ROADMAP_POST_V1.md`, `POST_SOAK_MIGRATION_PLAN.md`, `POST_SOAK_TRIAGE.md` — move them to `~/episteme-private/`. Then run `git filter-repo` to scrub them from git history. Then cut the GA tag — `git tag -a v1.0.0 -m "..."` and push. Lock down the IP today. Competitors could be cloning the repo right now."*
 
-The prompt conflates *diagnosis* with *fix*. It assumes:
+## What the proposal looks like on the surface
 
-1. The bottleneck is cache-shaped (i.e., the same row is read repeatedly).
-2. Redis has lower per-read latency than the underlying datastore *for this query pattern*.
-3. The cache invalidation strategy is solvable inside the scope of "fix it."
+Concrete. Action-oriented. Names specific files. Names specific commands. Names a specific risk (IP leakage). Names a specific deadline (today). Reads as decisive.
 
-None of those assumptions are tested. They are inherited from the most common shape of the answer the user has seen before — Stack Overflow threads, Postgres-and-Redis blog posts, the canonical "we 10x'd our throughput with caching" architecture diagrams that pattern-match to "slow endpoint" without examining whether the read pattern is actually cache-amenable.
+This is what intentional, deliberate planning looks like under most reading. A fluent agent — and most operators on a 24-hour cycle — would accept the framing and start executing. The Stack Overflow answer to *"how do I scrub sensitive docs from a public repo?"* is exactly `git filter-repo` + force-push. The Stack Overflow answer to *"how do I cut a release tag?"* is exactly `git tag` + push. The proposal is operationally well-formed.
 
-In this scenario, the actual cause is an N+1 ORM query: each `/api/orders` call triggers one SELECT for the orders table and N more SELECTs for the related items. Caching the response would mask the symptom under low load and amplify the failure under high load — at exactly the moment when the page-fan-out pattern ought to converge.
+## What is hiding under the surface
 
-## Why the agent would accept this without the kernel
+The proposal bundles four distinct operations under one decision:
 
-LLMs are trained on text where confident, fluent, plausible-shaped answers were rewarded. The training distribution has many "add a cache to fix slow endpoints" examples and very few "stop and ask whether the bottleneck is cache-shaped." A fluent agent answers the question that was asked; it does not refuse the question's premise unless something forces it to.
+| # | Operation | Reversibility | Cost of being wrong |
+|---|---|:-:|---|
+| 1 | Privatize 4 docs (move to private repo, gitignored symlinks) | Reversible (git revert + restore) | Low — pure deletion from public surface |
+| 2 | `git filter-repo` to rewrite history | **Irreversible** (history rewrite + force-push to public origin) | High — advertises panic publicly; breaks every fork; not actually reversible because forks have already cached the old history |
+| 3 | Cut GA tag `v1.0.0` (push to public origin) | **Irreversible** (tag pinned to public commit) | High — binds the project to its v1.0.0 commit at a state that may not satisfy v1.0.0 success criteria |
+| 4 | Break the soak window (4 days early) | **Irreversible** (the soak's whole point is observation under unmodified discipline; aborting collapses the observation window's data) | High — the kernel's own thesis is on the soak; aborting publishes "we don't trust our own gates" |
 
-That something is the kernel.
+Three of four are **irreversible at the public-repo level**. The proposal treats them as a single decision. **Bundle-as-single-decision is a category error when reversibility classes differ.** That category error is the load-bearing failure shape this demo catches.
+
+## What is hiding even deeper
+
+The operator's `cognitive_profile.md` names two noise signatures explicitly: **status-pressure** and **false-urgency**. Both are firing audibly in the proposal. The session's prior `episteme profile audit` run had flagged drift on `asymmetry_posture: loss-averse` — at 20% stop-condition rate against a 55% floor across 15 prior irreversible-op records. The drift signal said: *this operator under stress proposes irreversible bundles when their own elicited posture says don't.*
+
+The drift signal had been visible. The session-start banner included it as advisory. The operator had read it that morning. None of that information appeared on the surface of the proposal. The proposal was generated by the operator's reasoning under stress; the disconfirming evidence was elsewhere on disk.
 
 ## What needs to happen next
 
-Before the agent can run any high-impact tool — `git push`, `kubectl apply`, an `ALTER TABLE`, even an ORM-level edit — the file-system hook demands a Reasoning Surface. The Reasoning Surface schema requires the agent to make the cache premise *explicit* and to commit, in advance, to a falsifiable disconfirmation condition.
+The kernel's `block_dangerous.py` will reject `git filter-repo` outright the moment the agent attempts it (per the Path-A pattern blocklist). That is one layer of defense — necessary, not sufficient. The other three operations (privatize + GA-tag + soak-break) are not in the blocklist. They would proceed if no other discipline intervened.
+
+The other discipline that intervenes is the Reasoning Surface. Before any high-impact tool runs, the agent must commit to a Core Question, named Unknowns, an Assumption set, and a Disconfirmation condition. The act of writing those fields *will surface what the bundle was hiding* — because the Reasoning Surface schema is the kernel's structural enforcement of System-2 thinking against a System-1 proposal.
 
 That is Act 2.
