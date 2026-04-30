@@ -105,6 +105,18 @@
 
 ---
 
+## Cognitive Arms — v1.1+
+
+위의 네 Blueprint와 세 Pillar — Cognitive Blueprints · Append-Only Hash Chain · Framework Synthesis & Active Guidance — 는 v1.0의 *변하지 않는 구조적 기반*이다. Pillar는 움직이지 않는다. v1.1은 그 위에서 동작하는 **3 Cognitive Arms**를 더한다 — 시간이 흐르면서 커널 자신의 지식을 재구성하는 유체적·능동적 엔진들이다.
+
+- **Arm A · Temporal Integrity** — 프로토콜은 부패한다. 운영자가 확인한 retire가 낡은 규칙을 조용히 덮어쓰지 않고 supersede한다. 검증 윈도우: CP-DECAY-03 이후 30일.
+- **Arm B · Causal Synthesis** — deferred-discovery 스트림에 대한 zero-LLM 엔티티 추출이 프레임워크가 작동할 수 있는 클러스터 제안을 만들어낸다. 검증 윈도우: 60일.
+- **Arm C · Self-Consistency Convergence** — 프로토콜이 disconfirmation을 구조적으로 도출하는 모델로 승격된다. 검증 윈도우: 90일.
+
+이 구분은 하중을 지탱한다 — Pillar는 정착된 어휘이고, Arm은 시스템이 자기 출력을 시간을 건너 감사하고 다듬는 방식이다. 상태: **v1.1.0-rc1이 2026-04-29에 cut되었다**. Arm A 기반(supersede-with-history 인프라 + operator profile / policy 편집을 chain stream에 자동 기록하는 hook)이 출하되었으며, Arm A 부패 검증 메커니즘 · Arm B · Arm C는 v1.1.0 GA → v1.2로 스코프되었다.
+
+---
+
 ## 빠른 시작
 
 ### 옵션 A — Claude Code 플러그인 마켓플레이스로 설치

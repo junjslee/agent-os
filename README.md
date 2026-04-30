@@ -93,7 +93,7 @@ This is the difference between a prompt reminder and a compiler: one asks nicely
 
 `episteme` is **not just a blocker**. The framework's real job is to turn every conflict it resolves into durable know-how that the agent re-applies automatically at the next matching decision.
 
-Here is the loop (v1.0 RC shipped · CP1–CP10 · 565 / 565 green — see [`docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`](./docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md)):
+Here is the loop (v1.0.0 GA shipped · CP1–CP10 · 565 / 565 green; **v1.1.0-rc1 cut 2026-04-29** · 766 / 766 + 21 subtests green — see [`docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md`](./docs/DESIGN_V1_0_SEMANTIC_GOVERNANCE.md)):
 
 1. **Detect conflict.** The agent encounters two valid-looking but incompatible approaches for a context it hasn't fully resolved before.
 2. **Decompose, don't average.** The Thinking Framework refuses the "average" answer. It forces the agent to extract *why* the sources conflict and which feature of the context tips the decision.
@@ -413,6 +413,18 @@ graph TD
 Four subgraphs, one lifecycle. **Doxa** (red) — fluent-but-unvalidated output or a hard block — is the failure state the kernel exists to prevent. **Episteme** (green) — a validated Reasoning Surface — is the precondition for execution. **Praxis** (light green) — the admitted tool execution and its observed outcome. **결 · Gyeol** (blue) — the calibration loop that refines the framework across cycles, feeding back into the operator profile and the kernel constitution.
 
 **Works with any stack.** `episteme` operates independently of the LLM runtime — LangChain, CrewAI, Claude Code, Cursor, MCP. Kernel is pure markdown; operator profile is plain JSON; workflow loop is vendor-neutral. Adapter layer (Claude Code, Hermes, OMO/OMX) is pluggable.
+
+### Cognitive Arms — v1.1+
+
+The four blueprints (above) and three pillars — Cognitive Blueprints · Append-Only Hash Chain · Framework Synthesis & Active Guidance — are the v1.0 *unchanging structural foundation*. Pillars do not move. v1.1 adds **3 Cognitive Arms** operating on top: fluid active engines that refactor the kernel's own knowledge over time.
+
+- **Arm A · Temporal Integrity** — protocols decay. Operator-confirmed retirement supersedes a stale rule rather than silently overwriting it. Verification window: 30 days post-CP-DECAY-03.
+- **Arm B · Causal Synthesis** — zero-LLM entity extraction over the deferred-discovery stream produces cluster proposals the framework can act on. Verification window: 60 days.
+- **Arm C · Self-Consistency Convergence** — protocols promote to models that derive disconfirmations structurally. Verification window: 90 days.
+
+The distinction is load-bearing — pillars are settled vocabulary; arms are how the system audits and refines its own outputs across time. Status: **v1.1.0-rc1 cut 2026-04-29** with Arm A substrate shipped (supersede-with-history infrastructure + auto-instrumentation hooks that record operator profile + policy edits to chain streams). Arm A decay-verification mechanism, Arm B, and Arm C are scoped for v1.1.0 GA → v1.2.
+
+---
 
 ### The kernel files
 

@@ -77,6 +77,18 @@
 
 ---
 
+## Cognitive Arms — v1.1+
+
+上述四个 Blueprint 和三个 Pillar — Cognitive Blueprints · Append-Only Hash Chain · Framework Synthesis & Active Guidance — 是 v1.0 *不变的结构基础*。Pillar 不会移动。v1.1 在其之上加入了 **3 Cognitive Arms**：随着时间推移、不断重构 kernel 自身知识的流动型主动引擎。
+
+- **Arm A · Temporal Integrity** — 协议会衰退。经操作员确认的 retire 会 supersede 一条陈旧规则，而不是静默覆盖它。验证窗口：CP-DECAY-03 之后 30 天。
+- **Arm B · Causal Synthesis** — 对 deferred-discovery 流进行零-LLM 实体抽取，产生 framework 可以据此行动的聚类提案。验证窗口：60 天。
+- **Arm C · Self-Consistency Convergence** — 协议升级为以结构化方式推导 disconfirmation 的模型。验证窗口：90 天。
+
+这个区分承载结构性意义 — Pillar 是已沉淀的术语，Arm 是系统跨越时间审计和打磨自己输出的方式。状态：**v1.1.0-rc1 于 2026-04-29 切出**，Arm A 基础设施已交付（supersede-with-history 基础设施 + 将 operator profile / policy 编辑自动记录到 chain stream 的 hook）；Arm A 衰退验证机制、Arm B、Arm C 已 scope 到 v1.1.0 GA → v1.2。
+
+---
+
 ## 快速开始
 
 ### 方式 A — Claude Code 插件市场

@@ -77,6 +77,18 @@ El resultado: **un Thinking Framework específico de tu proyecto que se acumula*
 
 ---
 
+## Cognitive Arms — v1.1+
+
+Los cuatro Blueprints (arriba) y los tres Pillars — Cognitive Blueprints · Append-Only Hash Chain · Framework Synthesis & Active Guidance — son la *base estructural inmóvil* de v1.0. Los Pillars no se mueven. v1.1 añade **3 Cognitive Arms** que operan encima: motores activos y fluidos que refactorizan el propio conocimiento del kernel a lo largo del tiempo.
+
+- **Arm A · Temporal Integrity** — los protocolos decaen. El retiro confirmado por el operador supersede una regla obsoleta en lugar de sobrescribirla silenciosamente. Ventana de verificación: 30 días después de CP-DECAY-03.
+- **Arm B · Causal Synthesis** — extracción de entidades sin LLM sobre el stream de deferred-discovery produce propuestas de clúster sobre las que el framework puede actuar. Ventana de verificación: 60 días.
+- **Arm C · Self-Consistency Convergence** — los protocolos se promueven a modelos que derivan disconfirmaciones estructuralmente. Ventana de verificación: 90 días.
+
+La distinción es estructural — los Pillars son vocabulario asentado; los Arms son cómo el sistema audita y refina sus propias salidas a lo largo del tiempo. Estado: **v1.1.0-rc1 cortado el 2026-04-29** con el sustrato de Arm A enviado (infraestructura supersede-with-history + hooks de auto-instrumentación que registran ediciones de perfil de operador y de policy a streams de cadena). El mecanismo de verificación de decaimiento de Arm A, Arm B y Arm C están scopeados para v1.1.0 GA → v1.2.
+
+---
+
 ## Inicio rápido
 
 ### Opción A — Plugin de Claude Code

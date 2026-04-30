@@ -37,10 +37,10 @@ export function Hero() {
                   <span className="absolute inline-flex h-full w-full rounded-full bg-chain opacity-75 status-pulse" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-chain" />
                 </span>
-                substrate · v1.0 rc
+                substrate · v1.1.0-rc1
               </SignalBadge>
               <span className="font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-muted">
-                causal-consequence scaffolding & protocol synthesis
+                causal-consequence scaffolding · protocol synthesis · temporal integrity
               </span>
             </div>
 
@@ -111,7 +111,7 @@ export function Hero() {
               {[
                 { k: "pillars", v: "03" },
                 { k: "blueprints", v: "04" },
-                { k: "tests green", v: "565 / 565" },
+                { k: "tests green", v: "766 / 766 + 21" },
                 { k: "protocols synthesized", v: "live" },
               ].map((m) => (
                 <div key={m.k} className="flex flex-col gap-1">

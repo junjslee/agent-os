@@ -5,7 +5,7 @@ const pillars = [
     n: "01",
     name: "Cognitive Blueprints",
     promise: "Forcing functions, not policies.",
-    body: "Four named blueprints (Fence, Consequence-Chain, Kernel-Adjacent, Architectural-Cascade) intercept writes at the exact point where patterns of confident-wrongness historically emerge. Each blueprint has a validator, a fallback, and a dogfood test — the kernel runs against itself before it runs against you.",
+    body: "Four named blueprints (Fence, Consequence-Chain, Axiomatic Judgment, Architectural-Cascade) intercept writes at the exact point where patterns of confident-wrongness historically emerge. Each blueprint has a validator, a fallback, and a dogfood test — the kernel runs against itself before it runs against you.",
   },
   {
     n: "02",
