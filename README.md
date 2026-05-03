@@ -213,16 +213,22 @@ The gap `episteme` fills: no other project syncs a *governed cognitive contract*
 
 ## Zero-trust execution
 
-The OWASP Agentic AI Top 10 identifies prompt injection, goal hijacking, overreach, and unbounded action as the primary risk classes for autonomous agents. The Knowns / Unknowns / Assumptions / Disconfirmation structure is a structural counter to each:
+The [**OWASP Top 10 for Agentic Applications (2026)**](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — peer-reviewed by 100+ industry experts — identifies prompt injection, goal hijacking, overreach, memory poisoning, and unbounded action as the primary risk classes for autonomous agents. The Knowns / Unknowns / Assumptions / Disconfirmation structure is a structural counter to each:
 
-| OWASP Agentic Risk | episteme counter |
-|--------------------|------------------|
-| Prompt injection / goal hijacking | Core Question declared before execution begins; deviations surface as Unknowns |
+| OWASP Agentic Risk (2026) | episteme counter |
+|---------------------------|------------------|
+| Direct goal manipulation / prompt injection | Core Question declared before execution begins; deviations surface as Unknowns |
+| Indirect instruction injection | Knowns / Disconfirmation separate trusted state from prompt content; agent commits to a falsifiable outcome before acting on retrieved input |
 | Overreach / unbounded action | Constraint regime declared in Frame; reversible-first policy enforced |
 | Fluent hallucination | Unknowns field cannot be blank; assumptions must be named before acting on them |
+| Memory poisoning | Pillar 2 hash-chained protocols — append-only, tamper-evident; silent rewrites of prior state are detected by `verify_chain` |
 | Infinite planning loops | Disconfirmation condition required; loop exits when evidence fires |
 
 No assumption is trusted unless named. No action is taken unless the precondition (Knowns) and constraint regime are declared. The kernel is the verification layer between intent and execution.
+
+### Industry convergence — 2025–2026
+
+Major frameworks and academic papers in the same window converge on the same architectural patterns the kernel ships: file-system-level pre-invocation checkpoints ([Capsule Security ClawGuard](https://www.businesswire.com/news/home/20260415670902/), 2026), hash-chained tamper-evident memory ([SSGM](https://arxiv.org/abs/2603.11768) — Lam et al., 2026), reason-based alignment over rule-lists ([Anthropic's Claude Constitution](https://www.anthropic.com/constitution), 2026-01-22), five-phase cognitive loop with governance layer ([SCL R-CCAM](https://arxiv.org/abs/2511.17673) — Kim, 2025), and five-pillar agent integrity ([Proofpoint Agent Integrity Framework 2026](https://www.proofpoint.com/us/resources/white-papers/agent-integrity-framework)). The kernel predates these publications (CP1 shipped 2026-04-21; v1.0.0 GA 2026-04-28); the convergence is independent validation, not lineage. Full attribution map in [`kernel/REFERENCES.md`](./kernel/REFERENCES.md) under *Convergent contemporary work*.
 
 ---
 
