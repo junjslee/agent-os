@@ -269,10 +269,25 @@ class PairedHookTests(unittest.TestCase):
         import shutil
         shutil.rmtree(self.tmp_home, ignore_errors=True)
 
+    @unittest.skipUnless(
+        (_REPO_ROOT / "core" / "memory" / "global" / "operator_profile.md").is_file(),
+        "requires operator profile at core/memory/global/operator_profile.md "
+        "(gitignored — present in operator's local env, absent on CI runners). "
+        "Marker-write logic is covered by test_pre_hook_skips_unwatched_file + "
+        "ProfileAxisParserTests + ProfileDiffTests + AutoRecordedFlagTests; "
+        "this test verifies real-path resolution which only matters when the "
+        "real path actually exists.",
+    )
     def test_pre_hook_creates_marker_for_real_profile_path(self):
         """Pre hook called with the REAL canonical operator_profile.md
         path should write a marker. We can verify this without
-        actually editing the real file because the hook only reads."""
+        actually editing the real file because the hook only reads.
+
+        Event 104 — guarded by `skipUnless` so CI runners (where the
+        operator's profile is gitignored and absent) skip cleanly rather
+        than fail. Marker-write logic is covered by sibling tests; this
+        one specifically verifies real-path-resolution which requires
+        the real file."""
         real_profile = (
             _REPO_ROOT / "core" / "memory" / "global" / "operator_profile.md"
         ).resolve()

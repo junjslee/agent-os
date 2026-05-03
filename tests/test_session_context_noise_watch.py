@@ -169,12 +169,48 @@ class _IsolatedEpistemeHome:
         self._tmp.cleanup()
 
 
+class _TmpCwd:
+    """Chdir into a tmp dir for the duration of the test.
+
+    Event 104 — `sc.main()` reads cwd-relative paths (`docs/NEXT_STEPS.md`,
+    `HARNESS.md`, `.episteme/reasoning-surface.json`). When the test runs in
+    the operator's real repo cwd, those files exist and their contents are
+    appended to the captured banner — so a substring like `"noise watch:"`
+    appearing in `docs/NEXT_STEPS.md` prose (e.g. documenting the producer's
+    own banner format) leaks into the test output and breaks `assertNotIn`.
+
+    Chdir-isolation makes `Path('docs/NEXT_STEPS.md').exists()` return False
+    for the duration of the test, so the banner producer alone determines
+    whether the noise-watch line appears.
+    """
+    def __init__(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self._orig: str | None = None
+
+    def __enter__(self) -> Path:
+        self._orig = os.getcwd()
+        os.chdir(self._tmp.name)
+        return Path(self._tmp.name)
+
+    def __exit__(self, *a):  # noqa: ARG002
+        if self._orig is not None:
+            try:
+                os.chdir(self._orig)
+            except OSError:
+                pass
+        self._tmp.cleanup()
+
+
 class NoiseWatchMainIntegration(unittest.TestCase):
-    """End-to-end: main() emits the noise-watch line when the knob is set."""
+    """End-to-end: main() emits the noise-watch line when the knob is set.
+
+    Event 104 — wrapped in `_TmpCwd` so cwd-relative file reads (especially
+    `docs/NEXT_STEPS.md`) cannot pollute the captured banner with prose
+    substrings that incidentally match the noise-watch line format."""
 
     def test_main_includes_noise_watch_when_knob_set(self):
         import io
-        with _IsolatedEpistemeHome(), _TmpKnobs(
+        with _TmpCwd(), _IsolatedEpistemeHome(), _TmpKnobs(
             knobs={
                 "noise_watch_set": ["status-pressure", "false-urgency"],
             }
@@ -190,7 +226,7 @@ class NoiseWatchMainIntegration(unittest.TestCase):
 
     def test_main_silent_on_noise_watch_when_knob_absent(self):
         import io
-        with _IsolatedEpistemeHome(), _TmpKnobs(knobs=None):
+        with _TmpCwd(), _IsolatedEpistemeHome(), _TmpKnobs(knobs=None):
             buf = io.StringIO()
             with patch("sys.stdout", buf):
                 rc = sc.main()
