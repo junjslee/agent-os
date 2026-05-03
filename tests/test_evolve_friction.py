@@ -294,5 +294,189 @@ class FrictionAnalyzerTests(unittest.TestCase):
             self.assertNotIn("remote diverged since last pull sync", buf_neg.getvalue())
 
 
+class GrepLikeNoMatchFilterTests(unittest.TestCase):
+    """Event 103 — `_is_grep_like_no_match` filters benign exit=1 from
+    grep / diff / test / find / cmp out of the friction stream while
+    keeping (a) real failures from those tools at exit ≥ 2, and (b) any
+    non-zero exit from non-grep-class commands."""
+
+    def test_grep_no_match_exit_1_is_filtered_out(self):
+        with tempfile.TemporaryDirectory() as td:
+            tdir = Path(td)
+            _write_jsonl(
+                tdir / "2026-04-20-audit.jsonl",
+                [
+                    _pred(
+                        "g1", op="grep", cmd="grep needle haystack.txt",
+                        unknowns=["whether the pattern matches the file at all"],
+                        disc="pattern not present in file (exit code 1)",
+                        ts="2026-04-20T10:00:00+00:00",
+                    ),
+                    _out(
+                        "g1", exit_code=1,
+                        ts="2026-04-20T10:00:05+00:00",
+                        cmd="grep needle haystack.txt",
+                    ),
+                ],
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cli._evolve_friction(telemetry_dir=tdir)
+            self.assertEqual(rc, 0)
+            out = buf.getvalue()
+            self.assertIn(
+                "Friction events (exit_code ≠ 0 despite positive prediction): **0**",
+                out,
+            )
+            self.assertIn("No friction detected yet", out)
+
+    def test_grep_no_match_after_pipe_is_filtered(self):
+        """Most real-world friction was on `cmd1 && cmd2 | grep foo` shapes;
+        the terminal grep dictates the exit semantics."""
+        with tempfile.TemporaryDirectory() as td:
+            tdir = Path(td)
+            _write_jsonl(
+                tdir / "2026-04-20-audit.jsonl",
+                [
+                    _pred(
+                        "p1", op="status+grep",
+                        cmd='git status --short && git log --oneline | grep "foo"',
+                        unknowns=["whether the log mentions the foo token"],
+                        disc="log does not contain the token (grep exit 1)",
+                        ts="2026-04-20T10:00:00+00:00",
+                    ),
+                    _out(
+                        "p1", exit_code=1,
+                        ts="2026-04-20T10:00:05+00:00",
+                        cmd='git status --short && git log --oneline | grep "foo"',
+                    ),
+                ],
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cli._evolve_friction(telemetry_dir=tdir)
+            self.assertEqual(rc, 0)
+            self.assertIn(
+                "Friction events (exit_code ≠ 0 despite positive prediction): **0**",
+                buf.getvalue(),
+            )
+
+    def test_real_failure_exit_1_from_non_grep_stays_in_friction(self):
+        """`cargo publish` returning 1 is a real auth/registry failure —
+        the filter must NOT swallow it just because exit_code happens to be 1."""
+        with tempfile.TemporaryDirectory() as td:
+            tdir = Path(td)
+            _write_jsonl(
+                tdir / "2026-04-20-audit.jsonl",
+                [
+                    _pred(
+                        "r1", op="cargo publish", cmd="cargo publish --token X",
+                        unknowns=["whether the registry token is valid for this crate"],
+                        disc="cargo errors with 401 unauthorized or 403 forbidden",
+                        ts="2026-04-20T10:00:00+00:00",
+                    ),
+                    _out(
+                        "r1", exit_code=1,
+                        ts="2026-04-20T10:00:05+00:00",
+                        cmd="cargo publish --token X",
+                    ),
+                ],
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cli._evolve_friction(telemetry_dir=tdir)
+            self.assertEqual(rc, 0)
+            out = buf.getvalue()
+            self.assertIn(
+                "Friction events (exit_code ≠ 0 despite positive prediction): **1**",
+                out,
+            )
+            self.assertIn("cargo publish", out)
+
+    def test_grep_real_error_exit_2_stays_in_friction(self):
+        """`grep --invalid-flag` exits 2 — that IS an operational failure
+        and must be preserved (only literal exit==1 is treated as no-match)."""
+        with tempfile.TemporaryDirectory() as td:
+            tdir = Path(td)
+            _write_jsonl(
+                tdir / "2026-04-20-audit.jsonl",
+                [
+                    _pred(
+                        "e1", op="grep", cmd="grep --bogus-flag pattern file.txt",
+                        unknowns=["whether the flag is recognized by this grep build"],
+                        disc="grep rejects flag with usage error (exit 2)",
+                        ts="2026-04-20T10:00:00+00:00",
+                    ),
+                    _out(
+                        "e1", exit_code=2,
+                        ts="2026-04-20T10:00:05+00:00",
+                        cmd="grep --bogus-flag pattern file.txt",
+                    ),
+                ],
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cli._evolve_friction(telemetry_dir=tdir)
+            self.assertEqual(rc, 0)
+            self.assertIn(
+                "Friction events (exit_code ≠ 0 despite positive prediction): **1**",
+                buf.getvalue(),
+            )
+
+    def test_absolute_path_grep_is_recognized(self):
+        """`/usr/bin/grep` should resolve to `grep` after basename strip."""
+        with tempfile.TemporaryDirectory() as td:
+            tdir = Path(td)
+            _write_jsonl(
+                tdir / "2026-04-20-audit.jsonl",
+                [
+                    _pred(
+                        "a1", op="grep", cmd="/usr/bin/grep pat file.txt",
+                        unknowns=["whether the absolute-path invocation is filtered too"],
+                        disc="filter must recognize basename across path prefixes",
+                        ts="2026-04-20T10:00:00+00:00",
+                    ),
+                    _out(
+                        "a1", exit_code=1,
+                        ts="2026-04-20T10:00:05+00:00",
+                        cmd="/usr/bin/grep pat file.txt",
+                    ),
+                ],
+            )
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = cli._evolve_friction(telemetry_dir=tdir)
+            self.assertEqual(rc, 0)
+            self.assertIn(
+                "Friction events (exit_code ≠ 0 despite positive prediction): **0**",
+                buf.getvalue(),
+            )
+
+    def test_helper_function_unit_cases(self):
+        """Direct unit tests on `_is_grep_like_no_match` to nail the contract:
+        exit_code == 1 + grep-class terminal command → True; everything
+        else → False (conservative: keeps records when in doubt)."""
+        # Positive cases: exit=1 + grep-class terminal command.
+        self.assertTrue(cli._is_grep_like_no_match("grep foo bar", 1))
+        self.assertTrue(cli._is_grep_like_no_match("egrep -i foo bar", 1))
+        self.assertTrue(cli._is_grep_like_no_match("rg foo", 1))
+        self.assertTrue(cli._is_grep_like_no_match("diff a b", 1))
+        self.assertTrue(cli._is_grep_like_no_match("find . -name x", 1))
+        self.assertTrue(cli._is_grep_like_no_match("ls && grep foo bar.txt", 1))
+        self.assertTrue(cli._is_grep_like_no_match("a | b | grep z", 1))
+        self.assertTrue(cli._is_grep_like_no_match("/usr/local/bin/rg foo", 1))
+        # Negative cases: wrong exit code.
+        self.assertFalse(cli._is_grep_like_no_match("grep foo bar", 0))
+        self.assertFalse(cli._is_grep_like_no_match("grep foo bar", 2))
+        self.assertFalse(cli._is_grep_like_no_match("grep foo bar", 130))
+        # Negative cases: wrong terminal command.
+        self.assertFalse(cli._is_grep_like_no_match("git push", 1))
+        self.assertFalse(cli._is_grep_like_no_match("npm publish", 1))
+        self.assertFalse(cli._is_grep_like_no_match("cargo publish --token X", 1))
+        # Negative cases: empty / parse-ambiguous.
+        self.assertFalse(cli._is_grep_like_no_match("", 1))
+        self.assertFalse(cli._is_grep_like_no_match("   ", 1))
+
+
 if __name__ == "__main__":
     unittest.main()

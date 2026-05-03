@@ -603,6 +603,57 @@ def _telemetry_dir() -> Path:
     return Path.home() / ".episteme" / "telemetry"
 
 
+# Event 103 — commands whose `exit_code == 1` is a "no-match / not-found"
+# signal-by-design, not an operational failure. When the friction analyzer
+# treats every non-zero exit as friction, predictions paired with these
+# tools' benign exit=1 outcomes pollute the top-N rankings (observed at
+# 2026-05-03 diagnostic pass: all 4 reported friction events were `grep`
+# returning 1 from no-match in `git status && grep` patterns, not real
+# disconfirmation fires). Exit codes ≥ 2 from these tools indicate real
+# errors (invalid flag, regex parse failure, I/O fault) and are NOT
+# filtered — only the literal exit=1 no-match shape is.
+_GREP_LIKE_NOMATCH_COMMANDS = frozenset({
+    "grep", "egrep", "fgrep", "rg", "ag", "ack",
+    "diff", "cmp",
+    "find",
+    "test",
+})
+
+
+def _is_grep_like_no_match(cmd: str, exit_code: int) -> bool:
+    """True iff `exit_code == 1` AND the terminal command in the pipe /
+    sequence is in `_GREP_LIKE_NOMATCH_COMMANDS`. The terminal command is
+    the last segment after the rightmost `;`, `&&`, `||`, or `|`. A leading
+    path (`/usr/bin/grep`) is stripped to its basename before lookup.
+
+    Conservative by design: returns False on any of these — exit_code != 1,
+    empty cmd, parse-ambiguous shapes (quoted separators, complex shell).
+    A wrong-False keeps the record in friction (the historical behavior);
+    a wrong-True silently drops a real failure, so the asymmetry favors
+    keeping records when in doubt.
+    """
+    if exit_code != 1 or not cmd:
+        return False
+    # Find the rightmost separator and take everything after it.
+    last_segment = cmd
+    for sep in ("&&", "||", ";", "|"):
+        idx = last_segment.rfind(sep)
+        if idx >= 0:
+            last_segment = last_segment[idx + len(sep):]
+    last_segment = last_segment.strip()
+    if not last_segment:
+        return False
+    # First whitespace-delimited token is the command name; strip leading
+    # path components so `/usr/bin/grep` resolves to `grep`.
+    tokens = last_segment.split()
+    if not tokens:
+        return False
+    head = tokens[0]
+    if "/" in head:
+        head = head.rsplit("/", 1)[-1]
+    return head in _GREP_LIKE_NOMATCH_COMMANDS
+
+
 def _load_telemetry_pairs(
     telemetry_dir: Path,
 ) -> tuple[dict[str, dict], dict[str, dict]]:
@@ -676,6 +727,14 @@ def _render_friction_report(
             continue
         exit_code = out.get("exit_code")
         if not isinstance(exit_code, int) or exit_code == 0:
+            continue
+        # Event 103 — drop benign no-match outcomes (grep / diff / test /
+        # find returning exit=1 from a not-found result). These are not
+        # operational failures and previously polluted the top-N ranking.
+        cmd_for_filter = str(
+            pred.get("command_executed") or out.get("command_executed") or ""
+        )
+        if _is_grep_like_no_match(cmd_for_filter, exit_code):
             continue
         pred_env = pred.get("epistemic_prediction") or {}
         unknowns = pred_env.get("unknowns") or []
