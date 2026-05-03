@@ -170,38 +170,20 @@ export function PillarsArchitectureDiagram() {
               />
               <text
                 x={376}
-                y={y + 20}
+                y={y + 30}
                 className="fill-chain font-mono"
-                fontSize={10}
+                fontSize={12}
                 letterSpacing={1.2}
               >
                 {env.seq}
               </text>
               <text
                 x={376}
-                y={y + 38}
-                className="fill-ash font-mono"
-                fontSize={9}
-                letterSpacing={1.2}
-              >
-                PREV_HASH
-              </text>
-              <text
-                x={376}
-                y={y + 54}
+                y={y + 52}
                 className="fill-bone font-mono"
-                fontSize={9}
+                fontSize={10}
               >
-                payload · {env.payload}
-              </text>
-              <text
-                x={376}
-                y={y + 70}
-                className="fill-ash font-mono"
-                fontSize={9}
-                letterSpacing={1.2}
-              >
-                HASH
+                {env.payload}
               </text>
               {/* Inter-envelope chain link */}
               {i < ENVELOPES.length - 1 && (

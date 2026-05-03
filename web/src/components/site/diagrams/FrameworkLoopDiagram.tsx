@@ -90,11 +90,13 @@ export function FrameworkLoopDiagram() {
           const dx = x - 360;
           const dy = y - 270;
           const dist = Math.hypot(dx, dy);
-          const lx = x + (dx / dist) * 40;
-          const ly = y + (dy / dist) * 40;
-          // Notes positioned slightly further out, smaller font.
-          const nx = x + (dx / dist) * 56;
-          const ny = y + (dy / dist) * 56;
+          // Label sits closer to the node; note sits further out.
+          // Both offsets are PURELY radial — no axis-aligned offset that
+          // could collide with the label for top/bottom-positioned vertices.
+          const lx = x + (dx / dist) * 32;
+          const ly = y + (dy / dist) * 32;
+          const nx = x + (dx / dist) * 64;
+          const ny = y + (dy / dist) * 64;
           // Anchor based on quadrant.
           const anchor =
             Math.abs(dx) < 30 ? "middle" : dx > 0 ? "start" : "end";
@@ -144,7 +146,7 @@ export function FrameworkLoopDiagram() {
               {/* Stage note */}
               <text
                 x={nx}
-                y={ny + 14}
+                y={ny}
                 textAnchor={anchor}
                 className="fill-muted font-mono"
                 fontSize={9}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignalBadge } from "@/components/ui/SignalBadge";
 import { CornerMarkers } from "@/components/ui/CornerMarkers";
+import { FrameworkLoopDiagram } from "@/components/site/diagrams/FrameworkLoopDiagram";
 
 const HERO_WORDS = [
   "A",
@@ -103,9 +104,18 @@ export function Hero() {
             </div>
 
             <div
-              className="mt-4 grid grid-cols-2 gap-6 border-t border-hairline/70 pt-8 md:grid-cols-4 opacity-0"
+              className="mt-2 opacity-0"
               style={{
                 animation: "mask-word-rise 900ms var(--ease-enter) 1100ms forwards",
+              }}
+            >
+              <FrameworkLoopDiagram />
+            </div>
+
+            <div
+              className="mt-4 grid grid-cols-2 gap-6 border-t border-hairline/70 pt-8 md:grid-cols-4 opacity-0"
+              style={{
+                animation: "mask-word-rise 900ms var(--ease-enter) 1300ms forwards",
               }}
             >
               {[
