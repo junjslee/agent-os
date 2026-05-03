@@ -56,7 +56,7 @@ const ACTS: Act[] = [
     n: "03",
     title: "Three Critical findings — corroborated by historical telemetry",
     narration:
-      "Munger latticework runs: Inversion · Second-order effects · Margin of safety. Three findings emerge. Independently, the operator's own profile-audit drift on `asymmetry_posture: loss-averse` (running at 20% / 7% against a 55% / 30% floor across 15 prior records) had already predicted exactly this failure mode.",
+      "Munger latticework runs: Inversion · Second-order effects · Margin of safety. Three findings emerge. Independently, the operator's own behavioral telemetry — already flagging that recent decisions had drifted below the loss-averse floor the operator had committed to — had predicted exactly this failure mode.",
     artifact_kind: "advisory",
     artifact: `[episteme] Adversarial review — 3 Critical findings
 
@@ -73,8 +73,9 @@ const ACTS: Act[] = [
       The rewrite signals panic without recovering the leak.
 
 [profile audit] CORROBORATES — independent evidence
-  asymmetry_posture: loss-averse · drift 20% / 7% vs 55% / 30% floor
-  The kernel's historical telemetry already had the answer.`,
+  Recent decisions had drifted below the loss-averse floor
+  the operator had committed to. The kernel's behavioral
+  telemetry already had the answer.`,
   },
   {
     n: "04",
@@ -91,21 +92,22 @@ const ACTS: Act[] = [
     narration:
       "Axiomatic Judgment fires on the conflict between Source A (\"ship the bundle now\") and Source B (\"reversible-first + loss-averse posture\"). The resolved rule is hash-chained into the framework, tamper-evident, re-applicable.",
     artifact_kind: "protocol",
-    artifact: `~/.episteme/framework/protocols.jsonl  (cp7-chained-v1)
+    artifact: `Protocol synthesized — written to the tamper-evident chain.
 
-context_signature:
-  blueprint:        axiomatic_judgment
-  op_class:         irreversible-bundle-proposal
-  constraint_head:  privatize-and-rewrite-and-tag
-  runtime_marker:   mid-soak-window
+context where this rule applies:
+  blueprint:    Axiomatic Judgment
+  op class:     irreversible bundle proposal
+  trigger:      privatize + rewrite history + tag, all together
+  when:         mid-soak window
 
-selected_rule:
-  "When an irreversible bundle is proposed under named noise signature
-   (status-pressure or false-urgency), AND the operator's profile-audit
-   drift flags asymmetry_posture below its elicited floor, decompose the
-   bundle along reversibility lines BEFORE any operation runs."
+the rule:
+  "When an irreversible bundle is proposed under named noise
+   (status-pressure or false-urgency), AND behavioral telemetry
+   flags drift below the loss-averse floor, decompose the bundle
+   along reversibility lines BEFORE any operation runs."
 
-this_hash: b2e7a4f8c1d6e9b0a3c5d7e8f1b4c6a9d0e2f573`,
+next time this shape of decision appears, the kernel surfaces
+this rule before the agent defaults to its training distribution.`,
   },
   {
     n: "06",

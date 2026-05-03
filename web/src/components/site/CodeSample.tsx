@@ -21,7 +21,7 @@ const lines = [
   { t: "mut", v: "matching protocols from prior decisions" },
   { t: "out", v: "  · drop-check-without-call-graph-walk → block" },
   { t: "out", v: "  · widen-enum-without-downstream-audit → escalate" },
-  { t: "out", v: "  · null-on-constrained-column → fence-reconstruct first" },
+  { t: "out", v: "  · adding NULL to a constrained column → reconstruct the fence first" },
   { t: "out", v: "" },
   { t: "chain", v: "↳ surface committed · linked to prior decisions" },
 ];

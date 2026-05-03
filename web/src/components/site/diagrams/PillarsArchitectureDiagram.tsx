@@ -15,9 +15,9 @@ const BLUEPRINTS = [
 ];
 
 const ENVELOPES = [
-  { seq: "GENESIS", payload: "ø" },
-  { seq: "#001", payload: "blueprint-B-fired" },
-  { seq: "#002", payload: "cascade-resolved" },
+  { seq: "commit 001", payload: "feat: scaffold project" },
+  { seq: "commit 002", payload: "feat: add user login" },
+  { seq: "commit 003", payload: "fix: rate-limit edge case" },
 ];
 
 const GUIDANCE = [
