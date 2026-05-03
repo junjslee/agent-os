@@ -22,13 +22,21 @@
 
 ---
 
-## ¿Por qué los agentes de IA se equivocan con tanta confianza?
+## Por qué los prompts no son la verdad
 
-Martes, 11 de la noche. Le pides al agente que añada una columna soft-delete a la tabla `orders` — `deleted_at TIMESTAMP NULL`. Genera la migración. Las pruebas pasan. Mergeas.
+Le pides al agente: *"añade una columna soft-delete a la tabla orders."*
 
-Cuarenta horas después, 4 de la mañana, llaman al ingeniero de guardia. El servicio de envíos hace panic en cada reintento — un deserializador en Rust espera un match exhaustivo sobre `shipping_status` que *no incluye NULL*. El CHECK constraint que lo aplicaba fue modificado hace seis meses por un senior con una descripción de PR de una sola línea; el razonamiento vive en un hilo de Slack que nadie buscó. El agente no tenía razón para recorrer el call-graph de los consumidores downstream de `orders.*`. Tú no tenías razón para mencionarlo a las 11 PM.
+El agente trata tu prompt como la spec. Escribe la migración. Las pruebas pasan. Mergeas.
 
-Esto no es un *error* del agente. Es algo que el agente **estructuralmente no puede hacer**. Un modelo de lenguaje auto-regresivo es un motor de coincidencia de patrones, no un *modelo causal del mundo*. La pregunta *"¿esta respuesta encaja con este contexto específico?"* es un juicio causal, no una coincidencia de frecuencia de tokens. Como el modelo no puede hacerlo, recurre al siguiente mejor: **el promedio estadístico**. Fluido, seguro, y que no encaja con ningún contexto específico.
+El agente no hizo las preguntas que tú habrías hecho, si no estuvieras cansado:
+
+- **Qué (What)** está cambiando realmente? Añadir una columna NULL-able a una tabla cuya CHECK constraint excluye NULL — es estructuralmente una *relajación* de constraint, no solo una adición.
+- **Por qué (Why)** existe esa constraint? Hace seis meses un senior la añadió para proteger un servicio downstream que hace match exhaustivo sobre un enum. El razonamiento vive en un hilo de Slack que nadie buscó.
+- **Cómo (How)** va a fallar? El servicio downstream hará panic en la primera fila soft-deleted que llegue.
+
+Un agente naïve omite las tres preguntas porque el prompt no las pidió. `episteme` obliga al agente a escribirlas — en disco, antes de que la migración se ejecute. El acto de escribirlas expone lo que el prompt no pidió.
+
+Trabajo académico reciente llama a la brecha acumulada entre lo que el agente sabe en contexto, lo que tú pretendes, y lo que tu sistema realmente requiere **Epistemic Drift**. `episteme` cierra esa brecha exigiendo estructuralmente al agente que razone — *qué · por qué · cómo* — antes de actuar.
 
 `episteme` existe para cerrar ese vacío estructural.
 

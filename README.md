@@ -28,17 +28,21 @@
 
 ---
 
-## TL;DR
+## Why prompts aren't ground truth
 
-Modern AI agents are **incredibly capable** — they write production code, navigate entire repos, plan multi-step workflows. What they lack is **context-awareness** and a defensive mechanism for **drift from user's intent**.
+You ask the agent: *"add a soft-delete column to the orders table."*
 
-When two credible sources disagree — *Source A says do it this way, Source B says do it that way* — an auto-regressive engine cannot tell which answer fits **your** project, **your** team's constraints, **your** op-class's history. So it defaults to the statistically average answer: fluent, confident, and fit for no specific context.
+The agent treats your prompt as the spec. It writes the migration. Tests pass. You merge.
 
-Recent academic work calls this phenomenon **Epistemic Drift** — the cumulative divergence between (a) what the agent actually knows in context, (b) what the operator actually intends, and (c) what the artifact-level state of the system is, produced by repeated human-AI interaction without a verification layer. Drift is not a single error but a thousand small misalignments, each too small to detect alone, that together push the joint human-AI cognitive system off its target without anyone noticing the moment it happened.
+The agent didn't ask the questions you would have asked, if you weren't tired:
 
-`episteme` closes that gap. It is not a memory tool and not a prompt wrapper; it is a **socio-epistemic infrastructure** between you and your AI coding agent. Before any high-impact command runs, the agent is forced onto a four-field **Thinking Framework** on disk — **Knowns · Unknowns · Assumptions · Disconfirmation** — under a **Core Question**. Every conflict the framework resolves is extracted as a reusable protocol, committed to a tamper-evident knowledge base — a **technical provenance system** for agentic reasoning — and surfaced proactively at the next matching decision.
+- **What** is this change actually doing? Adding a NULL-able column to a table whose CHECK constraint excludes NULL — so it's structurally a constraint *relaxation*, not just an addition.
+- **Why** is the existing constraint there? Six months ago a senior added it to protect a downstream service that does an exhaustive enum match. The reason lives in a Slack thread no one searched.
+- **How** would this go wrong? The downstream service will panic on the first soft-deleted row that reaches it.
 
-Enforcement is **structural**, not advisory. Prompts can be skipped; a file-system hook that exits non-zero cannot.
+A naive agent skips all three questions because the prompt didn't ask them. `episteme` forces the agent to write them down — on disk, before the migration runs. The act of writing surfaces what the prompt didn't.
+
+Recent academic work calls the cumulative gap between what the agent knows in context, what you intended, and what your system actually requires **Epistemic Drift**. `episteme` closes that gap by structurally requiring the agent to reason — *what · why · how* — before it acts. Enforcement is **structural**, not advisory. Prompts can be skipped; a file-system hook that exits non-zero cannot.
 
 ---
 

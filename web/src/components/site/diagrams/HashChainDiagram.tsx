@@ -81,57 +81,48 @@ export function HashChainDiagram() {
               />
               <text
                 x={x + 12}
-                y={92}
+                y={96}
                 className="fill-chain font-mono"
-                fontSize={11}
+                fontSize={12}
                 letterSpacing={1.2}
               >
-                envelope · {env.seq}
-              </text>
-              <text
-                x={x + 12}
-                y={106}
-                className="fill-muted font-mono"
-                fontSize={9}
-                letterSpacing={1}
-              >
-                {env.label}
+                {env.seq}
               </text>
 
-              {/* prev_hash field */}
+              {/* previous field */}
               <line
                 x1={x + 12}
-                y1={120}
+                y1={114}
                 x2={x + 158}
-                y2={120}
+                y2={114}
                 stroke="currentColor"
                 strokeOpacity={0.3}
                 strokeWidth={1}
               />
               <text
                 x={x + 12}
-                y={138}
+                y={132}
                 className="fill-ash font-mono"
                 fontSize={9}
-                letterSpacing={1.4}
+                letterSpacing={1.2}
               >
-                PREV_HASH
+                previous
               </text>
               <text
                 x={x + 12}
-                y={152}
+                y={148}
                 className="fill-bone font-mono"
-                fontSize={10}
+                fontSize={11}
               >
                 {env.prev}
               </text>
 
-              {/* payload field */}
+              {/* change field */}
               <line
                 x1={x + 12}
-                y1={162}
+                y1={160}
                 x2={x + 158}
-                y2={162}
+                y2={160}
                 stroke="currentColor"
                 strokeOpacity={0.3}
                 strokeWidth={1}
@@ -141,43 +132,43 @@ export function HashChainDiagram() {
                 y={178}
                 className="fill-ash font-mono"
                 fontSize={9}
-                letterSpacing={1.4}
+                letterSpacing={1.2}
               >
-                PAYLOAD
+                change
               </text>
               <text
                 x={x + 12}
-                y={192}
+                y={193}
                 className="fill-bone font-mono"
                 fontSize={9}
               >
                 {env.payload}
               </text>
 
-              {/* hash field */}
+              {/* this id field */}
               <line
                 x1={x + 12}
-                y1={202}
+                y1={205}
                 x2={x + 158}
-                y2={202}
+                y2={205}
                 stroke="currentColor"
                 strokeOpacity={0.3}
                 strokeWidth={1}
               />
               <text
                 x={x + 12}
-                y={218}
+                y={223}
                 className="fill-ash font-mono"
                 fontSize={9}
-                letterSpacing={1.4}
+                letterSpacing={1.2}
               >
-                HASH
+                this id
               </text>
               <text
                 x={x + 12}
-                y={232}
+                y={236}
                 className="fill-bone font-mono"
-                fontSize={10}
+                fontSize={11}
               >
                 {env.hash}
               </text>
@@ -242,7 +233,7 @@ export function HashChainDiagram() {
             fontSize={11}
             letterSpacing={1.2}
           >
-            commit 002 · rewritten
+            commit 002 · TAMPERED
           </text>
           <text
             x={702}
@@ -251,22 +242,22 @@ export function HashChainDiagram() {
             fontSize={9}
             letterSpacing={1}
           >
-            tree silently changed
+            someone edited it after the fact
           </text>
           <text
             x={702}
-            y={138}
+            y={132}
             className="fill-ash font-mono"
             fontSize={9}
-            letterSpacing={1.4}
+            letterSpacing={1.2}
           >
-            EXPECTED PARENT
+            previous (expected)
           </text>
           <text
             x={702}
-            y={152}
+            y={148}
             className="fill-bone font-mono"
-            fontSize={10}
+            fontSize={11}
           >
             d471e8b
           </text>
@@ -275,34 +266,26 @@ export function HashChainDiagram() {
             y={178}
             className="fill-ash font-mono"
             fontSize={9}
-            letterSpacing={1.4}
+            letterSpacing={1.2}
           >
-            COMPUTED PARENT
+            previous (computed)
           </text>
           <text
             x={702}
-            y={192}
+            y={193}
             className="fill-disconfirm font-mono"
-            fontSize={10}
+            fontSize={11}
           >
             f02ad81
           </text>
           <text
             x={702}
-            y={218}
+            y={223}
             className="fill-disconfirm font-mono"
             fontSize={9}
-            letterSpacing={1.4}
+            letterSpacing={1.2}
           >
-            VERIFY · FAIL
-          </text>
-          <text
-            x={702}
-            y={232}
-            className="fill-muted font-mono"
-            fontSize={9}
-          >
-            history breaks · chain refuses
+            mismatch — chain refuses
           </text>
         </g>
 
@@ -315,7 +298,7 @@ export function HashChainDiagram() {
             fontSize={10}
             letterSpacing={2}
           >
-            APPEND-ONLY · PARENT-LINKED · LIKE GIT
+            EACH ENTRY POINTS TO THE PREVIOUS — LIKE GIT COMMITS
           </text>
           <text
             x={40}
@@ -323,7 +306,7 @@ export function HashChainDiagram() {
             className="fill-bone font-display"
             fontSize={20}
           >
-            Tamper-evident memory, not a log.
+            Memory you can&apos;t silently rewrite.
           </text>
         </g>
 
@@ -335,7 +318,7 @@ export function HashChainDiagram() {
           fontSize={10}
           letterSpacing={1.2}
         >
-          every commit names its parent. break one, break the rest.
+          each commit names its parent. change any one, the next no longer matches.
         </text>
       </svg>
       <figcaption className="mt-3 text-center font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted">
