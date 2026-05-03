@@ -38,11 +38,9 @@ Un agente naïve omite las tres preguntas porque el prompt no las pidió. `epist
 
 Trabajo académico reciente llama a la brecha acumulada entre lo que el agente sabe en contexto, lo que tú pretendes, y lo que tu sistema realmente requiere **Epistemic Drift**. `episteme` cierra esa brecha exigiendo estructuralmente al agente que razone — *qué · por qué · cómo* — antes de actuar.
 
-`episteme` existe para cerrar ese vacío estructural.
-
 ---
 
-## Por qué los prompts no resuelven esto
+## Por qué los prompts no son suficientes
 
 - Un recordatorio en el system prompt **vive solo una llamada**.
 - Una nota en `CLAUDE.md` **se ignora cuando llega el deadline** — tanto los humanos como los agentes lo hacen.
