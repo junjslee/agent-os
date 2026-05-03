@@ -175,7 +175,7 @@ export function PillarsArchitectureDiagram() {
                 fontSize={10}
                 letterSpacing={1.2}
               >
-                envelope · {env.seq}
+                {env.seq}
               </text>
               <text
                 x={376}
