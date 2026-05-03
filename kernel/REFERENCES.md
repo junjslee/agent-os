@@ -538,6 +538,151 @@ frame from which that work proceeds.
 
 ---
 
+# Convergent contemporary work — 2025–2026
+
+These are NOT lineage. They are external works whose architectural choices
+independently parallel the kernel's. The kernel's pillars and Reasoning
+Surface predate the publications below (CP1 shipped 2026-04-21; v1.0.0 GA
+2026-04-28). The pattern of convergence — multiple industry frameworks and
+academic papers in 2025–2026 arriving at intent-bound execution, hash-chained
+audit trails, pre-invocation checkpoints, and reason-based alignment — is
+itself evidence that the kernel's architectural choices track an emerging
+industry consensus rather than diverging from it.
+
+This section exists for two purposes: (1) Principle I (explicit attribution)
+when the kernel's marketing or README copy references these convergent
+frameworks; (2) external validation that the kernel's three-pillar
+architecture is part of a wider, peer-reviewed pattern.
+
+## Agentic AI threat taxonomy — OWASP Top 10 for Agentic Applications (2026)
+
+**OWASP Gen AI Security Project — *OWASP Top 10 for Agentic Applications*
+(2026). Peer-reviewed by 100+ industry experts. https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/**
+
+Validates the [Reasoning Surface](./REASONING_SURFACE.md) contract and the
+*Zero-trust execution* table in the project README.
+
+| OWASP threat                    | Kernel countermeasure                                        |
+|---------------------------------|--------------------------------------------------------------|
+| Direct Goal Manipulation        | Core Question field — agent commits intent before execution  |
+| Indirect Instruction Injection  | Knowns / Disconfirmation — surface separates trusted state from prompt content |
+| Memory Poisoning                | Pillar 2 hash-chained protocols — tamper-evident chain rejects silent rewrites |
+| Tool Misuse / Overreach         | PreToolUse Reasoning Surface guard — refuses high-impact ops without surface  |
+| Unbounded Action / Goal Drift   | Disconfirmation field — pre-committed observable that exits the loop          |
+
+The OWASP framework was published in 2026 as the kernel's CP10 was already
+shipped; concept overlap is convergent, not derivative.
+
+## Structured cognitive loop — R-CCAM five-phase architecture
+
+**Myung Ho Kim — *Bridging Symbolic Control and Neural Reasoning in LLM
+Agents: Structured Cognitive Loop with a Governance Layer* (2025).
+arXiv:2511.17673.**
+
+Validates the [workflow loop](../core/memory/global/workflow_policy.md)
+and the *Soft Symbolic Control* role assigned to the Reasoning Surface
+guard. SCL's five phases (Retrieval, Cognition, Control, Action, Memory) are
+structurally analogous to the kernel's Frame → Decompose → Execute → Verify
+→ Handoff. SCL's "Soft Symbolic Control" governance layer maps onto the
+kernel's PreToolUse hook layer: symbolic constraints applied to probabilistic
+inference while preserving neural reasoning flexibility.
+
+| SCL term                   | Kernel wording                                              |
+|----------------------------|-------------------------------------------------------------|
+| Retrieval / Cognition      | Frame (Knowns + Unknowns + Assumptions)                     |
+| Control                    | Decompose (constraint regime declaration)                   |
+| Action                     | Execute (admitted tool execution)                           |
+| Memory                     | Verify + Handoff (telemetry + persistence)                  |
+| Soft Symbolic Control      | Reasoning Surface guard at the PreToolUse boundary          |
+
+Kim's empirical validation reports zero policy violations and complete
+decision traceability — the same outcomes the kernel's CP3–CP10 chain is
+designed to produce.
+
+## Memory governance — Stability and Safety Governed Memory (SSGM)
+
+**Carmen Lam, Jiawei Li, Lei Zhang, Kai Zhao — *Governing Evolving Memory
+in LLM Agents: Risks, Mechanisms, and the SSGM Framework* (2026).
+arXiv:2603.11768.**
+
+Validates the [hash chain envelope](../core/hooks/_chain.py) and Cognitive
+Arm A — Temporal Integrity. SSGM prescribes consistency verification +
+temporal decay modeling + dynamic access control prior to memory
+consolidation; the kernel's Pillar 2 (`cp7-chained-v1` envelope) and Arm A
+(supersede-with-history) ship the same mechanism.
+
+| SSGM mechanism             | Kernel implementation                                       |
+|----------------------------|-------------------------------------------------------------|
+| Consistency verification   | `verify_chain` — SHA-256 walk with break-index reporting    |
+| Temporal decay modeling    | Arm A — protocol decay + operator-confirmed retirement      |
+| Dynamic access control     | PreToolUse vapor-verdict filter in `_guidance.query`        |
+| Decoupled memory evolution | Append-only chain — execution does NOT mutate prior records |
+
+Lam et al.'s framework was published as Arm A v1.1.0-rc1 was being cut;
+independent convergence on the same architectural choice.
+
+## Reason-based alignment — Anthropic's Claude Constitution (2026)
+
+**Anthropic — *Claude's Constitution* (published 2026-01-22).
+https://www.anthropic.com/constitution**
+
+Validates [CONSTITUTION.md](./CONSTITUTION.md) — the kernel's principle-first
+posture. Anthropic's 2026 constitution shifts from rule-based to reason-based
+alignment, providing the agent with the *logic behind* ethical principles
+rather than prescriptive behavior lists. The kernel's CONSTITUTION.md
+predates this and uses the identical posture: principles are stated with
+their reasons, and the reason is what the agent applies in novel situations.
+
+| Anthropic concept             | Kernel wording                                              |
+|-------------------------------|-------------------------------------------------------------|
+| Reason-based alignment        | "principles, not rules — the principle's reason is its load-bearing element" |
+| 4-tier priority (safety/ethics/compliance/helpfulness) | implicit in failure-mode counter ordering   |
+| Reflective revision           | Argyris–Schön double-loop (already cited under primary)     |
+
+Released under CC0 by Anthropic; cited here for completeness, not borrowed.
+
+## Pre-invocation checkpoint — Capsule Security ClawGuard (2026)
+
+**Capsule Security — *ClawGuard* open-source pre-invocation checkpoint
+(public release 2026-04-14). https://www.businesswire.com/news/home/20260415670902/**
+
+Validates [reasoning_surface_guard.py](../core/hooks/reasoning_surface_guard.py)
+— the same architectural pattern. ClawGuard adds a pre-invocation checkpoint
+to assess agent intent before tool calls execute; the kernel's PreToolUse
+Reasoning Surface guard does the same with a Knowns / Unknowns / Assumptions
+/ Disconfirmation contract instead of intent vectors.
+
+| Capsule concept             | Kernel wording                                                |
+|-----------------------------|---------------------------------------------------------------|
+| Pre-invocation checkpoint   | PreToolUse hook — refuses execution without valid surface     |
+| Intent assessment           | Core Question field — declares what the action is for         |
+| Runtime control             | exit-code 2 admission gate (vs. policy advisory log)          |
+
+Independent industry convergence on the file-system-level interception
+pattern.
+
+## Five-pillar agent integrity — Proofpoint AIF (2026 Edition)
+
+**Proofpoint — *The Agent Integrity Framework — 2026 Edition* (2026-03-16).
+https://www.proofpoint.com/us/resources/white-papers/agent-integrity-framework**
+
+Validates the kernel's three pillars + workflow lifecycle. Proofpoint's
+five pillars (Intent / Identity / Behavior / Transparency / Auditability)
+map onto the kernel's existing artifacts:
+
+| Proofpoint pillar           | Kernel correlate                                              |
+|-----------------------------|---------------------------------------------------------------|
+| Intent                      | Core Question field; Reasoning Surface contract               |
+| Identity                    | Operator profile + correlation_id stamping                    |
+| Behavior                    | Calibration telemetry — predicted vs observed exit_code       |
+| Transparency                | Hash-chained protocols — append-only, human-readable          |
+| Auditability                | Phase 12 audit + `episteme review` + verify-chain CLI         |
+
+Proofpoint's framework was published 2026-03-16 with the kernel's CP1–CP10
+already shipped; the alignment is convergent, not derivative.
+
+---
+
 # Secondary sources (adjacent, shape tone or single concepts)
 
 These inform the kernel's voice or contribute a specific phrase, but
