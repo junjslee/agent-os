@@ -1,30 +1,32 @@
 // Hash-chain envelope visualization.
-// Three envelopes side-by-side, each showing prev_hash / payload / hash.
-// A chain-link arrow flows hash(N) → prev_hash(N+1). A fourth envelope
-// renders in disconfirm-tone with a broken-link glyph to communicate
-// tamper-evidence: a corrupted past is unprovable to replay.
+// Universal example readers recognize: git's commit ancestry.
+// Each commit references the previous commit's SHA — same shape as
+// EPISTEME's protocol chain. The fourth envelope shows what tamper-
+// evidence catches: someone rewriting commit 002's tree silently
+// breaks the parent_sha reference from commit 003 — `git fsck` and
+// `verify_chain` both refuse to trust the chain past the break.
 
 const CHAIN = [
   {
-    seq: "GENESIS",
-    label: "boot",
-    prev: "0x00…00",
-    payload: "kernel-init",
-    hash: "0x9a3e…1b2c",
+    seq: "commit 001",
+    label: "initial commit",
+    prev: "—",
+    payload: "feat: scaffold project",
+    hash: "a83cf12",
   },
   {
-    seq: "#001",
-    label: "blueprint-B fired",
-    prev: "0x9a3e…1b2c",
-    payload: "fence-reconstruct · removal-evidence",
-    hash: "0x4f72…d8a1",
+    seq: "commit 002",
+    label: "feature ships",
+    prev: "a83cf12",
+    payload: "feat: add user login",
+    hash: "d471e8b",
   },
   {
-    seq: "#002",
-    label: "cascade resolved",
-    prev: "0x4f72…d8a1",
-    payload: "blast-radius=11 · sync-plan=clean",
-    hash: "0xb1c5…e740",
+    seq: "commit 003",
+    label: "fix lands",
+    prev: "d471e8b",
+    payload: "fix: rate-limit edge case",
+    hash: "9b2a3c0",
   },
 ];
 
@@ -240,7 +242,7 @@ export function HashChainDiagram() {
             fontSize={11}
             letterSpacing={1.2}
           >
-            tampered #002
+            commit 002 · rewritten
           </text>
           <text
             x={702}
@@ -249,7 +251,7 @@ export function HashChainDiagram() {
             fontSize={9}
             letterSpacing={1}
           >
-            payload silently rewritten
+            tree silently changed
           </text>
           <text
             x={702}
@@ -258,7 +260,7 @@ export function HashChainDiagram() {
             fontSize={9}
             letterSpacing={1.4}
           >
-            EXPECTED PREV_HASH
+            EXPECTED PARENT
           </text>
           <text
             x={702}
@@ -266,7 +268,7 @@ export function HashChainDiagram() {
             className="fill-bone font-mono"
             fontSize={10}
           >
-            0x4f72…d8a1
+            d471e8b
           </text>
           <text
             x={702}
@@ -275,7 +277,7 @@ export function HashChainDiagram() {
             fontSize={9}
             letterSpacing={1.4}
           >
-            COMPUTED PREV_HASH
+            COMPUTED PARENT
           </text>
           <text
             x={702}
@@ -283,7 +285,7 @@ export function HashChainDiagram() {
             className="fill-disconfirm font-mono"
             fontSize={10}
           >
-            0x88e0…ff3b
+            f02ad81
           </text>
           <text
             x={702}
@@ -300,7 +302,7 @@ export function HashChainDiagram() {
             className="fill-muted font-mono"
             fontSize={9}
           >
-            chain rejects · session boots fail-closed
+            history breaks · chain refuses
           </text>
         </g>
 
@@ -313,7 +315,7 @@ export function HashChainDiagram() {
             fontSize={10}
             letterSpacing={2}
           >
-            APPEND-ONLY · SHA-256-LINKED · cp7-chained-v1
+            APPEND-ONLY · PARENT-LINKED · LIKE GIT
           </text>
           <text
             x={40}
@@ -333,7 +335,7 @@ export function HashChainDiagram() {
           fontSize={10}
           letterSpacing={1.2}
         >
-          a corrupted past is not just noticed — it is unprovable to replay.
+          every commit names its parent. break one, break the rest.
         </text>
       </svg>
       <figcaption className="mt-3 text-center font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted">

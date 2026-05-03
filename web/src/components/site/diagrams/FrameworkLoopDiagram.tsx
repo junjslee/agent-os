@@ -4,19 +4,19 @@
 // inherits substrate-flip cleanly.
 
 const STAGES = [
-  { id: "frame", n: "01", label: "Frame", note: "core question · constraints" },
-  { id: "decompose", n: "02", label: "Decompose", note: "method · 2+ options" },
-  { id: "execute", n: "03", label: "Execute", note: "smallest reversible move" },
-  { id: "verify", n: "04", label: "Verify", note: "vs metric · not effort" },
-  { id: "handoff", n: "05", label: "Handoff", note: "auth docs · residuals" },
+  { id: "frame", n: "01", label: "Frame", note: "name the question" },
+  { id: "decompose", n: "02", label: "Decompose", note: "split, weigh options" },
+  { id: "execute", n: "03", label: "Execute", note: "reversible first" },
+  { id: "verify", n: "04", label: "Verify", note: "against metric" },
+  { id: "handoff", n: "05", label: "Handoff", note: "what's still open" },
 ];
 
 // Pentagon vertex positions (cx=300 cy=240 r=180; first vertex at top, then clockwise).
 function vertex(i: number): { x: number; y: number } {
   const angle = (Math.PI * 2 * i) / STAGES.length - Math.PI / 2;
   return {
-    x: 300 + 180 * Math.cos(angle),
-    y: 240 + 180 * Math.sin(angle),
+    x: 360 + 180 * Math.cos(angle),
+    y: 270 + 180 * Math.sin(angle),
   };
 }
 
@@ -26,7 +26,7 @@ export function FrameworkLoopDiagram() {
   return (
     <figure className="relative mx-auto w-full max-w-4xl">
       <svg
-        viewBox="0 0 600 480"
+        viewBox="0 0 720 540"
         role="img"
         aria-label="Five-stage framework loop: Frame, Decompose, Execute, Verify, Handoff — closing the OODA tempo"
         className="h-auto w-full text-line"
@@ -37,8 +37,8 @@ export function FrameworkLoopDiagram() {
           const mx = (p.x + next.x) / 2;
           const my = (p.y + next.y) / 2;
           // Push midpoint slightly outward from center to create gentle outward arc.
-          const dx = mx - 300;
-          const dy = my - 240;
+          const dx = mx - 360;
+          const dy = my - 270;
           const dist = Math.hypot(dx, dy);
           const ox = mx + (dx / dist) * 24;
           const oy = my + (dy / dist) * 24;
@@ -57,7 +57,7 @@ export function FrameworkLoopDiagram() {
         })}
 
         {/* Center caption */}
-        <g transform="translate(300 232)" textAnchor="middle">
+        <g transform="translate(360 262)" textAnchor="middle">
           <text
             className="fill-bone font-display"
             fontSize={18}
@@ -87,14 +87,14 @@ export function FrameworkLoopDiagram() {
         {STAGES.map((s, i) => {
           const { x, y } = points[i];
           // Node label position offset radially outward from center.
-          const dx = x - 300;
-          const dy = y - 240;
+          const dx = x - 360;
+          const dy = y - 270;
           const dist = Math.hypot(dx, dy);
-          const lx = x + (dx / dist) * 38;
-          const ly = y + (dy / dist) * 38;
+          const lx = x + (dx / dist) * 40;
+          const ly = y + (dy / dist) * 40;
           // Notes positioned slightly further out, smaller font.
-          const nx = x + (dx / dist) * 60;
-          const ny = y + (dy / dist) * 60;
+          const nx = x + (dx / dist) * 56;
+          const ny = y + (dy / dist) * 56;
           // Anchor based on quadrant.
           const anchor =
             Math.abs(dx) < 30 ? "middle" : dx > 0 ? "start" : "end";

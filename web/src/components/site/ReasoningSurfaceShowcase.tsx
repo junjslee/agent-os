@@ -48,11 +48,11 @@ const SAMPLES: Sample[] = [
       prompt:
         "Be thorough — lock down our IP fast. Privatize the docs, rewrite git history, ship GA, end the soak.",
       fails_because:
-        "‘Be thorough’ accepts the bundle as one ask. An LLM has no structural reason to ask ‘what reversibility class is each of these on?’ before executing — the prompt frames the four ops as a single decision and the agent obediently treats them that way.",
+        "An LLM satisfies ‘be thorough’ by sounding careful. Tone-of-voice instructions are unfalsifiable — the agent passes by writing ‘I have carefully considered…’ and proceeds. The bundle stays one decision. Reversibility class never gets named because the prompt provides no structural reason to name it.",
     },
     structural: {
       forces:
-        "Reasoning Surface refuses ‘disconfirmation: if issues arise.’ One falsifiable observable per sub-operation is required — at which point four operations no longer fit one observable, and the bundle structurally breaks into its reversibility classes.",
+        "In the kernel, thorough means *separately falsifiable*. The Reasoning Surface requires one pre-committed observable per discrete action — the specific event that would prove *that* op wrong, not the bundle as a whole. ‘If issues arise’ is rejected as a placeholder. Four ops cannot share one observable, so the bundle decomposes by force: irreversible ops separate from reversible, each earns its own evidence gate, and the reversible halves ship before the irreversible halves can be authorized.",
     },
     rs: {
       core_question:
@@ -142,18 +142,14 @@ export function ReasoningSurfaceShowcase() {
     >
       <div className="mb-10 grid grid-cols-1 gap-8 md:grid-cols-12">
         <h2 className="font-display text-[2rem] leading-[1.1] text-bone md:col-span-7 md:text-[2.75rem]">
-          Three places ‘be thorough’ fails as guidance.
+          ‘Be thorough’ is unfalsifiable.
           <br />
           <span className="text-ash">
-            And what the kernel forces in its place.
+            The kernel makes thoroughness measurable.
           </span>
         </h2>
         <p className="font-sans text-[0.9375rem] leading-relaxed text-ash md:col-span-5">
-          Tone-of-voice instructions — <em>be thorough</em>, <em>make no mistakes</em>, <em>don&apos;t break anything</em> — are
-          unfalsifiable. An LLM passes them by sounding careful. Each card below
-          shows the specific instruction a developer would type, the mechanism
-          by which it fails, and the structural counter the kernel forces
-          before any high-impact op runs.
+          Tone-of-voice instructions — <em>be thorough</em>, <em>make no mistakes</em>, <em>don&apos;t break anything</em> — pass by sounding careful. The kernel replaces them with a structural test: each action must commit, in advance, to the specific observable that would prove it wrong. Four operations need four observables; one observable for four ops fails the contract before any of them runs.
         </p>
       </div>
 

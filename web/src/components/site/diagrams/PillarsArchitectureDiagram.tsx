@@ -21,9 +21,9 @@ const ENVELOPES = [
 ];
 
 const GUIDANCE = [
-  { kind: "query", label: "PreToolUse · context-signature match" },
-  { kind: "advise", label: "stderr advisory · one per op" },
-  { kind: "digest", label: "SessionStart · synthesized protocols" },
+  { kind: "query", label: "match by context signature" },
+  { kind: "advise", label: "one advisory per high-impact op" },
+  { kind: "digest", label: "session-start synthesis digest" },
 ];
 
 export function PillarsArchitectureDiagram() {
@@ -119,22 +119,22 @@ export function PillarsArchitectureDiagram() {
 
         {/* Pillar 1 — Blueprint stack */}
         {BLUEPRINTS.map((b, i) => {
-          const y = 90 + i * 64;
+          const y = 90 + i * 60;
           return (
             <g key={b.tag}>
               <rect
-                x={50}
+                x={40}
                 y={y}
-                width={200}
-                height={48}
+                width={220}
+                height={44}
                 fill="var(--color-elevated)"
                 stroke="currentColor"
                 strokeWidth={1}
                 strokeOpacity={0.7}
               />
               <text
-                x={66}
-                y={y + 22}
+                x={56}
+                y={y + 28}
                 className="fill-chain font-mono"
                 fontSize={13}
                 letterSpacing={1.2}
@@ -142,21 +142,12 @@ export function PillarsArchitectureDiagram() {
                 {b.tag}
               </text>
               <text
-                x={88}
-                y={y + 22}
+                x={78}
+                y={y + 28}
                 className="fill-bone font-display"
                 fontSize={13}
               >
                 {b.name}
-              </text>
-              <text
-                x={66}
-                y={y + 38}
-                className="fill-muted font-mono"
-                fontSize={9}
-                letterSpacing={1.1}
-              >
-                blueprint-validator · fallback · dogfood
               </text>
             </g>
           );
@@ -164,22 +155,22 @@ export function PillarsArchitectureDiagram() {
 
         {/* Pillar 2 — Chained envelopes */}
         {ENVELOPES.map((env, i) => {
-          const y = 100 + i * 96;
+          const y = 100 + i * 100;
           return (
             <g key={env.seq}>
               <rect
-                x={370}
+                x={360}
                 y={y}
-                width={160}
-                height={64}
+                width={180}
+                height={76}
                 fill="var(--color-elevated)"
                 stroke="var(--color-chain)"
                 strokeWidth={1.2}
                 strokeOpacity={0.75}
               />
               <text
-                x={384}
-                y={y + 18}
+                x={376}
+                y={y + 20}
                 className="fill-chain font-mono"
                 fontSize={10}
                 letterSpacing={1.2}
@@ -187,36 +178,38 @@ export function PillarsArchitectureDiagram() {
                 envelope · {env.seq}
               </text>
               <text
-                x={384}
-                y={y + 36}
+                x={376}
+                y={y + 38}
                 className="fill-ash font-mono"
                 fontSize={9}
+                letterSpacing={1.2}
               >
-                prev_hash
+                PREV_HASH
               </text>
               <text
-                x={384}
-                y={y + 50}
+                x={376}
+                y={y + 54}
                 className="fill-bone font-mono"
                 fontSize={9}
               >
                 payload · {env.payload}
               </text>
               <text
-                x={384}
-                y={y + 60}
+                x={376}
+                y={y + 70}
                 className="fill-ash font-mono"
                 fontSize={9}
+                letterSpacing={1.2}
               >
-                hash
+                HASH
               </text>
               {/* Inter-envelope chain link */}
               {i < ENVELOPES.length - 1 && (
                 <line
                   x1={450}
-                  y1={y + 64}
+                  y1={y + 76}
                   x2={450}
-                  y2={y + 96}
+                  y2={y + 100}
                   stroke="var(--color-chain)"
                   strokeWidth={1.2}
                   strokeOpacity={0.55}
@@ -229,22 +222,22 @@ export function PillarsArchitectureDiagram() {
 
         {/* Pillar 3 — Guidance nodes */}
         {GUIDANCE.map((g, i) => {
-          const y = 100 + i * 96;
+          const y = 100 + i * 100;
           return (
             <g key={g.kind}>
               <rect
-                x={650}
+                x={640}
                 y={y}
-                width={200}
-                height={64}
+                width={220}
+                height={76}
                 fill="var(--color-elevated)"
                 stroke="currentColor"
                 strokeWidth={1}
                 strokeOpacity={0.7}
               />
               <text
-                x={666}
-                y={y + 22}
+                x={656}
+                y={y + 26}
                 className="fill-verified font-mono"
                 fontSize={10}
                 letterSpacing={1.2}
@@ -252,8 +245,8 @@ export function PillarsArchitectureDiagram() {
                 {g.kind}
               </text>
               <text
-                x={666}
-                y={y + 42}
+                x={656}
+                y={y + 50}
                 className="fill-bone font-mono"
                 fontSize={10}
               >

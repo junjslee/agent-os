@@ -24,9 +24,9 @@
 
 ## ¿Por qué los agentes de IA se equivocan con tanta confianza?
 
-Son las 11 de la noche. Le pides a tu agente de IA que arregle un bug de migración. La respuesta es fluida, segura, plausible — combina patrones de Stack Overflow con sintaxis de la documentación oficial de Postgres. Lo que no aparece en ninguna parte: la decisión que tu equipo tomó hace tres meses de que esa columna *nunca debe ser nullable*. El agente no la conocía. Tú tampoco lo recordabas a medianoche.
+Martes, 11 de la noche. Le pides al agente que añada una columna soft-delete a la tabla `orders` — `deleted_at TIMESTAMP NULL`. Genera la migración. Las pruebas pasan. Mergeas.
 
-A la mañana siguiente, 400.000 filas en producción tienen `NULL`.
+Cuarenta horas después, 4 de la mañana, llaman al ingeniero de guardia. El servicio de envíos hace panic en cada reintento — un deserializador en Rust espera un match exhaustivo sobre `shipping_status` que *no incluye NULL*. El CHECK constraint que lo aplicaba fue modificado hace seis meses por un senior con una descripción de PR de una sola línea; el razonamiento vive en un hilo de Slack que nadie buscó. El agente no tenía razón para recorrer el call-graph de los consumidores downstream de `orders.*`. Tú no tenías razón para mencionarlo a las 11 PM.
 
 Esto no es un *error* del agente. Es algo que el agente **estructuralmente no puede hacer**. Un modelo de lenguaje auto-regresivo es un motor de coincidencia de patrones, no un *modelo causal del mundo*. La pregunta *"¿esta respuesta encaja con este contexto específico?"* es un juicio causal, no una coincidencia de frecuencia de tokens. Como el modelo no puede hacerlo, recurre al siguiente mejor: **el promedio estadístico**. Fluido, seguro, y que no encaja con ningún contexto específico.
 
